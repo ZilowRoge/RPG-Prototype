@@ -12,8 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8790b2cd34a9d114889d625e40f5efac, type: 3}
   m_Name: PlayerStatistics
   m_EditorClassIdentifier: 
+  walkSpeed: 3
+  runSpeed: 6
   maxHealth: 100
   maxMana: 100
   maxStamina: 100
-  walkSpeed: 3
-  runSpeed: 6
+  baseStats:
+    stats:
+    - stat: 0
+      value: 0
+    - stat: 1
+      value: 0
+    - stat: 2
+      value: 0
+    - stat: 3
+      value: 0

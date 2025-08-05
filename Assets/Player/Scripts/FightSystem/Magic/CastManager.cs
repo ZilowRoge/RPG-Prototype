@@ -7,7 +7,6 @@ namespace Player.FightSystem.Magic {
         public SymbolDrawUI symbolDrawUI;
 
         private PlayerControlls controls;
-        private bool isDrawing = false;
         private Vector2 currentMousePosition;
 
         private void Awake() {
@@ -28,14 +27,12 @@ namespace Player.FightSystem.Magic {
 
         private void StartDrawing() {
             symbolDrawUI.gameObject.SetActive(true);
-            isDrawing = true;
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
 
         private void FinalizeDrawing() {
             symbolDrawUI.gameObject.SetActive(false);
-            isDrawing = false;
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
             symbolDrawUI.ClearTexture();

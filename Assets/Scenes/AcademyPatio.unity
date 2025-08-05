@@ -4089,6 +4089,7 @@ GameObject:
   - component: {fileID: 1419299018}
   - component: {fileID: 1419299016}
   - component: {fileID: 1419299020}
+  - component: {fileID: 1419299021}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -4177,7 +4178,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotationSpeed: 10
-  stats: {fileID: 0}
+  stats: {fileID: 1419299021}
 --- !u!143 &1419299017
 CharacterController:
   m_ObjectHideFlags: 0
@@ -4246,6 +4247,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   symbolDrawUI: {fileID: 239787806}
+--- !u!114 &1419299021
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1419299008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbe7ee7a121200b418a9481060e5f359, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  data: {fileID: 11400000, guid: cc1811ce3fe20ca4f971251294691f39, type: 2}
 --- !u!1001 &1435378555
 PrefabInstance:
   m_ObjectHideFlags: 0
