@@ -1,16 +1,20 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Barracuda;
 using Player.UI;
 
 namespace Player.FightSystem.Magic {
     public class CastManager : MonoBehaviour {
         public SymbolDrawUI symbolDrawUI;
+        public NNModel modelAsset;
 
         private PlayerControlls controls;
         private Vector2 currentMousePosition;
+        private SymbolRecognizer symbolRecognizer;
 
         private void Awake() {
             controls = new PlayerControlls();
+            symbolRecognizer = new SymbolRecognizer(modelAsset);
             symbolDrawUI.gameObject.SetActive(false);
             // LPM start
             controls.Player.AlternativeUse.started += ctx => {
@@ -35,6 +39,8 @@ namespace Player.FightSystem.Magic {
             symbolDrawUI.gameObject.SetActive(false);
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+            (int symbolId, float probability) = symbolRecognizer.GetSymbol(symbolDrawUI.GetNormalizedTexture64());
+            Debug.Log($"Predicted symbol: {symbolId} with probability {probability}");
             symbolDrawUI.ClearTexture();
         }
     }
