@@ -4247,6 +4247,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   symbolDrawUI: {fileID: 239787806}
+  modelAsset: {fileID: 5022602860645237092, guid: 2eb01b4376046754f83b63e5e6cfae5d, type: 3}
 --- !u!114 &1419299021
 MonoBehaviour:
   m_ObjectHideFlags: 0
