@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using Systems.SaveSystem.SaveData;
+using Systems.Statistics;
 
 namespace Systems.SaveSystem
 {
@@ -11,7 +12,6 @@ namespace Systems.SaveSystem
         public static SaveManager Instance {
             get; private set;
         }
-
 
         private string savePath;
         private GameData gameData = new GameData();
@@ -57,6 +57,9 @@ namespace Systems.SaveSystem
                 });
             }
             gameData.playerData.stats = statEntries;
+            gameData.playerData.level = stats.CurrentLevel;
+            gameData.playerData.experience = stats.CurrentExperience;
+            gameData.playerData.pendingStatPoints = stats.GetPendingPoints();
         }
 
         public void SaveGame()
@@ -91,6 +94,16 @@ namespace Systems.SaveSystem
             stats.SetHealth(gameData.playerData.currentHealth);
             stats.SetMana(gameData.playerData.currentMana);
             stats.SetStamina(gameData.playerData.currentStamina);
+            stats.SetLevel(gameData.playerData.level);
+            stats.SetExperience(gameData.playerData.experience);
+
+            var statList = new List<(EStatistics, int)>();
+            foreach (var statData in gameData.playerData.stats) {
+                if (Enum.TryParse(statData.key, out EStatistics stat)) {
+                    statList.Add((stat, statData.value));
+                }
+            }
+            stats.GetCurrentStats().SetStats(statList, gameData.playerData.pendingStatPoints);
         }
     }
 }

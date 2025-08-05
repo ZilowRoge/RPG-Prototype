@@ -6,31 +6,31 @@ namespace Player.Statistics
 {
     public class StatsController : MonoBehaviour, ISaveable
     {
-        [SerializeField] private StatsData data;
+        [SerializeField]
+        private StatsData data;
 
-        public float WalkSpeed => data != null ? data.walkSpeed : 0f;
-        public float RunSpeed => data != null ? data.runSpeed : 0f;
-        public float MaxHealth => data != null ? data.maxHealth : 0f;
-        public float MaxMana => data != null ? data.maxMana : 0f;
-        public float MaxStamina => data != null ? data.maxStamina : 0f;
+        public float WalkSpeed => data.walkSpeed;
+        public float RunSpeed => data.runSpeed;
+        public float MaxHealth => data.maxHealth;
+        public float MaxMana => data.maxMana;
+        public float MaxStamina => data.maxStamina;
 
         public float CurrentHealth { get; private set; }
         public float CurrentMana { get; private set; }
         public float CurrentStamina { get; private set; }
+
+        public int CurrentLevel { get; private set; } = 1;
+        public int CurrentExperience { get; private set; } = 0;
 
         private void Awake()
         {
             CurrentHealth = MaxHealth;
             CurrentMana = MaxMana;
             CurrentStamina = MaxStamina;
-            SaveManager.Instance.Register(this);
+            SaveManager.Instance?.Register(this);
         }
 
-        public void OnReceiveDamage(float damage)
-        {
-            CurrentHealth -= damage;
-            CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, MaxHealth);
-        }
+        public void OnReceiveDamage(float damage) => CurrentHealth -= damage;
 
         public bool UseMana(float amount)
         {
@@ -38,30 +38,36 @@ namespace Player.Statistics
                 CurrentMana -= amount;
                 return true;
             }
-
             return false;
         }
 
-        public void SetHealth(float value)
+        public void GainExperience(int amount)
         {
-            CurrentHealth = Mathf.Clamp(value, 0f, MaxHealth);
+            CurrentExperience += amount;
+            while (CurrentExperience >= GetExperienceToNextLevel()) {
+                CurrentExperience -= GetExperienceToNextLevel();
+                LevelUp();
+            }
         }
 
-        public void SetMana(float value)
+        private void LevelUp()
         {
-            CurrentMana = Mathf.Clamp(value, 0f, MaxMana);
+            CurrentLevel++;
+            // np. pełne leczenie lub inne efekty
+            CurrentHealth = MaxHealth;
+            CurrentMana = MaxMana;
+            CurrentStamina = MaxStamina;
         }
 
-        public void SetStamina(float value)
-        {
-            CurrentStamina = Mathf.Clamp(value, 0f, MaxStamina);
+        public void AllocateStatPoint(EStatistics stat) {
+            data.stats.AllocatePoint(stat);
         }
 
-        public StatsContainer GetCurrentStats()
-        {
-            return data.baseStats;
+        public void AddPendingPoint(int amount = 1) {
+            data.stats.AddPendingPoint(amount);
         }
 
+        // ISaveable
         public void OnSave()
         {
             SaveManager.Instance.SavePlayerStats(this);
@@ -71,5 +77,18 @@ namespace Player.Statistics
         {
             SaveManager.Instance.LoadPlayerStats(this);
         }
+        
+        public int GetExperienceToNextLevel()
+        {
+            return Mathf.FloorToInt(data.baseExperienceToLevelUp * Mathf.Pow(data.experienceGrowthRate, CurrentLevel - 1));
+        }
+        public StatsContainer GetCurrentStats() => data.stats;
+        public int GetPendingPoints() => data.stats.GetPendingPoints();
+
+        public void SetHealth(float value) => CurrentHealth = value;
+        public void SetMana(float value) => CurrentMana = value;
+        public void SetStamina(float value) => CurrentStamina = value;
+        public void SetExperience(int exp) => CurrentExperience = exp;
+        public void SetLevel(int level) => CurrentLevel = level;
     }
 }
