@@ -48,6 +48,15 @@ namespace Systems.SaveSystem
             gameData.playerData.currentHealth = stats.CurrentHealth;
             gameData.playerData.currentMana = stats.CurrentMana;
             gameData.playerData.currentStamina = stats.CurrentStamina;
+
+            List<SerializedStatEntry> statEntries = new();
+            foreach(var element in stats.GetCurrentStats().GetAll()) {
+                statEntries.Add(new SerializedStatEntry{
+                    key = element.stat.ToString(),
+                    value =  element.value 
+                });
+            }
+            gameData.playerData.stats = statEntries;
         }
 
         public void SaveGame()
@@ -67,7 +76,7 @@ namespace Systems.SaveSystem
 
             foreach(var toLoad in saveables)
             {
-                toLoad.OnSave();
+                toLoad.OnLoad();
             }
 
             string json = File.ReadAllText(savePath);
