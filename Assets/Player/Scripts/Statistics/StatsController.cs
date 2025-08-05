@@ -22,6 +22,7 @@ namespace Player.Statistics
             CurrentHealth = MaxHealth;
             CurrentMana = MaxMana;
             CurrentStamina = MaxStamina;
+            SaveManager.Instance.Register(this);
         }
 
         public void OnReceiveDamage(float damage)

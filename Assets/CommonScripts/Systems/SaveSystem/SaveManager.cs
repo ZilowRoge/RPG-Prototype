@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using UnityEngine;
 using Systems.SaveSystem.SaveData;
 
@@ -14,6 +15,7 @@ namespace Systems.SaveSystem
 
         private string savePath;
         private GameData gameData = new GameData();
+        private List<ISaveable> saveables = new List<ISaveable>();
 
         public void Awake()
         {
@@ -28,6 +30,16 @@ namespace Systems.SaveSystem
             savePath = Path.Combine(Application.persistentDataPath, "savegame.json");
         }
 
+        public void Register(ISaveable saveable) {
+            if (!saveables.Contains(saveable)) {
+                saveables.Add(saveable);
+            }
+        }
+
+        public void Unregister(ISaveable saveable) {
+            saveables.Remove(saveable);
+        }
+
         public void SavePlayerStats(Player.Statistics.StatsController stats)
         {
             if (gameData.playerData == null)
@@ -40,6 +52,10 @@ namespace Systems.SaveSystem
 
         public void SaveGame()
         {
+            foreach(var toSave in saveables)
+            {
+                toSave.OnSave();
+            }
             string json = JsonUtility.ToJson(gameData, true);
             File.WriteAllText(savePath, json);
         }
@@ -48,6 +64,11 @@ namespace Systems.SaveSystem
         {
             if (!File.Exists(savePath))
                 return;
+
+            foreach(var toLoad in saveables)
+            {
+                toLoad.OnSave();
+            }
 
             string json = File.ReadAllText(savePath);
             gameData = JsonUtility.FromJson<GameData>(json);

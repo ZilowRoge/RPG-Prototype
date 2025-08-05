@@ -9,8 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5d9734af2a3b4b942b5d04e699a61766, type: 3}
+  m_Script: {fileID: 11500000, guid: 8790b2cd34a9d114889d625e40f5efac, type: 3}
   m_Name: PlayerStatistics
   m_EditorClassIdentifier: 
+  maxHealth: 100
+  maxMana: 100
+  maxStamina: 100
   walkSpeed: 3
   runSpeed: 6
