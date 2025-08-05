@@ -14,46 +14,42 @@ namespace Systems.Statistics
     [Serializable]
     public class StatsContainer
     {
-        [SerializeField] private List<StatEntry> stats = new();
+        [SerializeField]
+        private List<StatEntry> stats = new();
 
-        public int Get(EStatistics stat)
-        {
-            var entry = stats.Find(e => e.stat == stat);
-            return entry != null ? entry.value : 0;
-        }
+        [SerializeField]
+        private int pendingAllocations = 0;
 
-        public void Set(EStatistics stat, int value)
-        {
-            var entry = stats.Find(e => e.stat == stat);
-            if (entry != null)
-            {
-                entry.value = value;
-            }
-            else
-            {
-                stats.Add(new StatEntry { stat = stat, value = value });
+        public void AllocatePoint(EStatistics stat) {
+            if (pendingAllocations > 0) {
+                var targetStat = stats.Find(s => s.stat == stat);
+                if (targetStat != null) {
+                    targetStat.value += 1;
+                    pendingAllocations--;
+                }
             }
         }
 
-        public bool Contains(EStatistics stat)
-        {
-            return stats.Exists(e => e.stat == stat);
+        public void AddPendingPoint(int amount = 1) {
+            pendingAllocations += amount;
         }
 
-        public void Remove(EStatistics stat)
-        {
-            stats.RemoveAll(e => e.stat == stat);
+        public int GetPendingPoints() => pendingAllocations;
+
+        public List<(EStatistics stat, int value)> GetAll() {
+            List<(EStatistics, int)> result = new();
+            foreach (var s in stats) {
+                result.Add((s.stat, s.value));
+            }
+            return result;
         }
 
-        public void Clear()
-        {
+        public void SetStats(List<(EStatistics stat, int value)> newStats, int pending) {
             stats.Clear();
-        }
-
-        public IEnumerable<(EStatistics stat, int value)> GetAll()
-        {
-            foreach (var entry in stats)
-                yield return (entry.stat, entry.value);
+            foreach (var s in newStats) {
+                stats.Add(new StatEntry { stat = s.stat, value = s.value });
+            }
+            pendingAllocations = pending;
         }
 
         public override string ToString()

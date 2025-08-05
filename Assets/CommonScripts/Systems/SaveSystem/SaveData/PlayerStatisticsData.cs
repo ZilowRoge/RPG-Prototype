@@ -7,6 +7,10 @@ namespace Systems.SaveSystem.SaveData {
         public float currentHealth;
         public float currentMana;
         public float currentStamina;
+        public int level;
+        public int experience;
+        public int pendingStatPoints;
+
         public List<SerializedStatEntry> stats;
     }
 

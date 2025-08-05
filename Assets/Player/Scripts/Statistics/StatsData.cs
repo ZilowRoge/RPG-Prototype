@@ -13,6 +13,9 @@ namespace Player.Statistics
         public float maxStamina = 75f;
 
         [SerializeField]
-        public StatsContainer baseStats = new();
+        public StatsContainer stats = new();
+
+        public int baseExperienceToLevelUp = 100;
+        public float experienceGrowthRate = 1.25f; // np. kolejne poziomy potrzebują więcej expa
     }
 }
