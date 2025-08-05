@@ -15,7 +15,7 @@ namespace Player
         private Vector2 inputMovement = Vector2.zero;
         private bool isRunPressed = false;
 
-        [SerializeField] private Statistics.Statistics stats;
+        [SerializeField] private Statistics.StatsController stats;
 
         void Start()
         {
