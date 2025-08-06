@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 namespace Systems.Statistics
 {
@@ -35,6 +36,11 @@ namespace Systems.Statistics
         }
 
         public int GetPendingPoints() => pendingAllocations;
+
+        public int Get(EStatistics stat)
+        {
+            return stats.FirstOrDefault(s => s.stat == stat)?.value ?? 0;
+        }
 
         public List<(EStatistics stat, int value)> GetAll() {
             List<(EStatistics, int)> result = new();

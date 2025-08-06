@@ -8,9 +8,14 @@ namespace Player.Statistics
     {
         public float walkSpeed = 3.0f;
         public float runSpeed = 6.0f;
-        public float maxHealth = 100f;
-        public float maxMana = 50f;
-        public float maxStamina = 75f;
+
+        public float baseHealth = 50f;
+        public float baseMana = 50f;
+        public float baseStamina = 50f;
+
+        public float healthPerVit = 10f;
+        public float manaPerInt = 10f;
+        public float staminaPerEnd = 10f;
 
         [SerializeField]
         public StatsContainer stats = new();
