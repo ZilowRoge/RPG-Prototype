@@ -12,11 +12,20 @@ namespace Systems.SaveSystem.SaveData {
         public int pendingStatPoints;
 
         public List<SerializedStatEntry> stats;
+        public List<SerializedJobEntry> jobs;
     }
 
     [Serializable]
     public class SerializedStatEntry {
         public string key;
         public int value;
+    }
+    
+    [Serializable]
+    public class SerializedJobEntry
+    {
+        public string jobId;
+        public int level;
+        public int experience;
     }
 }

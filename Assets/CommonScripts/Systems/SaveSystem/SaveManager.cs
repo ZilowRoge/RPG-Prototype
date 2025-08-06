@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Systems.SaveSystem.SaveData;
 using Systems.Statistics;
+using Systems.Jobs;
 
 namespace Systems.SaveSystem
 {
@@ -62,6 +63,26 @@ namespace Systems.SaveSystem
             gameData.playerData.pendingStatPoints = stats.GetPendingPoints();
         }
 
+        public void SavePlayerJobs(JobContainer jobs)
+        {
+            if (gameData.playerData == null)
+                gameData.playerData = new PlayerStatisticsData();
+
+            var saveData = new List<SerializedJobEntry>();
+
+            foreach (var job in jobs.GetAllJobs())
+            {
+                saveData.Add(new SerializedJobEntry
+                {
+                    jobId = job.data.id,
+                    level = job.currentLevel,
+                    experience = job.experience
+                });
+            }
+
+            gameData.playerData.jobs = saveData;
+        }
+
         public void SaveGame()
         {
             foreach(var toSave in saveables)
@@ -104,6 +125,29 @@ namespace Systems.SaveSystem
                 }
             }
             stats.GetCurrentStats().SetStats(statList, gameData.playerData.pendingStatPoints);
+        }
+
+        public void LoadPlayerJobs(JobContainer jobs, List<JobData> availableJobs)
+        {
+            if (gameData == null || gameData.playerData == null || gameData.playerData.jobs == null)
+                return;
+
+            jobs.Clear();
+
+            foreach (var saved in gameData.playerData.jobs)
+            {
+                var jobData = availableJobs.Find(j => j.id == saved.jobId);
+                if (jobData == null)
+                {
+                    Debug.LogWarning($"Job ID '{saved.jobId}' not found in availableJobs during load.");
+                    continue;
+                }
+
+                jobs.AddJob(jobData);
+                var job = jobs.GetJob(saved.jobId);
+                job.currentLevel = saved.level;
+                job.experience = saved.experience;
+            }
         }
     }
 }

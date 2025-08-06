@@ -14,16 +14,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   walkSpeed: 3
   runSpeed: 6
-  maxHealth: 100
-  maxMana: 100
-  maxStamina: 100
-  baseStats:
+  baseHealth: 50
+  baseMana: 30
+  baseStamina: 40
+  healthPerVit: 10
+  manaPerInt: 8
+  staminaPerEnd: 9
+  stats:
     stats:
-    - stat: 0
-      value: 0
-    - stat: 1
-      value: 0
     - stat: 2
-      value: 0
+      value: 11
+    - stat: 0
+      value: 18
     - stat: 3
-      value: 0
+      value: 4
+    - stat: 1
+      value: 18
+    pendingAllocations: 149
+  baseExperienceToLevelUp: 100
+  experienceGrowthRate: 1.25

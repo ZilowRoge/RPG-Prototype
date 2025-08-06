@@ -1,6 +1,7 @@
 using UnityEngine;
 using Systems.SaveSystem;
 using Systems.Statistics;
+using Systems.Jobs;
 
 namespace Player.Statistics
 {
@@ -9,6 +10,7 @@ namespace Player.Statistics
         [SerializeField]
         private StatsData data;
 
+        public JobContainer Jobs { get; private set; } = new();
         public StatsData Data => data;
         public float WalkSpeed => data.walkSpeed;
         public float RunSpeed => data.runSpeed;
