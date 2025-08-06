@@ -9,6 +9,7 @@ namespace Player.Statistics
         [SerializeField]
         private StatsData data;
 
+        public StatsData Data => data;
         public float WalkSpeed => data.walkSpeed;
         public float RunSpeed => data.runSpeed;
         public float MaxHealth => data.maxHealth;
