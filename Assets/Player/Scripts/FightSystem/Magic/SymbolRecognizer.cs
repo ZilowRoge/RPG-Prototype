@@ -3,8 +3,6 @@ using UnityEngine;
 using System;
 using System.Linq;
 
-
-
 namespace Player.FightSystem.Magic {
 public class SymbolRecognizer{
     private Model runtimeModel;

@@ -12,9 +12,9 @@ namespace Player.Statistics
         public StatsData Data => data;
         public float WalkSpeed => data.walkSpeed;
         public float RunSpeed => data.runSpeed;
-        public float MaxHealth => data.maxHealth;
-        public float MaxMana => data.maxMana;
-        public float MaxStamina => data.maxStamina;
+        public float MaxHealth => data.baseHealth + GetStat(EStatistics.VIT) * data.healthPerVit;
+        public float MaxMana => data.baseMana + GetStat(EStatistics.INT) * data.manaPerInt;
+        public float MaxStamina => data.baseStamina + GetStat(EStatistics.END) * data.staminaPerEnd;
 
         public float CurrentHealth { get; private set; }
         public float CurrentMana { get; private set; }
@@ -45,7 +45,7 @@ namespace Player.Statistics
         public void GainExperience(int amount)
         {
             CurrentExperience += amount;
-            while (CurrentExperience >= GetExperienceToNextLevel()) {
+            if (CurrentExperience >= GetExperienceToNextLevel()) {
                 CurrentExperience -= GetExperienceToNextLevel();
                 LevelUp();
             }
@@ -68,6 +68,30 @@ namespace Player.Statistics
             data.stats.AddPendingPoint(amount);
         }
 
+        private int GetStat(EStatistics stat)
+        {
+            return data.stats.Get(stat); // Zakładam, że masz metodę `Get(EStatistics)` w `StatsContainer`
+        }
+        
+        public int GetExperienceForLevel(int level)
+        {
+            return Mathf.RoundToInt(data.baseExperienceToLevelUp * Mathf.Pow(data.experienceGrowthRate, level - 1));
+        }
+        
+        public int GetExperienceToNextLevel()
+        {
+            return GetExperienceForLevel(CurrentLevel - 1);
+        }
+
+        public StatsContainer GetCurrentStats() => data.stats;
+        public int GetPendingPoints() => data.stats.GetPendingPoints();
+
+        public void SetHealth(float value) => CurrentHealth = value;
+        public void SetMana(float value) => CurrentMana = value;
+        public void SetStamina(float value) => CurrentStamina = value;
+        public void SetExperience(int exp) => CurrentExperience = exp;
+        public void SetLevel(int level) => CurrentLevel = level;
+
         // ISaveable
         public void OnSave()
         {
@@ -78,18 +102,5 @@ namespace Player.Statistics
         {
             SaveManager.Instance.LoadPlayerStats(this);
         }
-        
-        public int GetExperienceToNextLevel()
-        {
-            return Mathf.FloorToInt(data.baseExperienceToLevelUp * Mathf.Pow(data.experienceGrowthRate, CurrentLevel - 1));
-        }
-        public StatsContainer GetCurrentStats() => data.stats;
-        public int GetPendingPoints() => data.stats.GetPendingPoints();
-
-        public void SetHealth(float value) => CurrentHealth = value;
-        public void SetMana(float value) => CurrentMana = value;
-        public void SetStamina(float value) => CurrentStamina = value;
-        public void SetExperience(int exp) => CurrentExperience = exp;
-        public void SetLevel(int level) => CurrentLevel = level;
     }
 }

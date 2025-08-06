@@ -5,6 +5,6 @@ namespace Systems.Statistics
         INT, // Intelligence
         POW, // Power
         VIT, // Vitality
-        DEX  // Dexterity
+        END  // Endurance
     }
 }

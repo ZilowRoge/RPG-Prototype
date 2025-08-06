@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using Systems.Statistics;
 
+
+namespace UI.Player.Statistics {
 public class StatEntryUI : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI statNameText;
@@ -34,4 +36,5 @@ public class StatEntryUI : MonoBehaviour
         addButton.gameObject.SetActive(canAdd);
         removeButton.gameObject.SetActive(canRemove);
     }
+}
 }

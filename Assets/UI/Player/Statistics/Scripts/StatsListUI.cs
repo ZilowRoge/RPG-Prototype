@@ -5,6 +5,7 @@ using Systems.Statistics;
 using Player.Statistics;
 using System.Collections.Generic;
 
+namespace UI.Player.Statistics {
 public class UIStatsPanel : MonoBehaviour
 {
     [SerializeField] private StatsController statsController;
@@ -99,4 +100,5 @@ public class UIStatsPanel : MonoBehaviour
             tempAllocations[key] = 0;
         UpdateUI();
     }
+}
 }
