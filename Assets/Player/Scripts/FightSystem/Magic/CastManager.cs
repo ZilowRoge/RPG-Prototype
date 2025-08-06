@@ -5,8 +5,10 @@ using Player.UI;
 
 namespace Player.FightSystem.Magic {
     public class CastManager : MonoBehaviour {
-        public SymbolDrawUI symbolDrawUI;
-        public NNModel modelAsset;
+        [SerializeField]
+        private SymbolDrawUI symbolDrawUI;
+        [SerializeField]
+        private NNModel modelAsset;
 
         private PlayerControlls controls;
         private Vector2 currentMousePosition;
