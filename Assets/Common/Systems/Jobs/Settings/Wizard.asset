@@ -18,3 +18,9 @@ MonoBehaviour:
   maxLevel: 20
   description: This job specializes in casting magic
   icon: {fileID: 0}
+  baseExpToLevel: 100
+  expGrowthRate: 1.25
+  availablePerks:
+  - {fileID: 11400000, guid: f71a5e8a9161d744098d0d761b6f3ea6, type: 2}
+  - {fileID: 11400000, guid: c10d3ed26d4f4344e8aaff3eaaf8863c, type: 2}
+  - {fileID: 11400000, guid: c5a6d3b54d5c6c544b2354d857fd9472, type: 2}

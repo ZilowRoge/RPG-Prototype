@@ -1,56 +1,35 @@
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 
-namespace Systems.Jobs {
-[System.Serializable]
-public class JobContainer
+namespace Systems.Jobs
 {
-    private Dictionary<string, JobInstance> jobs = new();
-
-    public void AddJob(JobData data)
+    [System.Serializable]
+    public class JobContainer
     {
-        if (!jobs.ContainsKey(data.id))
+        private readonly Dictionary<string, JobInstance> jobs = new();
+
+        public void AddJob(JobData data)
         {
-            jobs[data.id] = new JobInstance
+            if (!jobs.ContainsKey(data.id))
             {
-                data = data,
-                currentLevel = 1,
-                experience = 0
-            };
+                jobs[data.id] = new JobInstance(data);
+            }
         }
-    }
 
-    public bool HasJob(string jobId) => jobs.ContainsKey(jobId);
+        public bool HasJob(string jobId) => jobs.ContainsKey(jobId);
 
-    public JobInstance GetJob(string jobId) =>
-        jobs.TryGetValue(jobId, out var job) ? job : null;
+        public JobInstance GetJob(string jobId) =>
+            jobs.TryGetValue(jobId, out var job) ? job : null;
 
-    public IEnumerable<JobInstance> GetAllJobs() => jobs.Values;
+        public IEnumerable<JobInstance> GetAllJobs() => jobs.Values;
 
-    public void AddExperience(string jobId, int amount)
-    {
-        if (!jobs.TryGetValue(jobId, out var job)) return;
-
-        job.experience += amount;
-
-        while (job.currentLevel < job.data.maxLevel &&
-               job.experience >= GetExpForLevel(job))
+        public void AddExperience(string jobId, int amount)
         {
-            job.currentLevel++;
-            // Możesz dodać: trigger odblokowania spellów/perków
+            if (jobs.TryGetValue(jobId, out var job))
+            {
+                job.AddExperience(amount); // delegacja do JobInstance
+            }
         }
-    }
 
-    public void Clear()
-    {
-        jobs.Clear();
+        public void Clear() => jobs.Clear();
     }
-
-    private int GetExpForLevel(JobInstance job)
-    {
-        var data = job.data;
-        return Mathf.RoundToInt(data.baseExpToLevel * Mathf.Pow(data.expGrowthRate, job.currentLevel - 1));
-    }
-}
 }

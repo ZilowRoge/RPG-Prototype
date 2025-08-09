@@ -32,7 +32,7 @@ public class UIStatsPanel : MonoBehaviour
         foreach (var stat in statsController.Data.stats.GetAll())
         {
             tempAllocations[stat.stat] = 0;
-            Debug.Log($"Add stats entry {stat}");
+            // Debug.Log($"Add stats entry {stat}");
             var instance = Instantiate(statEntryPrefab, statListParent);
             var entryUI = instance.GetComponent<StatEntryUI>();
             entryUI.Setup(stat.stat, OnAddPointClicked, OnRemovePointClicked);

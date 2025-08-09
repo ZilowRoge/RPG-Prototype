@@ -74,9 +74,10 @@ namespace Systems.SaveSystem
             {
                 saveData.Add(new SerializedJobEntry
                 {
-                    jobId = job.data.id,
-                    level = job.currentLevel,
-                    experience = job.experience
+                    jobId = job.Data.id,
+                    level = job.CurrentLevel,
+                    experience = job.Experience,
+                    perkPoints = job.PerkPoints
                 });
             }
 
@@ -145,8 +146,10 @@ namespace Systems.SaveSystem
 
                 jobs.AddJob(jobData);
                 var job = jobs.GetJob(saved.jobId);
-                job.currentLevel = saved.level;
-                job.experience = saved.experience;
+                job.SetLevel(saved.level);
+                job.SetExperience(saved.experience);
+                job.SetPerkPoints(saved.perkPoints);
+                job.SetUnlockedPerks(saved.perkNames);
             }
         }
     }
