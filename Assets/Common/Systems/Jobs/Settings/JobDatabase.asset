@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1799c85147278a94889e73b4ab1638fd, type: 3}
   m_Name: JobDatabase
   m_EditorClassIdentifier: 
-  jobs: []
+  jobs:
+  - {fileID: 11400000, guid: 63f2ab3921b59d3429a0e72603b1aacd, type: 2}
