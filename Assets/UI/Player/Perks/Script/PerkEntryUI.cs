@@ -23,7 +23,6 @@ namespace UI.Player.Perks
             perkNameText.text = perkData.perkName;
             perkDescriptionText.text = perkData.description;
 
-            //  unlockButton.interactable = !perkData.IsUnlocked;
             unlockButton.onClick.RemoveAllListeners();
             unlockButton.onClick.AddListener(OnUnlockPressed);
         }

@@ -34,8 +34,6 @@ namespace UI.Player.Jobs
         public void OnJobSelected(JobInstance selectedJob)
         {
             perkController.DisplayPerks(selectedJob);
-            // Debug.Log($"Selected job: {selectedJob.data.name}");
-            // Tu możesz np. uaktualnić UI Perków albo szczegóły joba
         }
     }
 }

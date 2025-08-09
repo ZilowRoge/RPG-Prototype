@@ -13,7 +13,6 @@ namespace Player.UI {
         private bool isDrawing = false;
         private Vector2? lastPixelPos = null;
 
-        // Bounding box
         private int minX, maxX, minY, maxY;
 
         void Start() {
@@ -90,7 +89,6 @@ namespace Player.UI {
                         if (dx * dx + dy * dy <= sqrRadius) {
                             drawTexture.SetPixel(x, y, color);
 
-                            // Update bounding box
                             if (x < minX) minX = x;
                             if (x > maxX) maxX = x;
                             if (y < minY) minY = y;
@@ -126,7 +124,7 @@ namespace Player.UI {
             int cropH = maxY - minY + 1;
 
             if (cropW <= 0 || cropH <= 0)
-                return new Texture2D(64, 64); // pusta
+                return new Texture2D(64, 64);
 
             Texture2D cropped = new Texture2D(cropW, cropH);
             cropped.SetPixels(drawTexture.GetPixels(minX, minY, cropW, cropH));

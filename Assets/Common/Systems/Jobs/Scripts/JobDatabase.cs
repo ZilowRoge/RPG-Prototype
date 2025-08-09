@@ -1,4 +1,3 @@
-// Assets/Scripts/Systems/Jobs/JobDatabase.cs
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -21,7 +20,6 @@ namespace Systems.Jobs
             foreach (var j in jobs)
             {
                 if (j == null || string.IsNullOrEmpty(j.id)) continue;
-                // ostatnia wygrywa – ale najlepiej mieć unikalne ID
                 index[j.id] = j;
             }
         }

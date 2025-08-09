@@ -18,12 +18,10 @@ namespace UI.Player.Perks
         {
             currentJob = job;
 
-            // Czyścimy UI
             foreach (var entry in spawnedEntries)
                 Destroy(entry.gameObject);
             spawnedEntries.Clear();
 
-            // Tworzymy wpisy
             foreach (var perk in currentJob.Data.availablePerks)
             {
                 GameObject obj = Instantiate(perkEntryPrefab, perkListContainer);
