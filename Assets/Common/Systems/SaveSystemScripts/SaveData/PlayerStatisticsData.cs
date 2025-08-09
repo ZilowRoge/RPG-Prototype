@@ -27,5 +27,7 @@ namespace Systems.SaveSystem.SaveData {
         public string jobId;
         public int level;
         public int experience;
+        public int perkPoints;
+        public List<string> perkNames;
     }
 }

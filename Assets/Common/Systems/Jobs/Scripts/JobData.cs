@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections.Generic;
+using Systems.Perks;
 
 namespace Systems.Jobs {
 [CreateAssetMenu(menuName = "Jobs/Job")]
@@ -17,5 +19,13 @@ public class JobData : ScriptableObject
     [Header("EXP Settings")]
     public int baseExpToLevel = 100;
     public float expGrowthRate = 1.25f;
+
+    [Header("Pekrks")]
+    public List<PerkData> availablePerks = new();
+
+    public int GetRequiredExperience(int level)
+    {
+        return Mathf.RoundToInt(baseExpToLevel * Mathf.Pow(expGrowthRate, level));
+    }
 }
 }

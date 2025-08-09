@@ -7,6 +7,7 @@ namespace Player.Statistics
 {
     public class StatsController : MonoBehaviour, ISaveable
     {
+        public JobData jobData;
         [SerializeField]
         private StatsData data;
 
@@ -31,6 +32,7 @@ namespace Player.Statistics
             CurrentMana = MaxMana;
             CurrentStamina = MaxStamina;
             SaveManager.Instance?.Register(this);
+            Jobs.AddJob(jobData);
         }
 
         public void OnReceiveDamage(float damage) => CurrentHealth -= damage;
