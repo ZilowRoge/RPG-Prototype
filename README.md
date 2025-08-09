@@ -49,3 +49,5 @@ The project follows the standard Unity folder structure:
     Press the Play button in the Unity Editor.
 
     If Unity prompts to install missing packages (e.g., Input System, URP), allow it.
+
+    Open scene AcademyPatio
