@@ -18,7 +18,7 @@ namespace Player.FightSystem.Magic {
             controls = new PlayerControlls();
             symbolRecognizer = new SymbolRecognizer(modelAsset);
             symbolDrawUI.gameObject.SetActive(false);
-            // LPM start
+
             controls.Player.AlternativeUse.started += ctx => {
                 StartDrawing();
             };

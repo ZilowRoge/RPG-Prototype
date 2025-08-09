@@ -50,7 +50,6 @@ namespace Systems.SaveSystem.SaveData {
             this.jobs = serialized;
         }
 
-        // --- proste API do odczytu ---
         public void GetBasics(out float health, out float mana, out float stamina, out int lvl)
         {
             health  = currentHealth;
