@@ -8,8 +8,8 @@ namespace Player.Statistics
     public class StatsController : MonoBehaviour, ISaveable
     {
         public JobData jobData;
-        [SerializeField]
-        private StatsData data;
+        [SerializeField] private StatsData data;
+        [SerializeField] private JobDatabase jobDatabase;
 
         public JobContainer Jobs { get; private set; } = new();
         public StatsData Data => data;
@@ -24,7 +24,6 @@ namespace Player.Statistics
         public float CurrentStamina { get; private set; }
 
         public int CurrentLevel { get; private set; } = 1;
-        public int CurrentExperience { get; private set; } = 0;
 
         private void Awake()
         {
@@ -32,7 +31,7 @@ namespace Player.Statistics
             CurrentMana = MaxMana;
             CurrentStamina = MaxStamina;
             SaveManager.Instance?.Register(this);
-            Jobs.AddJob(jobData);
+            Jobs.AddJob(jobData, OnAnyJobAdvanced);
         }
 
         public void OnReceiveDamage(float damage) => CurrentHealth -= damage;
@@ -46,21 +45,14 @@ namespace Player.Statistics
             return false;
         }
 
-        public void GainExperience(int amount)
-        {
-            CurrentExperience += amount;
-            if (CurrentExperience >= GetExperienceToNextLevel()) {
-                CurrentExperience -= GetExperienceToNextLevel();
-                LevelUp();
-            }
-        }
-
-        private void LevelUp()
+        private void OnAnyJobAdvanced(JobInstance job)
         {
             CurrentLevel++;
-            // np. pełne leczenie lub inne efekty
-            CurrentHealth = MaxHealth;
-            CurrentMana = MaxMana;
+            if (data != null && data.stats != null)
+                data.stats.AddPendingPoint(Data.statisticsPointsPerLevel);
+
+            CurrentHealth  = MaxHealth;
+            CurrentMana    = MaxMana;
             CurrentStamina = MaxStamina;
         }
 
@@ -74,37 +66,36 @@ namespace Player.Statistics
 
         private int GetStat(EStatistics stat)
         {
-            return data.stats.Get(stat); // Zakładam, że masz metodę `Get(EStatistics)` w `StatsContainer`
-        }
-        
-        public int GetExperienceForLevel(int level)
-        {
-            return Mathf.RoundToInt(data.baseExperienceToLevelUp * Mathf.Pow(data.experienceGrowthRate, level - 1));
-        }
-        
-        public int GetExperienceToNextLevel()
-        {
-            return GetExperienceForLevel(CurrentLevel - 1);
+            return data.stats.Get(stat);
         }
 
         public StatsContainer GetCurrentStats() => data.stats;
         public int GetPendingPoints() => data.stats.GetPendingPoints();
 
-        public void SetHealth(float value) => CurrentHealth = value;
-        public void SetMana(float value) => CurrentMana = value;
-        public void SetStamina(float value) => CurrentStamina = value;
-        public void SetExperience(int exp) => CurrentExperience = exp;
-        public void SetLevel(int level) => CurrentLevel = level;
-
-        // ISaveable
-        public void OnSave()
+        public void OnSave(Systems.SaveSystem.SaveData.GameData data)
         {
-            SaveManager.Instance.SavePlayerStats(this);
+            if (data == null) return;
+            data.playerData ??= new Systems.SaveSystem.SaveData.PlayerStatisticsData();
+
+            data.playerData.SetBasics(CurrentHealth, CurrentMana, CurrentStamina, CurrentLevel);
+            data.playerData.SetStats(Data.stats.GetAll(), Data.stats.GetPendingPoints());
+            data.playerData.SetJobs(Jobs.GetAllJobs());
         }
 
-        public void OnLoad()
+        public void OnLoad(Systems.SaveSystem.SaveData.GameData data)
         {
-            SaveManager.Instance.LoadPlayerStats(this);
+            if (data?.playerData == null) return;
+
+            data.playerData.GetBasics(out var h, out var m, out var s, out var lvl);
+            CurrentLevel   = Mathf.Max(1, lvl);
+            CurrentHealth  = h;
+            CurrentMana    = m;
+            CurrentStamina = s;
+
+            data.playerData.GetStatsPairs(out var pairs, out var pendingPoints);
+            this.data.stats.SetStats(pairs, pendingPoints);
+
+            data.playerData.ApplyJobsTo(Jobs, jobDatabase.GetById, OnAnyJobAdvanced);
         }
     }
 }

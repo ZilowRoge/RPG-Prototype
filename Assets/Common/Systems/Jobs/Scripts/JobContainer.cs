@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Systems.Jobs
@@ -7,11 +8,11 @@ namespace Systems.Jobs
     {
         private readonly Dictionary<string, JobInstance> jobs = new();
 
-        public void AddJob(JobData data)
+        public void AddJob(JobData data, Action<JobInstance> onAdvanced)
         {
             if (!jobs.ContainsKey(data.id))
             {
-                jobs[data.id] = new JobInstance(data);
+                jobs[data.id] = new JobInstance(data, onAdvanced);
             }
         }
 
@@ -25,9 +26,7 @@ namespace Systems.Jobs
         public void AddExperience(string jobId, int amount)
         {
             if (jobs.TryGetValue(jobId, out var job))
-            {
-                job.AddExperience(amount); // delegacja do JobInstance
-            }
+                job.AddExperience(amount);
         }
 
         public void Clear() => jobs.Clear();
