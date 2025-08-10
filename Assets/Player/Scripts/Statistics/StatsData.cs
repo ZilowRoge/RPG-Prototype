@@ -18,7 +18,7 @@ namespace Player.Statistics
         public float staminaPerEnd = 10f;
 
         [SerializeField]
-        public StatsContainer stats = new();
+        public StatsContainer container = new();
 
         public int statisticsPointsPerLevel = 5;
     }

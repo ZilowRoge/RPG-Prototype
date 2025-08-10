@@ -6,7 +6,7 @@ using Player.Statistics;
 namespace UI.Player.Statistics {
 public class PlayerStatusUI : MonoBehaviour
 {
-    [SerializeField] private StatsController stats;
+    [SerializeField] private ProgressController stats;
 
     [Header("Bars")]
     [SerializeField] private ResourceBarUI healthBar;
