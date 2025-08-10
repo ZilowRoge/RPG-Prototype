@@ -13,7 +13,7 @@ namespace Player
         private Transform cameraTransform;
 
         private Vector2 inputMovement = Vector2.zero;
-        private bool isRunPressed = false;
+        private bool isSprintActive = false;
 
         [SerializeField] private Statistics.StatsController stats;
 
@@ -28,9 +28,12 @@ namespace Player
             inputMovement = value.Get<Vector2>();
         }
 
-        public void OnRun(InputValue value)
+        public void OnSprint(InputValue value)
         {
-            isRunPressed = value.isPressed;
+            if (value.isPressed)
+            {
+                isSprintActive = !isSprintActive;
+            }
         }
 
         void Update()
@@ -49,7 +52,7 @@ namespace Player
             bool isMovingBackward = forwardDot < -0.5f;
             bool isMoving = moveDir.sqrMagnitude > 0.01f;
 
-            bool isRunning = isMoving && !isMovingBackward && isRunPressed;
+            bool isRunning = isMoving && !isMovingBackward && isSprintActive;
             float currentSpeed = isRunning ? stats.RunSpeed : stats.WalkSpeed;
 
             if (isMoving)
