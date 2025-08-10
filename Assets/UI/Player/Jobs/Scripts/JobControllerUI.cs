@@ -8,7 +8,7 @@ namespace UI.Player.Jobs
 {
     public class JobControllerUI : MonoBehaviour
     {
-        [SerializeField] private StatsController stats;
+        [SerializeField] private ProgressController stats;
         [SerializeField] private Transform slotParent;
         [SerializeField] private GameObject slotPrefab;
         [SerializeField] private PerkControllerUI perkController;

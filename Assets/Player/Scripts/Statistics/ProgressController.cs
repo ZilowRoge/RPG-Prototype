@@ -5,19 +5,19 @@ using Systems.Jobs;
 
 namespace Player.Statistics
 {
-    public class StatsController : MonoBehaviour, ISaveable
+    public class ProgressController : MonoBehaviour, ISaveable
     {
-        public JobData jobData;
-        [SerializeField] private StatsData data;
+        [SerializeField] private StatsData statistics;
         [SerializeField] private JobDatabase jobDatabase;
 
         public JobContainer Jobs { get; private set; } = new();
-        public StatsData Data => data;
-        public float WalkSpeed => data.walkSpeed;
-        public float RunSpeed => data.runSpeed;
-        public float MaxHealth => data.baseHealth + GetStat(EStatistics.VIT) * data.healthPerVit;
-        public float MaxMana => data.baseMana + GetStat(EStatistics.INT) * data.manaPerInt;
-        public float MaxStamina => data.baseStamina + GetStat(EStatistics.END) * data.staminaPerEnd;
+        public StatsData Statistics => statistics;
+        public StatsContainer StatisticsContainer => statistics.container;
+        public float WalkSpeed => statistics.walkSpeed;
+        public float RunSpeed => statistics.runSpeed;
+        public float MaxHealth => statistics.baseHealth + StatisticsContainer.Get(EStatistics.VIT) * statistics.healthPerVit;
+        public float MaxMana => statistics.baseMana + StatisticsContainer.Get(EStatistics.INT) * statistics.manaPerInt;
+        public float MaxStamina => statistics.baseStamina + StatisticsContainer.Get(EStatistics.END) * statistics.staminaPerEnd;
 
         public float CurrentHealth { get; private set; }
         public float CurrentMana { get; private set; }
@@ -31,7 +31,7 @@ namespace Player.Statistics
             CurrentMana = MaxMana;
             CurrentStamina = MaxStamina;
             SaveManager.Instance?.Register(this);
-            Jobs.AddJob(jobData, OnAnyJobAdvanced);
+            Jobs.AddJob(jobDatabase.GetById("wizard"), OnAnyJobAdvanced);
         }
 
         public void OnReceiveDamage(float damage) => CurrentHealth -= damage;
@@ -48,8 +48,8 @@ namespace Player.Statistics
         private void OnAnyJobAdvanced(JobInstance job)
         {
             CurrentLevel++;
-            if (data != null && data.stats != null)
-                data.stats.AddPendingPoint(Data.statisticsPointsPerLevel);
+            if (statistics != null && StatisticsContainer != null)
+                StatisticsContainer.AddPendingPoint(statistics.statisticsPointsPerLevel);
 
             CurrentHealth  = MaxHealth;
             CurrentMana    = MaxMana;
@@ -57,20 +57,12 @@ namespace Player.Statistics
         }
 
         public void AllocateStatPoint(EStatistics stat) {
-            data.stats.AllocatePoint(stat);
+            StatisticsContainer.AllocatePoint(stat);
         }
 
         public void AddPendingPoint(int amount = 1) {
-            data.stats.AddPendingPoint(amount);
+            StatisticsContainer.AddPendingPoint(amount);
         }
-
-        private int GetStat(EStatistics stat)
-        {
-            return data.stats.Get(stat);
-        }
-
-        public StatsContainer GetCurrentStats() => data.stats;
-        public int GetPendingPoints() => data.stats.GetPendingPoints();
 
         public void OnSave(Systems.SaveSystem.SaveData.GameData data)
         {
@@ -78,7 +70,7 @@ namespace Player.Statistics
             data.playerData ??= new Systems.SaveSystem.SaveData.PlayerStatisticsData();
 
             data.playerData.SetBasics(CurrentHealth, CurrentMana, CurrentStamina, CurrentLevel);
-            data.playerData.SetStats(Data.stats.GetAll(), Data.stats.GetPendingPoints());
+            data.playerData.SetStats(StatisticsContainer.GetAll(), StatisticsContainer.GetPendingPoints());
             data.playerData.SetJobs(Jobs.GetAllJobs());
         }
 
@@ -93,7 +85,7 @@ namespace Player.Statistics
             CurrentStamina = s;
 
             data.playerData.GetStatsPairs(out var pairs, out var pendingPoints);
-            this.data.stats.SetStats(pairs, pendingPoints);
+            StatisticsContainer.SetStats(pairs, pendingPoints);
 
             data.playerData.ApplyJobsTo(Jobs, jobDatabase.GetById, OnAnyJobAdvanced);
         }

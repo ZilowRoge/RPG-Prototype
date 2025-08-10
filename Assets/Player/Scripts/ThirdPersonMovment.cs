@@ -15,7 +15,7 @@ namespace Player
         private Vector2 inputMovement = Vector2.zero;
         private bool isSprintActive = false;
 
-        [SerializeField] private Statistics.StatsController stats;
+        [SerializeField] private ProgressController stats;
 
         void Start()
         {

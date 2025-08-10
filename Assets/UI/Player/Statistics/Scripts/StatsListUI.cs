@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace UI.Player.Statistics {
 public class UIStatsPanel : MonoBehaviour
 {
-    [SerializeField] private StatsController statsController;
+    [SerializeField] private ProgressController controller;
     [SerializeField] private GameObject statEntryPrefab;
     [SerializeField] private Transform statListParent;
     [SerializeField] private TextMeshProUGUI pendingText;
@@ -29,7 +29,7 @@ public class UIStatsPanel : MonoBehaviour
 
     private void InitStatsUI()
     {
-        foreach (var stat in statsController.Data.stats.GetAll())
+        foreach (var stat in controller.StatisticsContainer.GetAll())
         {
             tempAllocations[stat.stat] = 0;
             var instance = Instantiate(statEntryPrefab, statListParent);
@@ -41,7 +41,7 @@ public class UIStatsPanel : MonoBehaviour
 
     private void UpdateUI()
     {
-        var container = statsController.Data.stats;
+        var container = controller.StatisticsContainer;
         int remaining = container.GetPendingPoints() - TotalAllocated();
 
         foreach (var stat in container.GetAll())
@@ -64,7 +64,7 @@ public class UIStatsPanel : MonoBehaviour
 
     private void OnAddPointClicked(EStatistics stat)
     {
-        if (statsController.Data.stats.GetPendingPoints() - TotalAllocated() > 0)
+        if (controller.StatisticsContainer.GetPendingPoints() - TotalAllocated() > 0)
         {
             tempAllocations[stat]++;
             UpdateUI();
@@ -85,7 +85,7 @@ public class UIStatsPanel : MonoBehaviour
         foreach (var pair in tempAllocations)
         {
             for (int i = 0; i < pair.Value; i++)
-                statsController.Data.stats.AllocatePoint(pair.Key);
+                controller.StatisticsContainer.AllocatePoint(pair.Key);
         }
 
         ResetAllocations();
