@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86975a9bf1bebc54b99c83db784766ee, type: 3}
+  m_Name: ClerkDialog
+  m_EditorClassIdentifier: 
+  dialogId: npc_ma_clerk_dialog
+  startNodeId: npc_ma_clerk_greeting
+  nodes:
+  - {fileID: 11400000, guid: aa2293bb15fd28f4fb2dc3df4bd51bde, type: 2}
+  - {fileID: 11400000, guid: d58a42acfdac8694eaad586c0bd304d3, type: 2}
+  - {fileID: 11400000, guid: 81153c870a547894ca756c243b128119, type: 2}
+  - {fileID: 11400000, guid: df892dd1f797f92438aec09a47c1c9bb, type: 2}

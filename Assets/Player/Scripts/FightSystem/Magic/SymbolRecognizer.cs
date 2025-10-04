@@ -14,7 +14,7 @@ public class SymbolRecognizer{
         worker = WorkerFactory.CreateWorker(WorkerFactory.Type.ComputePrecompiled, runtimeModel);
     }
  
-    ~SymbolRecognizer()
+    public void Clear()
     {
         worker?.Dispose();
     }

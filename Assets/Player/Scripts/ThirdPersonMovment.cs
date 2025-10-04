@@ -15,7 +15,7 @@ namespace Player
         private Vector2 inputMovement = Vector2.zero;
         private bool isSprintActive = false;
 
-        [SerializeField] private ProgressController stats;
+        [SerializeField] private StatsController statsController;
 
         void Start()
         {
@@ -53,7 +53,7 @@ namespace Player
             bool isMoving = moveDir.sqrMagnitude > 0.01f;
 
             bool isRunning = isMoving && !isMovingBackward && isSprintActive;
-            float currentSpeed = isRunning ? stats.RunSpeed : stats.WalkSpeed;
+            float currentSpeed = isRunning ? statsController.runSpeed : statsController.walkSpeed;
 
             if (isMoving)
             {

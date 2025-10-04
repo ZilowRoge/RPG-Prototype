@@ -2,11 +2,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Player.Statistics;
+using Player.Progress;
 
 namespace UI.Player.Statistics {
 public class PlayerStatusUI : MonoBehaviour
 {
-    [SerializeField] private ProgressController stats;
+    [SerializeField] private StatsController stats;
+    [SerializeField] private ProgressController progress;
 
     [Header("Bars")]
     [SerializeField] private ResourceBarUI healthBar;
@@ -18,11 +20,9 @@ public class PlayerStatusUI : MonoBehaviour
 
     private void Update()
     {
-        healthBar.UpdateBar(stats.CurrentHealth, stats.MaxHealth);
-        manaBar.UpdateBar(stats.CurrentMana, stats.MaxMana);
-        staminaBar.UpdateBar(stats.CurrentStamina, stats.MaxStamina);
-
-        levelText.text = $"Lvl: {stats.CurrentLevel}";
+        healthBar.UpdateBar(stats.CurrentHealth, stats.maxHealth);
+        manaBar.UpdateBar(stats.CurrentMana, stats.maxMana);
+        staminaBar.UpdateBar(stats.CurrentStamina, stats.maxStamina);
     }
 }
 }

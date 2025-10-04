@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c5e1cc12c08126428de384a8c0ef1e9, type: 3}
   m_Name: Wizard
   m_EditorClassIdentifier: 
-  id: wizard
+  id: job_wizard
   displayName: Wizard
   tier: 0
   maxLevel: 20

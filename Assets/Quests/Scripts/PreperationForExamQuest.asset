@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 590f52822a79aca4bbf9cc8f95325ca8, type: 3}
+  m_Name: PreperationForExamQuest
+  m_EditorClassIdentifier: 
+  questId: q_exam_prep
+  title: Preparation for the Entrance Exam
+  shortDescription: "Meet the academy\u2019s prerequisites and register for the entrance
+    exam."
+  rewardXp: 100
+  rewardNote: 
+  stages:
+  - id: q_exam_prep_st0
+    title: Meeting the Prerequisites
+    description: 
+    objectives:
+    - id: q_exam_prepare_st0_obj0
+      type: 1
+      targetId: jb_wizard
+      extraId: 
+      requiredCount: 0
+      visibleInJournal: 1
+    - id: q_exam_prepare_st0_obj1
+      type: 2
+      targetId: any
+      extraId: 
+      requiredCount: 0
+      visibleInJournal: 1
+  - id: q_exam_prep_st1
+    title: Report to the Examiner
+    description: Speak to the Master Examiner to begin the test.
+    objectives:
+    - id: q_exam_prep_st1_obj0
+      type: 0
+      targetId: npc_examineer
+      extraId: 
+      requiredCount: 0
+      visibleInJournal: 1
