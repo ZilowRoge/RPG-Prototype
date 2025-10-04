@@ -8,20 +8,49 @@ namespace Player.FightSystem.Magic
     {
         [SerializeField] private SymbolDrawUI symbolDrawUI;
         [SerializeField] private NNModel modelAsset;
+        [SerializeField] private MonoBehaviour defaultCombatConsumerBehaviour;
 
         private PlayerControlls controls;
         private SymbolRecognizer symbolRecognizer;
-        public ISymbolConsumer ActiveConsumer { get; set; }
+        private ISymbolConsumer activeConsumer;
+        private ISymbolConsumer defaultCombatConsumer;
+
+        public ISymbolConsumer ActiveConsumer => activeConsumer;
+        public ISymbolConsumer DefaultCombatConsumer => defaultCombatConsumer;
 
         private void Awake()
         {
             controls = new PlayerControlls();
             symbolRecognizer = new SymbolRecognizer(modelAsset);
 
+            if (defaultCombatConsumerBehaviour != null)
+            {
+                defaultCombatConsumer = defaultCombatConsumerBehaviour as ISymbolConsumer;
+                if (defaultCombatConsumer == null)
+                {
+                    Debug.LogError($"[SymbolInputManager] Default combat consumer does not implement ISymbolConsumer: {defaultCombatConsumerBehaviour.GetType().Name}", this);
+                }
+            }
+
+            if (defaultCombatConsumer != null)
+                activeConsumer = defaultCombatConsumer;
+
             controls.Player.AlternativeUse.started += ctx => StartDrawing();
-            controls.Player.AlternativeUse.canceled += ctx => ActiveConsumer?.OnDrawingFinished();
+            controls.Player.AlternativeUse.canceled += ctx => activeConsumer?.OnDrawingFinished();
 
             controls.Player.Attack.canceled += ctx => OnFireCanceled();
+        }
+
+        public ISymbolConsumer SetActiveConsumer(ISymbolConsumer consumer)
+        {
+            var previous = activeConsumer;
+            activeConsumer = consumer;
+            return previous;
+        }
+
+        public void ResetToDefaultConsumer()
+        {
+            activeConsumer = defaultCombatConsumer;
         }
 
         private void OnEnable() => controls.Enable();
@@ -46,7 +75,7 @@ namespace Player.FightSystem.Magic
                 return;
             }
 
-            ActiveConsumer?.OnSymbolRecognized(symbolId.ToString());
+            activeConsumer?.OnSymbolRecognized(symbolId.ToString());
         }
     }
 }

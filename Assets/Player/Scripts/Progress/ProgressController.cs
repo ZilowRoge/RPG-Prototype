@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using Player.Interfaces;
 using Quests;
@@ -10,10 +11,12 @@ namespace Player.Progress
     {
         [SerializeField] private QuestManager questManager;
         [SerializeField] private JobDatabase jobDatabase;
+        [SerializeField] private SymbolProgress symbolProgress;
 
-        private readonly HashSet<int> symbols = new HashSet<int>();
         private readonly Dictionary<string, bool> flags = new Dictionary<string, bool>();
         private readonly JobContainer jobs = new JobContainer();
+
+        public event System.Action<string, bool> FlagChanged;
 
         public bool HasJob(string jobId)
         {
@@ -34,18 +37,29 @@ namespace Player.Progress
 
         public bool KnowsSymbol(int symbolId)
         {
-            return symbols.Contains(symbolId);
+            return symbolProgress != null && symbolProgress.IsSymbolLearned(symbolId);
+        }
+
+        public void LearnSymbol(string symbolKey)
+        {
+            var parsedId = ParseSymbolId(symbolKey);
+            if (parsedId < 0)
+            {
+                Debug.LogWarning($"[ProgressController] Invalid symbol identifier '{symbolKey}'.");
+                return;
+            }
+
+            LearnSymbol(parsedId);
         }
 
         public void LearnSymbol(int symbolId)
         {
-            if (symbols.Add(symbolId)) EvaluateQuests();
+            if (symbolProgress == null) return;
+            if (symbolProgress.MarkSymbolLearned(symbolId))
+                EvaluateQuests();
         }
 
-        public int KnownSymbolCount
-        {
-            get { return symbols.Count; }
-        }
+        public int KnownSymbolCount => symbolProgress != null ? symbolProgress.LearnedSymbolCount : 0;
 
         public bool GetFlag(string key)
         {
@@ -56,6 +70,7 @@ namespace Player.Progress
         {
             if (string.IsNullOrEmpty(key)) return;
             flags[key] = value;
+            FlagChanged?.Invoke(key, value);
             EvaluateQuests();
         }
 
@@ -72,6 +87,18 @@ namespace Player.Progress
         public void EvaluateQuests()
         {
             // if (questManager != null) questManager.EvaluateAll(this);
+        }
+
+        private static int ParseSymbolId(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+                return -1;
+
+            var trimmed = raw.Trim();
+            if (trimmed.StartsWith("sym_", StringComparison.OrdinalIgnoreCase))
+                trimmed = trimmed.Substring(4);
+
+            return int.TryParse(trimmed, out var id) ? id : -1;
         }
 
         private void OnAnyJobAdvanced(Systems.Jobs.JobInstance job)

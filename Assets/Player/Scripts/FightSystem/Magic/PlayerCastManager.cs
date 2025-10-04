@@ -7,18 +7,11 @@ namespace Player.FightSystem.Magic
 {
     public class PlayerCastManager : MonoBehaviour, ISymbolConsumer
     {
-        [SerializeField] private SymbolInputManager inputManager;
         [SerializeField] private SkillDatabase skillDatabase;
         [SerializeField] private Transform castOrigin;
 
-        private List<int> currentSymbols = new List<int>();
+        private readonly List<int> currentSymbols = new();
         private Spell preparedSpell = null;
-
-        void Awake()
-        {
-            if (inputManager != null)
-                inputManager.ActiveConsumer = this;
-        }
 
         public void OnSymbolRecognized(string symbolId)
         {
@@ -54,7 +47,7 @@ namespace Player.FightSystem.Magic
             currentSymbols.Clear();
         }
 
-        void Update()
+        private void Update()
         {
             if (preparedSpell != null && Input.GetMouseButtonDown(0) && !Input.GetKey(KeyCode.LeftShift))
             {

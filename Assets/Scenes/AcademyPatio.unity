@@ -4325,8 +4325,8 @@ GameObject:
   - component: {fileID: 1064884689}
   - component: {fileID: 1064884688}
   - component: {fileID: 1064884687}
-  - component: {fileID: 1064884691}
   - component: {fileID: 1064884692}
+  - component: {fileID: 1064884691}
   m_Layer: 0
   m_Name: NPC_Clerk
   m_TagString: Untagged
@@ -6633,6 +6633,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   questManager: {fileID: 1079849462}
   jobDatabase: {fileID: 11400000, guid: 6706d452dd5967b409032e585c7b4b2d, type: 2}
+  symbolProgress:
+    knownSymbols: 
 --- !u!1001 &1435378555
 PrefabInstance:
   m_ObjectHideFlags: 0
