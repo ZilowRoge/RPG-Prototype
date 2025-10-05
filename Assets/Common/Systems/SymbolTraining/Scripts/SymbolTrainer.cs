@@ -4,9 +4,9 @@ using Player.FightSystem.Magic;
 using Player.Progress;
 using UnityEngine;
 
-namespace NPC.Training
+namespace Common.Systems.SymbolTraining
 {
-    [AddComponentMenu("NPC/Symbol Trainer")]
+    [AddComponentMenu("Game/Managers/Symbol Trainer")]
     public class SymbolTrainer : MonoBehaviour
     {
         [Serializable]
