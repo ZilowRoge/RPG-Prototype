@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d886ca89e7eeca24a8065e87e03e03d5, type: 3}
+  m_Name: TrainerGreeting
+  m_EditorClassIdentifier: 
+  id: npc_ma_trainer_greeting
+  text: 'Ah, a new student of the arcane script.
+
+    Every symbol is a word of power
+    and every mistake has its price.
+
+    Shall we begin your lesson?'
+  options:
+  - text: "Yes, I\u2019m ready to learn."
+    nextNodeId: 
+    conditions:
+    - conditionType: 1
+      identifier: q_exam_prep
+      expectedValue: 1
+    onSelect:
+    - type: 0
+      actionId: sym_9_lesson_start
+      actionValue: 1
+      onRun:
+        m_PersistentCalls:
+          m_Calls: []
+    HideIfLocked: 0
+  - text: Maybe later. I need some time to prepare.
+    nextNodeId: 
+    conditions: []
+    onSelect: []
+    HideIfLocked: 0

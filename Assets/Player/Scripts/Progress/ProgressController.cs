@@ -35,11 +35,46 @@ namespace Player.Progress
 
         public IEnumerable<JobInstance> GetAllJobs() => jobs.GetAllJobs();
 
+        public bool KnowsSymbol(string symbolKey)
+        {
+            if (string.IsNullOrWhiteSpace(symbolKey))
+                return false;
+
+            var parsedId = ParseSymbolId(symbolKey);
+            if (parsedId < 0)
+                return false;
+
+            return KnowsSymbol(parsedId);
+        }
+
         public bool KnowsSymbol(int symbolId)
         {
             return symbolProgress != null && symbolProgress.IsSymbolLearned(symbolId);
         }
 
+        public bool IsQuestActive(string questId)
+        {
+            if (string.IsNullOrEmpty(questId) || questManager == null)
+                return false;
+
+            return questManager.IsQuestActive(questId);
+        }
+
+        public bool IsQuestCompleted(string questId)
+        {
+            if (string.IsNullOrEmpty(questId) || questManager == null)
+                return false;
+
+            return questManager.IsQuestCompleted(questId);
+        }
+
+        public bool IsQuestStarted(string questId)
+        {
+            if (string.IsNullOrEmpty(questId) || questManager == null)
+                return false;
+
+            return questManager.IsQuestActive(questId) || questManager.IsQuestCompleted(questId);
+        }
         public void LearnSymbol(string symbolKey)
         {
             var parsedId = ParseSymbolId(symbolKey);
@@ -107,3 +142,7 @@ namespace Player.Progress
         }
     }
 }
+
+
+
+

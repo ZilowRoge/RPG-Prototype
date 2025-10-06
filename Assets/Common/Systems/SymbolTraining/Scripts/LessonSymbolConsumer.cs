@@ -1,16 +1,20 @@
 using System;
+using Player.FightSystem.Magic;
 using Player.Progress;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace Player.FightSystem.Magic
+namespace Common.Systems.SymbolTraining
 {
+    [MovedFrom("Player.FightSystem.Magic")]
     public class LessonSymbolConsumer : MonoBehaviour, ISymbolConsumer
     {
         private SymbolLesson currentLesson;
         private ISymbolConsumer previousConsumer;
         private int successfulAttempts;
+        private int totalAttempts;
         private bool isActive;
-        private System.Action<bool, SymbolLesson, ISymbolConsumer> completionCallback;
+        private Action<bool, SymbolLesson, ISymbolConsumer> completionCallback;
 
         public bool IsLessonActive => isActive;
         public SymbolLesson CurrentLesson => currentLesson;
@@ -18,7 +22,7 @@ namespace Player.FightSystem.Magic
         public bool BeginLesson(
             SymbolLesson lesson,
             ISymbolConsumer fallbackConsumer,
-            System.Action<bool, SymbolLesson, ISymbolConsumer> onCompletion)
+            Action<bool, SymbolLesson, ISymbolConsumer> onCompletion)
         {
             if (lesson == null)
             {
@@ -35,6 +39,7 @@ namespace Player.FightSystem.Magic
             currentLesson = lesson;
             previousConsumer = fallbackConsumer;
             successfulAttempts = 0;
+            totalAttempts = 0;
             isActive = true;
             completionCallback = onCompletion;
 
@@ -54,22 +59,40 @@ namespace Player.FightSystem.Magic
             if (!isActive || currentLesson == null)
                 return;
 
-            if (!int.TryParse(symbolId, out var parsedId) || parsedId != currentLesson.SymbolId)
+            totalAttempts++;
+
+            if (!string.IsNullOrWhiteSpace(symbolId) &&
+                string.Equals(symbolId, currentLesson.SymbolId, StringComparison.OrdinalIgnoreCase))
             {
-                FailLesson();
-                return;
+                successfulAttempts++;
+                if (successfulAttempts >= currentLesson.RequiredSuccessfulAttempts)
+                {
+                    CompleteLesson();
+                    return;
+                }
+            }
+            else
+            {
+                Debug.Log($"[LessonSymbolConsumer] Incorrect symbol '{symbolId}' for lesson '{currentLesson.SymbolId}'.", this);
             }
 
-            successfulAttempts++;
-            if (successfulAttempts >= currentLesson.RequiredAttempts)
-            {
-                CompleteLesson();
-            }
+            TryFailLessonOnAttempts();
         }
 
         public void OnDrawingFinished()
         {
-            // No action required when drawing stops for lessons.
+            // Lessons do not react to drawing stop events.
+        }
+
+        private void TryFailLessonOnAttempts()
+        {
+            if (!isActive || currentLesson == null)
+                return;
+
+            if (totalAttempts >= currentLesson.MaxAttempts)
+            {
+                FailLesson();
+            }
         }
 
         private void CompleteLesson()
@@ -87,6 +110,7 @@ namespace Player.FightSystem.Magic
         private void EndLessonInternal()
         {
             successfulAttempts = 0;
+            totalAttempts = 0;
             isActive = false;
             currentLesson = null;
             previousConsumer = null;

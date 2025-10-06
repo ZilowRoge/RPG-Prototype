@@ -1,132 +1,176 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Unity.Barracuda;
-using Player.UI;
 using System.Collections.Generic;
+using Player.Statistics;
 using Spells;
 
 namespace Player.FightSystem.Magic
 {
-    public class CastManager : MonoBehaviour
+    public class CastManager : MonoBehaviour, ISymbolConsumer
     {
-        [SerializeField] private SymbolDrawUI symbolDrawUI;
-        [SerializeField] private NNModel modelAsset;
         [SerializeField] private SkillDatabase skillDatabase;
         [SerializeField] private Transform castOrigin;
         [SerializeField] private Transform target;
-        [SerializeField] private Statistics.StatsController stats;
+        [SerializeField] private StatsController statsController;
 
-        private PlayerControlls controls;
-        private SymbolRecognizer symbolRecognizer;
+        private readonly List<int> currentSymbols = new();
+        private Spell preparedSpell = null;
         private SpellCastingService spellService;
-
-        private List<int> currentSymbols = new();
-        private bool isDrawing = false;
-        private bool spellReady = false;
 
         private void Awake()
         {
-            controls = new PlayerControlls();
-            symbolRecognizer = new SymbolRecognizer(modelAsset);
-            spellService = new SpellCastingService(skillDatabase);
-
-            symbolDrawUI.gameObject.SetActive(false);
-
-            controls.Player.AlternativeUse.started += ctx => StartDrawing();
-            controls.Player.AlternativeUse.canceled += ctx => FinalizeSpell();
-
-            controls.Player.Attack.started += ctx => OnFireStarted();
-            controls.Player.Attack.canceled += ctx => OnFireCanceled();
-        }
-
-        private void OnEnable() => controls.Enable();
-        private void OnDestroy() => symbolRecognizer.Clear();
-        private void OnDisable() {
-            controls.Disable();
-            symbolRecognizer.Clear();
-        }
-
-
-        private void StartDrawing()
-        {
-            currentSymbols.Clear();
-            spellReady = false;
-            isDrawing = true;
-
-            symbolDrawUI.gameObject.SetActive(true);
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-
-            Debug.Log("Drawing mode enabled");
-        }
-
-        private void OnFireStarted()
-        {
-            if (isDrawing)
+            if (skillDatabase != null)
             {
-                return;
-            }
-            else if (spellReady)
-            {
-                var casterData = new CasterData(stats, castOrigin, target);
-                var result = spellService.Cast(currentSymbols, casterData);
-
-                if (result == CastResult.Success)
-                    Debug.Log("Spell cast successfully.");
-                else
-                    Debug.LogWarning($"Spell cast failed: {result}");
-
-                spellReady = false;
-                currentSymbols.Clear();
-            }
-        }
-
-        private void OnFireCanceled()
-        {
-            if (!isDrawing) return;
-
-            // symbolDrawUI.EndDraw();
-
-            (int symbolId, float probability) = symbolRecognizer.GetSymbol(symbolDrawUI.GetNormalizedTexture64());
-            symbolDrawUI.ClearTexture();
-
-            if (probability < .8f)
-            {
-                Debug.LogWarning("Symbol not recognized, clearing sequence.");
-                currentSymbols.Clear();
-                return;
-            }
-
-            currentSymbols.Add(symbolId);
-            Debug.Log($"Added symbol {symbolId} to sequence. Current: {string.Join(",", currentSymbols)}");
-        }
-
-        private void FinalizeSpell()
-        {
-            isDrawing = false;
-            symbolDrawUI.gameObject.SetActive(false);
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-
-            if (currentSymbols.Count == 0)
-            {
-                Debug.Log("No symbols drawn, spell canceled.");
-                return;
-            }
-
-            var casterData = new CasterData(stats, castOrigin, target);
-            var result = spellService.Activate(currentSymbols, casterData);
-
-            if (result == CastResult.Success)
-            {
-                Debug.Log($"Spell activated with sequence [{string.Join(",", currentSymbols)}]");
-                spellReady = true; // jeśli nie instant, czekamy na LPM
+                spellService = new SpellCastingService(skillDatabase);
             }
             else
             {
-                Debug.LogWarning($"Spell not recognized or invalid. Sequence: [{string.Join(",", currentSymbols)}]");
+                Debug.LogWarning("[CastManager] SkillDatabase is not assigned.", this);
             }
+
+            if (statsController == null)
+            {
+                statsController = GetComponent<StatsController>();
+                if (statsController == null)
+                {
+                    Debug.LogWarning("[CastManager] StatsController is missing.", this);
+                }
+            }
+        }
+
+        public void SetTarget(Transform newTarget)
+        {
+            target = newTarget;
+        }
+
+        public void OnSymbolRecognized(string symbolId)
+        {
+            if (int.TryParse(symbolId, out int id))
+            {
+                currentSymbols.Add(id);
+                Debug.Log($"[CastManager] Added symbol: {id}");
+            }
+            else
+            {
+                Debug.LogWarning($"Invalid symbolId: {symbolId}");
+            }
+        }
+
+        public void OnDrawingFinished()
+        {
+            if (currentSymbols.Count == 0)
+            {
+                Debug.Log("[CastManager] No symbols drawn.");
+                return;
+            }
+
+            if (spellService == null)
+            {
+                Debug.LogWarning("[CastManager] Spell service is not initialized.", this);
+                currentSymbols.Clear();
+                preparedSpell = null;
+                return;
+            }
+
+            if (!TryBuildCasterData(out var casterData))
+            {
+                currentSymbols.Clear();
+                preparedSpell = null;
+                return;
+            }
+
+            var result = spellService.TryPrepareSpell(currentSymbols, casterData, out var spell);
+            if (result == CastResult.Success)
+            {
+                preparedSpell = spell;
+                Debug.Log($"[CastManager] Prepared spell: {preparedSpell.name}");
+            }
+            else if (result == CastResult.InvalidSymbol)
+            {
+                Debug.Log("[CastManager] Unknown spell.");
+                preparedSpell = null;
+            }
+            else
+            {
+                Debug.LogWarning($"[CastManager] Unable to prepare spell ({result}).");
+                preparedSpell = null;
+            }
+
             currentSymbols.Clear();
+        }
+
+        private void Update()
+        {
+            if (preparedSpell != null && IsCastInputTriggered())
+            {
+                CastPreparedSpell();
+            }
+        }
+
+        private bool IsCastInputTriggered()
+        {
+            if (Mouse.current == null)
+                return false;
+
+            var keyboard = Keyboard.current;
+            var isShiftHeld = keyboard != null && keyboard.leftShiftKey.isPressed;
+
+            return Mouse.current.leftButton.wasPressedThisFrame && !isShiftHeld;
+        }
+
+        private void CastPreparedSpell()
+        {
+            if (preparedSpell == null)
+                return;
+
+            if (spellService == null)
+            {
+                Debug.LogWarning("[CastManager] Spell service is not initialized.", this);
+                preparedSpell = null;
+                return;
+            }
+
+            if (!TryBuildCasterData(out var casterData))
+            {
+                preparedSpell = null;
+                return;
+            }
+
+            var result = spellService.Cast(preparedSpell, casterData);
+            if (result == CastResult.Success)
+            {
+                Debug.Log($"Casting {preparedSpell.name}!");
+            }
+            else
+            {
+                Debug.LogWarning($"[CastManager] Spell cast failed: {result}");
+            }
+
+            preparedSpell = null;
+        }
+
+        private bool TryBuildCasterData(out CasterData casterData)
+        {
+            if (statsController == null)
+            {
+                statsController = GetComponent<StatsController>();
+                if (statsController == null)
+                {
+                    Debug.LogWarning("[CastManager] StatsController is missing.", this);
+                    casterData = null;
+                    return false;
+                }
+            }
+
+            if (castOrigin == null)
+            {
+                Debug.LogWarning("[CastManager] Cast origin is not assigned.", this);
+                casterData = null;
+                return false;
+            }
+
+            casterData = new CasterData(statsController, castOrigin, target);
+            return true;
         }
     }
 }

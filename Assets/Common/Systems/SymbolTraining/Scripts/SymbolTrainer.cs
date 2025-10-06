@@ -48,21 +48,6 @@ namespace Common.Systems.SymbolTraining
             }
         }
 
-        public bool StartLesson(SymbolLesson lesson)
-        {
-            if (!EnsureDependencies())
-                return false;
-
-            if (lesson == null)
-                return false;
-
-            if (progressController.KnowsSymbol(lesson.SymbolId))
-                return false;
-
-            progressController.SetFlag(lesson.CompletionFlagKey, false);
-            return BeginLesson(lesson, null);
-        }
-
         private void OnFlagChanged(string key, bool value)
         {
             if (!value || string.IsNullOrEmpty(key))

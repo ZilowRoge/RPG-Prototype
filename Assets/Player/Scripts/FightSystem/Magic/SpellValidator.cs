@@ -12,13 +12,23 @@ namespace Player.FightSystem.Magic
 
     public class SpellValidator
     {
-        public CastResult Validate(Spell spell, CasterData caster)
+        public CastResult Validate(Spell spell, CasterData caster, bool consumeResources = true)
         {
             if (spell == null)
                 return CastResult.InvalidSymbol;
 
-            if (caster.stats == null || !caster.stats.UseMana(spell.ManaCost))
+            if (caster.stats == null)
                 return CastResult.NotEnoughMana;
+
+            if (consumeResources)
+            {
+                if (!caster.stats.UseMana(spell.ManaCost))
+                    return CastResult.NotEnoughMana;
+            }
+            else if (caster.stats.CurrentMana < spell.ManaCost)
+            {
+                return CastResult.NotEnoughMana;
+            }
 
             if (caster.target == null)
                 return CastResult.NoTarget;
@@ -27,3 +37,4 @@ namespace Player.FightSystem.Magic
         }
     }
 }
+
