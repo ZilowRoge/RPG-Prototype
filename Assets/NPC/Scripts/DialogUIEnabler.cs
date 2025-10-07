@@ -17,9 +17,13 @@ namespace NPC {
             if (dialogUI == null)
                 return;
             if(!dialogUI.gameObject.activeSelf) {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
                 dialogUI.gameObject.SetActive(true);
                 dialogUI.Begin(dialogAsset);
             } else {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
                 dialogUI.Close();
                 dialogUI.gameObject.SetActive(false);
             }

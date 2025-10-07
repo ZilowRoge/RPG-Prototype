@@ -13,11 +13,15 @@ MonoBehaviour:
   m_Name: ClerkSymbolInfo
   m_EditorClassIdentifier: 
   id: npc_ma_sym_info
-  text: "To learn your first symbol, you must seek out one of our Academy teachers.
-    Each of them can guide you through the process of mastering a basic rune.\nHowever,
+  text: 'To learn your first symbol, you must seek out one of our Academy teachers.
+    Each of them can guide you through the process of mastering a basic rune.
+
+    However,
     be warned: it is not enough to simply watch. You will need to go through the
-    learning process yourself \u2014 practice, focus, and prove that you can draw
-    the symbol correctly.\nOnly then will the knowledge truly be yours"
+    learning process yourself practice, focus, and prove that you can draw the symbol
+    correctly.
+
+    Only then will the knowledge truly be yours'
   options:
   - text: "Thank you, I\u2019ll go find a teacher."
     nextNodeId: 

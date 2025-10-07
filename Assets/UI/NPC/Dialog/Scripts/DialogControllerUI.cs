@@ -7,6 +7,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using NPC.Dialog;
 using Player.Progress;
+using UnityEngine.InputSystem;
 
 namespace UI.NPC.Dialog
 {
@@ -21,6 +22,7 @@ namespace UI.NPC.Dialog
 
         [Header("Behavior")]
         [SerializeField] private bool autoSelectFirstOption = true;
+        [SerializeField] private bool closeOnEscape = true;
 
         [Header("Progress")]
         [SerializeField] private ProgressController progressController;
@@ -47,6 +49,9 @@ namespace UI.NPC.Dialog
             Hide();
             currentDialog = null;
             currentNodeId = null;
+            // Restore gameplay cursor state when dialog closes
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
 
         private void ShowNode(string nodeId)
@@ -158,6 +163,7 @@ namespace UI.NPC.Dialog
                         ShowNode(nextId);
                 });
 
+                slot.transform.SetAsLastSibling();
                 if (isLocked) slot.SetInteractable(false);
                 active.Add(slot);
             }
@@ -232,7 +238,9 @@ namespace UI.NPC.Dialog
                 canvasGroup.interactable = false;
                 canvasGroup.blocksRaycasts = false;
             }
-            else gameObject.SetActive(false);
+            // Ensure the GameObject is fully deactivated so external toggles
+            // see it as closed (prevents needing a double press to reopen).
+            gameObject.SetActive(false);
         }
 
         private void HideImmediate()
@@ -263,6 +271,16 @@ namespace UI.NPC.Dialog
         {
             SetNpcLine(string.Empty);
             ReleaseActiveSlots();
+        }
+
+        private void Update()
+        {
+            if (!closeOnEscape) return;
+            if (!gameObject.activeInHierarchy) return;
+            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                Close();
+            }
         }
     }
 }

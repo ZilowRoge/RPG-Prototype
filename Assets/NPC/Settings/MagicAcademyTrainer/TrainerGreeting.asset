@@ -26,6 +26,9 @@ MonoBehaviour:
     - conditionType: 1
       identifier: q_exam_prep
       expectedValue: 1
+    - conditionType: 0
+      identifier: sym_9_lesson_complete
+      expectedValue: 0
     onSelect:
     - type: 0
       actionId: sym_9_lesson_start
@@ -33,7 +36,24 @@ MonoBehaviour:
       onRun:
         m_PersistentCalls:
           m_Calls: []
-    HideIfLocked: 0
+    HideIfLocked: 1
+  - text: This is the Fundamental Symbol, the key that opens your path to all others.
+    nextNodeId: 
+    conditions:
+    - conditionType: 0
+      identifier: sym_9_lesson_complete
+      expectedValue: 1
+    - conditionType: 5
+      identifier: sym_9
+      expectedValue: 0
+    onSelect:
+    - type: 3
+      actionId: sym_9
+      actionValue: 0
+      onRun:
+        m_PersistentCalls:
+          m_Calls: []
+    HideIfLocked: 1
   - text: Maybe later. I need some time to prepare.
     nextNodeId: 
     conditions: []

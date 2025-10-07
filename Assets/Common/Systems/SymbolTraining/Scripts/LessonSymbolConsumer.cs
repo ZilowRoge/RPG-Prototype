@@ -1,6 +1,5 @@
 using System;
 using Player.FightSystem.Magic;
-using Player.Progress;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -9,6 +8,8 @@ namespace Common.Systems.SymbolTraining
     [MovedFrom("Player.FightSystem.Magic")]
     public class LessonSymbolConsumer : MonoBehaviour, ISymbolConsumer
     {
+        [SerializeField] private SymbolLessonUI lessonUI;
+
         private SymbolLesson currentLesson;
         private ISymbolConsumer previousConsumer;
         private int successfulAttempts;
@@ -18,6 +19,12 @@ namespace Common.Systems.SymbolTraining
 
         public bool IsLessonActive => isActive;
         public SymbolLesson CurrentLesson => currentLesson;
+
+        private void Awake()
+        {
+            if (lessonUI == null)
+                lessonUI = FindFirstObjectByType<SymbolLessonUI>(FindObjectsInactive.Include);
+        }
 
         public bool BeginLesson(
             SymbolLesson lesson,
@@ -43,6 +50,8 @@ namespace Common.Systems.SymbolTraining
             isActive = true;
             completionCallback = onCompletion;
 
+            ShowLessonUI();
+
             return true;
         }
 
@@ -61,19 +70,35 @@ namespace Common.Systems.SymbolTraining
 
             totalAttempts++;
 
-            if (!string.IsNullOrWhiteSpace(symbolId) &&
-                string.Equals(symbolId, currentLesson.SymbolId, StringComparison.OrdinalIgnoreCase))
+            string recognizedId = symbolId?.Trim();
+            string expectedId = currentLesson.SymbolId;
+
+            bool matched = !string.IsNullOrWhiteSpace(recognizedId) &&
+                           !string.IsNullOrWhiteSpace(expectedId) &&
+                           string.Equals(recognizedId, expectedId, StringComparison.OrdinalIgnoreCase);
+
+            if (!matched &&
+                TryExtractNumericId(recognizedId, out int recognizedNumeric) &&
+                TryExtractNumericId(expectedId, out int expectedNumeric))
+            {
+                matched = recognizedNumeric == expectedNumeric;
+            }
+
+            if (matched)
             {
                 successfulAttempts++;
-                if (successfulAttempts >= currentLesson.RequiredSuccessfulAttempts)
-                {
-                    CompleteLesson();
-                    return;
-                }
             }
             else
             {
-                Debug.Log($"[LessonSymbolConsumer] Incorrect symbol '{symbolId}' for lesson '{currentLesson.SymbolId}'.", this);
+                Debug.Log("[LessonSymbolConsumer] Incorrect symbol '" + (recognizedId ?? "<null>") + "' for lesson '" + expectedId + "'.", this);
+            }
+
+            UpdateLessonUIProgress();
+
+            if (matched && successfulAttempts >= currentLesson.RequiredSuccessfulAttempts)
+            {
+                CompleteLesson();
+                return;
             }
 
             TryFailLessonOnAttempts();
@@ -97,13 +122,17 @@ namespace Common.Systems.SymbolTraining
 
         private void CompleteLesson()
         {
-            completionCallback?.Invoke(true, currentLesson, previousConsumer);
+            var lesson = currentLesson;
+            completionCallback?.Invoke(true, lesson, previousConsumer);
+            EndLessonUI();
             EndLessonInternal();
         }
 
         private void FailLesson()
         {
-            completionCallback?.Invoke(false, currentLesson, previousConsumer);
+            var lesson = currentLesson;
+            completionCallback?.Invoke(false, lesson, previousConsumer);
+            EndLessonUI();
             EndLessonInternal();
         }
 
@@ -115,6 +144,55 @@ namespace Common.Systems.SymbolTraining
             currentLesson = null;
             previousConsumer = null;
             completionCallback = null;
+        }
+
+        private static bool TryExtractNumericId(string value, out int numericId)
+        {
+            numericId = -1;
+
+            if (string.IsNullOrWhiteSpace(value))
+                return false;
+
+            value = value.Trim();
+            if (int.TryParse(value, out numericId))
+                return true;
+
+            int length = value.Length;
+            var buffer = new char[length];
+            int bufferIndex = 0;
+
+            for (int i = 0; i < length; i++)
+            {
+                char c = value[i];
+                if (char.IsDigit(c))
+                    buffer[bufferIndex++] = c;
+            }
+
+            if (bufferIndex == 0)
+                return false;
+
+            return int.TryParse(new string(buffer, 0, bufferIndex), out numericId);
+        }
+
+        private void ShowLessonUI()
+        {
+            if (lessonUI == null || currentLesson == null)
+                return;
+
+            lessonUI.ShowLesson(currentLesson, successfulAttempts);
+        }
+
+        private void UpdateLessonUIProgress()
+        {
+            if (lessonUI == null || currentLesson == null)
+                return;
+
+            lessonUI.UpdateProgress(successfulAttempts);
+        }
+
+        private void EndLessonUI()
+        {
+            lessonUI?.EndLesson();
         }
     }
 }

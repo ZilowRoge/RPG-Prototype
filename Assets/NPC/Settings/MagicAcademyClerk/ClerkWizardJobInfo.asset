@@ -13,11 +13,9 @@ MonoBehaviour:
   m_Name: ClerkWizardJobInfo
   m_EditorClassIdentifier: 
   id: npc_ma_wiz_jb_info
-  text: 'To become a Wizard, you must first declare your path and accept the responsibilities
-    that come with wielding magic.
-
-    If you are certain, I can grant you the official
-    status of Wizard right now.'
+  text: To become a Wizard, you must first declare your path and accept the responsibilities
+    that come with wielding magic.If you are certain, I can grant you the official
+    status of Wizard right now.
   options:
   - text: Yes, I am ready to become a Wizard
     nextNodeId: 
