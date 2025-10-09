@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using Player.Statistics;
 using Spells;
+using Player.Targeting;
 
 namespace Player.FightSystem.Magic
 {
@@ -11,6 +12,7 @@ namespace Player.FightSystem.Magic
         [SerializeField] private SkillDatabase skillDatabase;
         [SerializeField] private Transform castOrigin;
         [SerializeField] private Transform target;
+        [SerializeField] private TargetSelector targetSelector;
         [SerializeField] private StatsController statsController;
 
         private readonly List<int> currentSymbols = new();
@@ -169,7 +171,22 @@ namespace Player.FightSystem.Magic
                 return false;
             }
 
-            casterData = new CasterData(statsController, castOrigin, target);
+            Transform effectiveTarget = target;
+            if (targetSelector != null)
+            {
+                if (preparedSpell != null && preparedSpell.RequiresTarget)
+                {
+                    // Per-spell targeting constraints
+                    effectiveTarget = targetSelector.FindBestTarget(preparedSpell.DesiredTargetRange,
+                                                                   preparedSpell.DesiredFovAngle,
+                                                                   preparedSpell.PreferCenterRay);
+                }
+                else
+                {
+                    effectiveTarget = targetSelector.CurrentTarget;
+                }
+            }
+            casterData = new CasterData(statsController, castOrigin, effectiveTarget);
             return true;
         }
     }

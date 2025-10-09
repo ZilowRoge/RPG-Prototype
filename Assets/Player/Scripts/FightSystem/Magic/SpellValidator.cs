@@ -30,8 +30,13 @@ namespace Player.FightSystem.Magic
                 return CastResult.NotEnoughMana;
             }
 
-            if (caster.target == null)
-                return CastResult.NoTarget;
+            // Target requirement depends on spell and stage (prepare vs cast)
+            if (spell.RequiresTarget)
+            {
+                // Only strictly enforce at cast-time (when consuming resources)
+                if (consumeResources && caster.target == null)
+                    return CastResult.NoTarget;
+            }
 
             return CastResult.Success;
         }
