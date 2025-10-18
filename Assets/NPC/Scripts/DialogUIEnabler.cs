@@ -1,4 +1,5 @@
 using UnityEngine;
+using Common.World.Interaction;
 
 namespace NPC {
     public class DialogUIEnabler : MonoBehaviour, IInteractable

@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using NPC;
+using Common.World.Interaction;
 
 namespace Player {
     public class Interactor : MonoBehaviour

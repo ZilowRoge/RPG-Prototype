@@ -1,9 +1,10 @@
 using UnityEngine;
 
-namespace NPC
+namespace Common.World.Interaction
 {
     public interface IInteractable
     {
         void Interact(GameObject player);
     }
 }
+
