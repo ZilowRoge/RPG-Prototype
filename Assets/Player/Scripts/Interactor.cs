@@ -5,7 +5,6 @@ using Common.World.Interaction;
 namespace Player {
     public class Interactor : MonoBehaviour
     {
-        // [SerializeField] private float maxDistance = 2.0f;
         [SerializeField] private LayerMask interactableMask = ~0;
 
         private IInteractable current;

@@ -18,7 +18,7 @@ namespace NPC.Dialog
     [Serializable]
     public class DialogOption
     {
-        public string text;
+        [TextArea(2, 8)] public string text;
         public string nextNodeId;
         public List<DialogCondition> conditions = new();
         public List<DialogAction> onSelect = new();

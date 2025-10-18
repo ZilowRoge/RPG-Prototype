@@ -27,7 +27,7 @@ MonoBehaviour:
       identifier: q_exam_prep
       expectedValue: 1
     - conditionType: 0
-      identifier: sym_9_lesson_complete
+      identifier: sym_9_lesson_finished
       expectedValue: 0
     onSelect:
     - type: 0
@@ -41,7 +41,7 @@ MonoBehaviour:
     nextNodeId: 
     conditions:
     - conditionType: 0
-      identifier: sym_9_lesson_complete
+      identifier: sym_9_lesson_finished
       expectedValue: 1
     - conditionType: 5
       identifier: sym_9

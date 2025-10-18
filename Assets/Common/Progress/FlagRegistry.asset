@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 912913927c96cfa4e9024b981f28b5a5, type: 3}
+  m_Name: FlagRegistry
+  m_EditorClassIdentifier: 
+  flags:
+  - key: exam_prep_finished
+    description: Player knows a symbol and has a Wizard job
+    defaultValue: 0
+  - key: sym_9_lesson_finished
+    description: Player had finished the lesson for symbol 9
+    defaultValue: 0
+  - key: sym_9_lesson_start
+    description: Player had started the lesson for symbol 9
+    defaultValue: 0

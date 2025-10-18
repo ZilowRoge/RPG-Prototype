@@ -16,7 +16,7 @@ MonoBehaviour:
   requiredSuccessfulAttempts: 3
   maxAttempts: 5
   recognitionThreshold: 0.908
-  completionFlagKey: sym_9_lesson_complete
+  completionFlagKey: sym_9_lesson_finished
   symbolName: 
   referenceSprite: {fileID: 21300000, guid: cd604010a7375aa4488464faa0b52717, type: 3}
   description: 

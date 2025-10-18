@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: npc_ma_clerk_exam_req
   text: To be eligible for the exam, you must know at least one magic symbol and
-    possess the official job of Mage. Once you achieve these, return to me and I
-    will issue your exam voucher.
+    possess the official job of Wizard. Once you achieve these, return to me and
+    I will issue your exam voucher.
   options:
   - text: How do I become a Wizard?
     nextNodeId: npc_ma_wiz_jb_info
