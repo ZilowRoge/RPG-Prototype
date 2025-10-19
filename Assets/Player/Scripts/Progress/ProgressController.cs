@@ -25,10 +25,8 @@ namespace Player.Progress
 
         public void AddJob(string jobId)
         {
-            Debug.Log("Add Job");
             var asset = jobDatabase != null ? jobDatabase.GetById(jobId) : null;
             if (asset == null) return;
-            Debug.Log("Evaluate");
             jobs.AddJob(asset, OnAnyJobAdvanced);
             EvaluateQuests();
         }
@@ -111,10 +109,8 @@ namespace Player.Progress
 
         public void StartQuest(string questId)
         {
-            Debug.Log($"Starting quest {questId}");
             if (questManager == null || string.IsNullOrEmpty(questId)) return;
             if (questManager.StartQuest(questId)) {
-                Debug.Log($"Evaluate quests");
                 EvaluateQuests();
             }
         }
