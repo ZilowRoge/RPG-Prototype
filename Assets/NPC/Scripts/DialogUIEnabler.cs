@@ -1,5 +1,6 @@
 using UnityEngine;
 using Common.World.Interaction;
+using Player;
 
 namespace NPC {
     public class DialogUIEnabler : MonoBehaviour, IInteractable
@@ -17,26 +18,25 @@ namespace NPC {
         {
             if (dialogUI == null)
                 return;
-            if(!dialogUI.gameObject.activeSelf) {
+            // Toggle using DialogControllerUI state (parent-managed)
+            if(!dialogUI.IsOpen) {
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
-                dialogUI.gameObject.SetActive(true);
                 dialogUI.Begin(dialogAsset);
             } else {
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;
                 dialogUI.Close();
-                dialogUI.gameObject.SetActive(false);
             }
         }
 
         private void OnTriggerExit(Collider other)
         {
-            if (other.gameObject.name.Equals("Player") && dialogUI != null && dialogUI.gameObject.activeSelf)
-            {
+            if (dialogUI == null) return;
+            var isPlayer = other != null && other.GetComponentInParent<Interactor>() != null;
+            if (!isPlayer) return;
+            if (dialogUI.IsOpen)
                 dialogUI.Close();
-                dialogUI.gameObject.SetActive(false);
-            }
         }
     }
 }

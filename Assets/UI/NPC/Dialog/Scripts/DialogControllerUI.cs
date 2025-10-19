@@ -19,6 +19,8 @@ namespace UI.NPC.Dialog
         [SerializeField] private PlayerResponseSlotUI responsePrefab;
         [SerializeField] private CanvasGroup canvasGroup;
         [SerializeField] private ScrollRect scrollRect;
+        [Tooltip("Child GameObject to toggle when showing/hiding dialog UI.")]
+        [SerializeField] private GameObject dialogRoot;
 
         [Header("Behavior")]
         [SerializeField] private bool autoSelectFirstOption = true;
@@ -35,16 +37,41 @@ namespace UI.NPC.Dialog
 
         private List<DialogOption> scratchList = new();
 
+        public bool IsOpen
+        {
+            get
+            {
+                var cg = GetEffectiveCanvasGroup();
+                bool rootActive = dialogRoot != null && dialogRoot.activeInHierarchy;
+                bool cgOpen = cg != null && (cg.blocksRaycasts || cg.alpha > 0.001f);
+                return currentDialog != null || rootActive || cgOpen;
+            }
+        }
+
+        
+
         public void Begin(DialogAsset dialog)
         {
-            if (dialog == null) return;
+            if (dialog == null) { return; }
             currentDialog = dialog;
+            if (dialogRoot == null && responsesRoot != null)
+            {
+                dialogRoot = responsesRoot.gameObject;
+                
+            }
+            if (canvasGroup == null && dialogRoot != null)
+            {
+                canvasGroup = dialogRoot.GetComponent<CanvasGroup>();
+                
+            }
             EnsureVisible();
+            
             ShowNode(currentDialog.StartNodeId);
         }
 
         public void Close()
         {
+            
             ClearUI();
             Hide();
             currentDialog = null;
@@ -56,8 +83,10 @@ namespace UI.NPC.Dialog
 
         private void ShowNode(string nodeId)
         {
+            
             if (currentDialog == null)
             {
+                
                 Close();
                 return;
             }
@@ -66,12 +95,14 @@ namespace UI.NPC.Dialog
             var node = currentDialog.GetNode(nodeId) as NpcLineNode;
             if (node == null)
             {
+                
                 Close();
                 return;
             }
 
             SetNpcLine(node.text);
             var displayOptions = BuildUiOptionsFromNode(node);
+            
             BuildOptions(displayOptions);
 
             if (scrollRect != null)
@@ -97,6 +128,7 @@ namespace UI.NPC.Dialog
         private IReadOnlyList<DialogOption> BuildUiOptionsFromNode(NpcLineNode node)
         {
             scratchList.Clear();
+            
             if (node.options != null)
             {
                 foreach (var opt in node.options)
@@ -126,10 +158,11 @@ namespace UI.NPC.Dialog
                         HideIfLocked = opt.HideIfLocked
                     };
 
-                    if (!allOk && opt.HideIfLocked) continue;
+                    if (!allOk && opt.HideIfLocked) { continue; }
                     scratchList.Add(uiOpt);
                 }
             }
+            
             return scratchList;
         }
 
@@ -137,6 +170,7 @@ namespace UI.NPC.Dialog
         {
             ReleaseActiveSlots();
             if (options == null || options.Count == 0) return;
+            
 
             for (int i = 0; i < options.Count; i++)
             {
@@ -149,18 +183,26 @@ namespace UI.NPC.Dialog
 
                 slot.Initialize(displayText, () =>
                 {
+                    
                     SetResponsesInteractable(false);
                     if (isLocked)
                     {
+                        
                         SetResponsesInteractable(true);
                         return;
                     }
                     if (actions != null)
                         foreach (var a in actions) a?.Run(progressController);
                     if (string.IsNullOrEmpty(nextId))
+                    {
+                        
                         Close();
+                    }
                     else
+                    {
+                        
                         ShowNode(nextId);
+                    }
                 });
 
                 slot.transform.SetAsLastSibling();
@@ -221,35 +263,44 @@ namespace UI.NPC.Dialog
 
         private void EnsureVisible()
         {
-            if (canvasGroup != null)
+            var cg = GetEffectiveCanvasGroup();
+            if (cg != null)
             {
-                canvasGroup.alpha = 1f;
-                canvasGroup.interactable = true;
-                canvasGroup.blocksRaycasts = true;
+                cg.alpha = 1f;
+                cg.interactable = true;
+                cg.blocksRaycasts = true;
             }
-            else gameObject.SetActive(true);
+            // Always ensure dialog root is active if provided
+            if (dialogRoot != null && !dialogRoot.activeSelf)
+            {
+                dialogRoot.SetActive(true);
+            }
         }
 
         private void Hide()
         {
-            if (canvasGroup != null)
+            var cg = GetEffectiveCanvasGroup();
+            if (cg != null)
             {
-                canvasGroup.alpha = 0f;
-                canvasGroup.interactable = false;
-                canvasGroup.blocksRaycasts = false;
+                cg.alpha = 0f;
+                cg.interactable = false;
+                cg.blocksRaycasts = false;
             }
-            // Ensure the GameObject is fully deactivated so external toggles
-            // see it as closed (prevents needing a double press to reopen).
-            gameObject.SetActive(false);
+            if (dialogRoot != null) dialogRoot.SetActive(false);
         }
 
         private void HideImmediate()
         {
-            if (canvasGroup != null)
+            var cg = GetEffectiveCanvasGroup();
+            if (cg != null)
             {
-                canvasGroup.alpha = 0f;
-                canvasGroup.interactable = false;
-                canvasGroup.blocksRaycasts = false;
+                cg.alpha = 0f;
+                cg.interactable = false;
+                cg.blocksRaycasts = false;
+            }
+            if (dialogRoot != null && dialogRoot.activeSelf)
+            {
+                dialogRoot.SetActive(false);
             }
         }
 
@@ -276,11 +327,31 @@ namespace UI.NPC.Dialog
         private void Update()
         {
             if (!closeOnEscape) return;
-            if (!gameObject.activeInHierarchy) return;
+            bool isOpen = (dialogRoot != null && dialogRoot.activeInHierarchy) ||
+                          (GetEffectiveCanvasGroup() != null && GetEffectiveCanvasGroup().blocksRaycasts) ||
+                          currentDialog != null;
+            if (!isOpen) return;
             if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
+                
                 Close();
             }
+        }
+
+        
+
+        public void SetDialogRoot(GameObject root)
+        {
+            dialogRoot = root;
+            if (canvasGroup == null && dialogRoot != null)
+                canvasGroup = dialogRoot.GetComponent<CanvasGroup>();
+        }
+
+        private CanvasGroup GetEffectiveCanvasGroup()
+        {
+            if (canvasGroup != null) return canvasGroup;
+            if (dialogRoot != null) return dialogRoot.GetComponent<CanvasGroup>();
+            return null;
         }
     }
 }
