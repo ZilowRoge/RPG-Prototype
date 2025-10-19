@@ -1,11 +1,12 @@
 using UnityEngine;
 using Player.FightSystem.Magic;
 using Player.Progress;
+using Player;
 
 namespace Common.Systems.SymbolTraining
 {
     [AddComponentMenu("Game/World/Doors/Conditions/Symbol Required")] 
-    public class SymbolOpenCondition : MonoBehaviour, IDoorOpenCondition, ISymbolConsumer
+    public class SymbolOpenCondition : MonoBehaviour, IDoorOpenCondition, ISymbolConsumer, ICancelableSymbolFlow
     {
         [SerializeField] private string requiredSymbolId = string.Empty;
         [Header("Requirements")]
@@ -107,11 +108,43 @@ namespace Common.Systems.SymbolTraining
 
         public void OnDrawingFinished() { }
 
+        public void CancelAwait()
+        {
+            if (!awaiting)
+                return;
+            awaiting = false;
+            Restore();
+        }
+
+        public void CancelSymbolFlow()
+        {
+            CancelAwait();
+        }
+
+        private void OnDisable()
+        {
+            // Safety: ensure we don't leave input manager in an inconsistent state
+            if (awaiting)
+            {
+                awaiting = false;
+                Restore();
+            }
+        }
+
+        private void OnTriggerExit(Collider other)
+        {
+            // If player leaves the interaction zone while awaiting, cancel and restore consumer
+            if (other != null && other.GetComponentInParent<Interactor>() != null)
+            {
+                CancelAwait();
+            }
+        }
+
         private void Restore()
         {
             if (inputManager == null)
                 return;
-            Debug.Log("[SymbolOpenCondition] Restoring default symbol consumer.", this);
+            Debug.Log("[SymbolOpenCondition] Restoring symbol consumer.", this);
             inputManager.ResetToDefaultConsumer();
             inputManager = null;
         }

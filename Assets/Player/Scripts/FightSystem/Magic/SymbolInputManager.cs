@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Unity.Barracuda;
 using Player.UI;
 
@@ -63,6 +64,17 @@ namespace Player.FightSystem.Magic
             symbolRecognizer?.Clear();
         }
 
+        private void Update()
+        {
+            // ESC cancels current symbol flow (doors/lessons) and hides drawing UI
+            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                if (isDrawing)
+                    FinishDrawing(notifyConsumer: false);
+                (activeConsumer as ICancelableSymbolFlow)?.CancelSymbolFlow();
+            }
+        }
+
         private void StartDrawing()
         {
             if (isDrawing)
@@ -123,4 +135,3 @@ namespace Player.FightSystem.Magic
         }
     }
 }
-

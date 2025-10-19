@@ -30,10 +30,8 @@ namespace Common.Systems.SymbolTraining
                 return;
             }
 
-            // Condition may perform side-effects (e.g., start symbol drawing) and decide readiness
             if (openCondition.CanOpen(player))
                 UnlockAndOpen();
-            // else: condition took over (e.g., symbol flow)
         }
 
         private void UnlockAndOpen()
@@ -46,6 +44,5 @@ namespace Common.Systems.SymbolTraining
             }
             door.TryOpen();
         }
-        // Flag/symbol logic lives inside an IDoorOpenCondition implementation.
     }
 }

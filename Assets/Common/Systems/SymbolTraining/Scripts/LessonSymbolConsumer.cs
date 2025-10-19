@@ -6,7 +6,7 @@ using UnityEngine.Scripting.APIUpdating;
 namespace Common.Systems.SymbolTraining
 {
     [MovedFrom("Player.FightSystem.Magic")]
-    public class LessonSymbolConsumer : MonoBehaviour, ISymbolConsumer
+    public class LessonSymbolConsumer : MonoBehaviour, ISymbolConsumer, Player.FightSystem.Magic.ICancelableSymbolFlow
     {
         [SerializeField] private SymbolLessonUI lessonUI;
 
@@ -61,6 +61,11 @@ namespace Common.Systems.SymbolTraining
                 return;
 
             FailLesson();
+        }
+
+        public void CancelSymbolFlow()
+        {
+            CancelLesson();
         }
 
         public void OnSymbolRecognized(string symbolId)
