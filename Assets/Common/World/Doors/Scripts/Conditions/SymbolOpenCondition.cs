@@ -7,8 +7,8 @@ namespace Common.Systems.SymbolTraining
     public class SymbolOpenCondition : MonoBehaviour, IDoorOpenCondition, ISymbolConsumer
     {
         [SerializeField] private string requiredSymbolId = string.Empty;
+        [SerializeField] private DoorController door;
         private SymbolInputManager inputManager;
-        private DoorController door;
         private bool awaiting;
 
         public string Id => requiredSymbolId?.Trim();
@@ -16,8 +16,12 @@ namespace Common.Systems.SymbolTraining
         public bool CanOpen(GameObject player)
         {
             // Start symbol drawing on first interaction; InteractiveDoor will not open immediately.
+            Debug.Log("[SymbolOpenCondition] Checking condition for doors");
             if (awaiting)
+            {
+                Debug.Log("[SymbolOpenCondition] Already awaiting symbol input.", this);
                 return false;
+            }
 
             inputManager = player != null
                 ? (player.GetComponentInChildren<SymbolInputManager>() ?? player.GetComponent<SymbolInputManager>())
@@ -36,6 +40,7 @@ namespace Common.Systems.SymbolTraining
 
             inputManager.SetActiveConsumer(this);
             awaiting = true;
+            Debug.Log($"[SymbolOpenCondition] Awaiting symbol started. Required='{requiredSymbolId}'.", this);
             return false;
         }
 
@@ -58,11 +63,14 @@ namespace Common.Systems.SymbolTraining
                 matched = recNum == expNum;
             }
 
+            Debug.Log($"[SymbolOpenCondition] Symbol recognized. Expected='{expected}', Got='{recognized}'. Matched={matched}.", this);
+
             if (matched)
             {
                 if (door == null)
                     door = GetComponent<DoorController>();
-                door?.TryOpen();
+                bool opened = door != null && door.TryOpen();
+                Debug.Log($"[SymbolOpenCondition] Door open trigger sent. Success={opened}.", this);
                 awaiting = false;
                 Restore();
             }
@@ -78,6 +86,7 @@ namespace Common.Systems.SymbolTraining
         {
             if (inputManager == null)
                 return;
+            Debug.Log("[SymbolOpenCondition] Restoring default symbol consumer.", this);
             inputManager.ResetToDefaultConsumer();
             inputManager = null;
         }
