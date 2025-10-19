@@ -15,12 +15,10 @@ namespace NPC.Editor
             float line = EditorGUIUtility.singleLineHeight + 2f;
 
             var typeProp = property.FindPropertyRelative("type");
-            var onRunProp = property.FindPropertyRelative("onRun");
 
             h += line; // type
             h += line; // id
             h += line; // value
-            h += EditorGUI.GetPropertyHeight(onRunProp, true) + 2f; // UnityEvent
 
             return h;
         }
@@ -35,7 +33,6 @@ namespace NPC.Editor
             var typeProp = property.FindPropertyRelative("type");
             var idProp = property.FindPropertyRelative("actionId");
             var valueProp = property.FindPropertyRelative("actionValue");
-            var onRunProp = property.FindPropertyRelative("onRun");
 
             var r = new Rect(position.x, y, position.width, lineH);
             EditorGUI.PropertyField(r, typeProp);
@@ -87,8 +84,7 @@ namespace NPC.Editor
             EditorGUI.PropertyField(r, valueProp, new GUIContent("Value"));
             y += lineH + pad;
 
-            var onRunRect = new Rect(position.x, y, position.width, EditorGUI.GetPropertyHeight(onRunProp, true));
-            EditorGUI.PropertyField(onRunRect, onRunProp, true);
+            // No UnityEvent drawer (removed)
 
             EditorGUI.EndProperty();
         }

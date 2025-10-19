@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Events;
 using Player.Progress;
 
 namespace NPC.Dialog
@@ -13,7 +12,6 @@ namespace NPC.Dialog
         [SerializeField] private ActionType type = ActionType.SetFlag;
         [SerializeField] private string actionId;
         [SerializeField] private bool actionValue = true;
-        [SerializeField] private UnityEvent onRun;
 
         public void Run(ProgressController controller)
         {
@@ -38,7 +36,6 @@ namespace NPC.Dialog
                     break;
             }
 
-            onRun?.Invoke();
         }
     }
 }
