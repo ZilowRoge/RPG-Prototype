@@ -1,5 +1,6 @@
 using UnityEngine;
 using Player.FightSystem.Magic;
+using Player.Progress;
 
 namespace Common.Systems.SymbolTraining
 {
@@ -7,6 +8,9 @@ namespace Common.Systems.SymbolTraining
     public class SymbolOpenCondition : MonoBehaviour, IDoorOpenCondition, ISymbolConsumer
     {
         [SerializeField] private string requiredSymbolId = string.Empty;
+        [Header("Requirements")]
+        [Tooltip("If enabled, player must already know this symbol to attempt opening.")]
+        [SerializeField] private bool requireKnownSymbol = true;
         [SerializeField] private DoorController door;
         private SymbolInputManager inputManager;
         private bool awaiting;
@@ -21,6 +25,27 @@ namespace Common.Systems.SymbolTraining
             {
                 Debug.Log("[SymbolOpenCondition] Already awaiting symbol input.", this);
                 return false;
+            }
+
+            if (requireKnownSymbol && !string.IsNullOrEmpty(requiredSymbolId))
+            {
+                ProgressController progress = null;
+                if (player != null)
+                    progress = player.GetComponentInParent<ProgressController>();
+                if (progress == null)
+                    progress = FindFirstObjectByType<ProgressController>();
+
+                if (progress == null)
+                {
+                    Debug.LogWarning("[SymbolOpenCondition] ProgressController not found to verify known symbol.", this);
+                    return false;
+                }
+
+                if (!progress.KnowsSymbol(requiredSymbolId))
+                {
+                    Debug.Log("[SymbolOpenCondition] Player does not know required symbol '" + requiredSymbolId + "'.", this);
+                    return false;
+                }
             }
 
             inputManager = player != null
