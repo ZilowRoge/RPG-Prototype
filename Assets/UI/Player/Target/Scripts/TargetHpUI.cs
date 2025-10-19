@@ -26,7 +26,7 @@ namespace UI.Player.Target
         private void Awake()
         {
             if (targetSelector == null)
-                targetSelector = FindObjectOfType<TargetSelector>();
+                targetSelector = FindFirstObjectByType<TargetSelector>();
         }
 
         private void OnEnable()
