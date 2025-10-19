@@ -13,6 +13,14 @@ namespace NPC.Editor
         {
             serializedObject.Update();
 
+            // Expose base DialogNode 'id' field for convenience
+            var idProp = serializedObject.FindProperty("id");
+            if (idProp != null)
+            {
+                EditorGUILayout.PropertyField(idProp, new GUIContent("Id"));
+                EditorGUILayout.Space(6);
+            }
+
             var textProp = serializedObject.FindProperty("text");
             var optionsProp = serializedObject.FindProperty("options");
 
@@ -91,7 +99,6 @@ namespace NPC.Editor
                     var typeProp = act.FindPropertyRelative("type");
                     var idProp = act.FindPropertyRelative("actionId");
                     var valProp = act.FindPropertyRelative("actionValue");
-                    var evtProp = act.FindPropertyRelative("onRun");
                     EditorGUILayout.PropertyField(typeProp);
                     var type = (DialogAction.ActionType)typeProp.enumValueIndex;
                     if (type == DialogAction.ActionType.SetFlag && keys != null && keys.Length > 0)
@@ -109,7 +116,6 @@ namespace NPC.Editor
                         EditorGUILayout.PropertyField(idProp, new GUIContent("Identifier"));
                     }
                     EditorGUILayout.PropertyField(valProp, new GUIContent("Value"));
-                    EditorGUILayout.PropertyField(evtProp);
                     EditorGUILayout.EndVertical();
                 }
 
@@ -142,4 +148,3 @@ namespace NPC.Editor
         }
     }
 }
-
