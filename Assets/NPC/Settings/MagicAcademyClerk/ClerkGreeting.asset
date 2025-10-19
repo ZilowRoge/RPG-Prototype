@@ -18,15 +18,26 @@ MonoBehaviour:
   options:
   - text: What do I need to qualify for the exam?
     nextNodeId: npc_ma_clerk_exam_req
-    conditions: []
+    conditions:
+    - conditionType: 0
+      identifier: exam_prep_finished
+      expectedValue: 0
     onSelect:
     - type: 1
       actionId: q_exam_prep
       actionValue: 0
-      onRun:
-        m_PersistentCalls:
-          m_Calls: []
     HideIfLocked: 0
+  - text: I'm ready to start the exam.
+    nextNodeId: npc_ma_clerk_exam_start
+    conditions:
+    - conditionType: 4
+      identifier: jop_wizard
+      expectedValue: 1
+    - conditionType: 5
+      identifier: sym_9
+      expectedValue: 1
+    onSelect: []
+    HideIfLocked: 1
   - text: "Not yet, I\u2019ll come back later."
     nextNodeId: 
     conditions: []

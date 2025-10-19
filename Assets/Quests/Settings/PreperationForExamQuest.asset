@@ -20,28 +20,28 @@ MonoBehaviour:
   rewardNote: 
   stages:
   - id: q_exam_prep_st0
-    title: Meeting the Prerequisites
-    description: 
+    title: Learn for the exam
+    description: You need to be preapared for the exam.
     objectives:
-    - id: q_exam_prepare_st0_obj0
+    - id: q_exam_prep_st0_obj0
       type: 1
-      targetId: jb_wizard
+      targetId: job_wizard
       extraId: 
       requiredCount: 0
-      visibleInJournal: 1
-    - id: q_exam_prepare_st0_obj1
+      visibleInJournal: 0
+    - id: q_exam_prep_st0_obj1
       type: 2
-      targetId: any
+      targetId: sym_9
       extraId: 
       requiredCount: 0
-      visibleInJournal: 1
+      visibleInJournal: 0
   - id: q_exam_prep_st1
-    title: Report to the Examiner
-    description: Speak to the Master Examiner to begin the test.
+    title: Finish preperations
+    description: You need to talk with the clerk to finish the exam.
     objectives:
-    - id: q_exam_prep_st1_obj0
-      type: 0
-      targetId: npc_examineer
+    - id: q_exam_prep_st0_obj1
+      type: 3
+      targetId: exam_prep_finished
       extraId: 
       requiredCount: 0
-      visibleInJournal: 1
+      visibleInJournal: 0

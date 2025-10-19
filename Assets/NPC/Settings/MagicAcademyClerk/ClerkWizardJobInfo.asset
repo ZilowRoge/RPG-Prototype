@@ -18,15 +18,12 @@ MonoBehaviour:
     status of Wizard right now.
   options:
   - text: Yes, I am ready to become a Wizard
-    nextNodeId: 
+    nextNodeId: npc_ma_clerk_exam_req
     conditions: []
     onSelect:
     - type: 2
       actionId: job_wizard
       actionValue: 0
-      onRun:
-        m_PersistentCalls:
-          m_Calls: []
     HideIfLocked: 0
   - text: No, I don't want to be a Wizard
     nextNodeId: 
