@@ -121,7 +121,7 @@ namespace Player.Progress
 
         public void EvaluateQuests()
         {
-            // if (questManager != null) questManager.EvaluateAll(this);
+            if (questManager != null) questManager.EvaluateAll(this);
         }
 
         private static int ParseSymbolId(string raw)
