@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using Quests;
+using UI.Player.Common;
 
 namespace UI.Player.Quests
 {
@@ -22,15 +23,22 @@ namespace UI.Player.Quests
         [SerializeField] private GameObject rewardItemPrefab;
         [SerializeField] private string emptyRewardsLabel = "No rewards";
 
-        private readonly List<QuestObjectiveItemUI> spawnedObjectives = new();
-        private readonly List<QuestRewardItemUI> spawnedRewards = new();
+        private DynamicListPool<QuestObjectiveItemUI> objectivePool;
+        private DynamicListPool<QuestRewardItemUI> rewardPool;
+        private readonly List<ObjectiveViewModel> objectiveBuffer = new();
+        private readonly List<RewardViewModel> rewardBuffer = new();
+
+        private void Awake()
+        {
+            EnsurePools();
+        }
 
         public void Clear()
         {
             if (questTitleText != null) questTitleText.text = string.Empty;
             if (questDescriptionText != null) questDescriptionText.text = string.Empty;
-            ClearSpawned(spawnedObjectives);
-            ClearSpawned(spawnedRewards);
+            objectivePool?.Clear();
+            rewardPool?.Clear();
         }
 
         public void Display(string questTitle, string questDescription, QuestAsset asset, StageDef stage, StageProgress stageProgress)
@@ -50,9 +58,9 @@ namespace UI.Player.Quests
                 return;
             }
 
-            ClearSpawned(spawnedObjectives);
+            EnsurePools();
+            objectiveBuffer.Clear();
 
-            bool anyObjective = false;
             StageDef activeStage = stage ?? FindStage(asset, stageProgress?.stageId);
 
             if (activeStage != null && activeStage.objectives != null)
@@ -68,11 +76,10 @@ namespace UI.Player.Quests
                     string label = BuildObjectiveLabel(def, progress);
                     bool completed = progress != null && progress.completed;
                     AddObjectiveEntry(label, completed);
-                    anyObjective = true;
                 }
             }
 
-            if (!anyObjective && stageProgress != null)
+            if (objectiveBuffer.Count == 0 && stageProgress != null)
             {
                 var objectives = stageProgress.objectives;
                 if (objectives != null)
@@ -84,13 +91,17 @@ namespace UI.Player.Quests
                         var def = FindObjectiveDefinition(asset, activeStage, progress.objectiveId);
                         string label = def != null ? BuildObjectiveLabel(def, progress) : BuildProgressOnlyLabel(progress);
                         AddObjectiveEntry(label, progress.completed);
-                        anyObjective = true;
                     }
                 }
             }
 
-            if (!anyObjective)
+            if (objectiveBuffer.Count == 0)
                 AddObjectiveEntry(emptyObjectivesLabel, false);
+
+            objectivePool.Render(objectiveBuffer, (item, data, _) =>
+            {
+                item.Configure(data.Label, data.Completed);
+            });
         }
 
         private void PopulateRewards(QuestAsset asset)
@@ -101,27 +112,29 @@ namespace UI.Player.Quests
                 return;
             }
 
-            ClearSpawned(spawnedRewards);
-
-            bool anyReward = false;
+            EnsurePools();
+            rewardBuffer.Clear();
 
             if (asset != null)
             {
                 if (asset.rewardXp > 0)
                 {
                     AddRewardEntry($"{asset.rewardXp} XP");
-                    anyReward = true;
                 }
 
                 if (!string.IsNullOrEmpty(asset.rewardNote))
                 {
                     AddRewardEntry(asset.rewardNote);
-                    anyReward = true;
                 }
             }
 
-            if (!anyReward)
+            if (rewardBuffer.Count == 0)
                 AddRewardEntry(emptyRewardsLabel);
+
+            rewardPool.Render(rewardBuffer, (item, data, _) =>
+            {
+                item.SetText(data.Label);
+            });
         }
 
         private void AddObjectiveEntry(string text, bool completed)
@@ -129,30 +142,15 @@ namespace UI.Player.Quests
             if (string.IsNullOrEmpty(text))
                 text = defaultObjectiveLabel;
 
-            var instance = Instantiate(objectiveItemPrefab, objectivesContent);
-            var objectiveUI = instance.GetComponent<QuestObjectiveItemUI>() ?? instance.GetComponentInChildren<QuestObjectiveItemUI>(true);
-            if (objectiveUI == null)
-            {
-                objectiveUI = instance.AddComponent<QuestObjectiveItemUI>();
-                Debug.LogWarning("[QuestInfoUI] Objective prefab missing QuestObjectiveItemUI component. Added one automatically.", instance);
-            }
-
-            objectiveUI.Configure(text, completed);
-            spawnedObjectives.Add(objectiveUI);
+            objectiveBuffer.Add(new ObjectiveViewModel(text, completed));
         }
 
         private void AddRewardEntry(string text)
         {
-            var instance = Instantiate(rewardItemPrefab, rewardsContent);
-            var rewardUI = instance.GetComponent<QuestRewardItemUI>() ?? instance.GetComponentInChildren<QuestRewardItemUI>(true);
-            if (rewardUI == null)
-            {
-                rewardUI = instance.AddComponent<QuestRewardItemUI>();
-                Debug.LogWarning("[QuestInfoUI] Reward prefab missing QuestRewardItemUI component. Added one automatically.", instance);
-            }
+            if (string.IsNullOrEmpty(text))
+                text = emptyRewardsLabel;
 
-            rewardUI.SetText(string.IsNullOrEmpty(text) ? emptyRewardsLabel : text);
-            spawnedRewards.Add(rewardUI);
+            rewardBuffer.Add(new RewardViewModel(text));
         }
 
         private static ObjectiveProgress GetProgressFor(StageProgress stageProgress, ObjectiveDef def, int index)
@@ -259,26 +257,34 @@ namespace UI.Player.Quests
             return defaultObjectiveLabel;
         }
 
-        private void ClearSpawned<T>(List<T> list) where T : Component
+        private void EnsurePools()
         {
-            for (int i = 0; i < list.Count; i++)
-            {
-                var component = list[i];
-                if (component != null)
-                    DestroyItem(component.gameObject);
-            }
-            list.Clear();
+            if (objectivePool == null)
+                objectivePool = new DynamicListPool<QuestObjectiveItemUI>(objectiveItemPrefab, objectivesContent);
+            if (rewardPool == null)
+                rewardPool = new DynamicListPool<QuestRewardItemUI>(rewardItemPrefab, rewardsContent);
         }
 
-        private void DestroyItem(GameObject go)
+        private readonly struct ObjectiveViewModel
         {
-            if (go == null) return;
-#if UNITY_EDITOR
-            if (!Application.isPlaying)
-                DestroyImmediate(go);
-            else
-#endif
-                Destroy(go);
+            public ObjectiveViewModel(string label, bool completed)
+            {
+                Label = label;
+                Completed = completed;
+            }
+
+            public string Label { get; }
+            public bool Completed { get; }
+        }
+
+        private readonly struct RewardViewModel
+        {
+            public RewardViewModel(string label)
+            {
+                Label = label;
+            }
+
+            public string Label { get; }
         }
     }
 }

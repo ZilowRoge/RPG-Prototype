@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Quests;
 using UnityEngine;
+using UI.Player.Common;
 
 namespace UI.Player.Quests
 {
@@ -14,68 +15,93 @@ namespace UI.Player.Quests
         [SerializeField] private Color activeColor = Color.white;
         [SerializeField] private Color completedColor = new Color(0.65f, 0.65f, 0.65f);
 
-        private readonly List<Entry> entries = new();
+        private readonly List<ViewModel> viewBuffer = new();
+        private DynamicListPool<QuestListItemUI> itemPool;
+        private string currentSelection;
 
         public event Action<string> QuestSelected;
 
+        private void Awake()
+        {
+            EnsurePool();
+        }
+
         public string Refresh(IReadOnlyList<QuestProgress> quests, QuestDatabase database, bool hideCompleted, string selectedQuestId)
         {
-            Clear();
-
-            if (contentRoot == null || itemPrefab == null)
-            {
-                Debug.LogWarning("[QuestListUI] References not assigned.", this);
-                return null;
-            }
+            EnsurePool();
+            viewBuffer.Clear();
 
             if (quests != null)
             {
                 for (int i = 0; i < quests.Count; i++)
                 {
                     var progress = quests[i];
-                    if (progress == null) continue;
-                    if (string.IsNullOrEmpty(progress.questId)) continue;
-                    if (hideCompleted && progress.state == QuestState.Completed) continue;
-
-                    var item = CreateItem();
-                    item.Initialize(progress.questId, OnItemClicked);
+                    if (progress == null || string.IsNullOrEmpty(progress.questId))
+                        continue;
+                    if (hideCompleted && progress.state == QuestState.Completed)
+                        continue;
 
                     bool completed = progress.state == QuestState.Completed;
                     string title = ResolveQuestTitle(progress.questId, database);
                     if (completed)
                         title += " (Completed)";
-                    item.SetTitle(title);
 
-                    entries.Add(new Entry(item, progress.questId, completed));
+                    viewBuffer.Add(new ViewModel(progress.questId, title, completed));
                 }
             }
 
-            string resolvedSelection = selectedQuestId;
-            if (string.IsNullOrEmpty(resolvedSelection) || !Contains(resolvedSelection))
-            {
-                resolvedSelection = autoSelectFirst && entries.Count > 0 ? entries[0].QuestId : null;
-            }
+            currentSelection = DetermineSelection(selectedQuestId);
 
-            ApplySelection(resolvedSelection);
-            return resolvedSelection;
+            itemPool.Render(viewBuffer, (item, model, _) =>
+            {
+                item.Bind(model.QuestId, model.Title, model.Completed, OnItemClicked);
+                item.UpdateVisualState(model.QuestId == currentSelection, selectedColor, activeColor, completedColor);
+            });
+
+            return currentSelection;
         }
 
         public void ApplySelection(string questId)
         {
-            for (int i = 0; i < entries.Count; i++)
-            {
-                var entry = entries[i];
-                bool selected = entry.QuestId == questId;
-                entry.Item.ApplyState(selected, entry.Completed, selectedColor, activeColor, completedColor);
-            }
+            EnsurePool();
+            currentSelection = questId;
+            foreach (var item in itemPool.ActiveItems)
+                item.UpdateVisualState(item.QuestId == currentSelection, selectedColor, activeColor, completedColor);
         }
 
         public bool Contains(string questId)
         {
-            if (string.IsNullOrEmpty(questId)) return false;
-            for (int i = 0; i < entries.Count; i++)
-                if (entries[i].QuestId == questId)
+            if (string.IsNullOrEmpty(questId))
+                return false;
+
+            EnsurePool();
+            foreach (var item in itemPool.ActiveItems)
+            {
+                if (item.QuestId == questId)
                     return true;
+            }
+
+            return false;
+        }
+
+        private string DetermineSelection(string candidate)
+        {
+            if (!string.IsNullOrEmpty(candidate) && ContainsInBuffer(candidate))
+                return candidate;
+
+            if (autoSelectFirst && viewBuffer.Count > 0)
+                return viewBuffer[0].QuestId;
+
+            return null;
+        }
+
+        private bool ContainsInBuffer(string questId)
+        {
+            for (int i = 0; i < viewBuffer.Count; i++)
+            {
+                if (viewBuffer[i].QuestId == questId)
+                    return true;
+            }
             return false;
         }
 
@@ -83,37 +109,6 @@ namespace UI.Player.Quests
         {
             ApplySelection(questId);
             QuestSelected?.Invoke(questId);
-        }
-
-        private QuestListItemUI CreateItem()
-        {
-            var instance = Instantiate(itemPrefab, contentRoot);
-            var item = instance.GetComponent<QuestListItemUI>() ?? instance.GetComponentInChildren<QuestListItemUI>(true);
-            if (item == null)
-                item = instance.AddComponent<QuestListItemUI>();
-            return item;
-        }
-
-        private void Clear()
-        {
-            for (int i = 0; i < entries.Count; i++)
-            {
-                var entry = entries[i];
-                if (entry.Item != null)
-                    DestroyItem(entry.Item.gameObject);
-            }
-            entries.Clear();
-        }
-
-        private void DestroyItem(GameObject go)
-        {
-            if (go == null) return;
-#if UNITY_EDITOR
-            if (!Application.isPlaying)
-                DestroyImmediate(go);
-            else
-#endif
-                Destroy(go);
         }
 
         private static string ResolveQuestTitle(string questId, QuestDatabase database)
@@ -125,18 +120,24 @@ namespace UI.Player.Quests
             return asset != null && !string.IsNullOrEmpty(asset.title) ? asset.title : questId;
         }
 
-        private readonly struct Entry
+        private readonly struct ViewModel
         {
-            public Entry(QuestListItemUI item, string questId, bool completed)
+            public ViewModel(string questId, string title, bool completed)
             {
-                Item = item;
                 QuestId = questId;
+                Title = title;
                 Completed = completed;
             }
 
-            public QuestListItemUI Item { get; }
             public string QuestId { get; }
+            public string Title { get; }
             public bool Completed { get; }
+        }
+
+        private void EnsurePool()
+        {
+            if (itemPool == null)
+                itemPool = new DynamicListPool<QuestListItemUI>(itemPrefab, contentRoot);
         }
     }
 }

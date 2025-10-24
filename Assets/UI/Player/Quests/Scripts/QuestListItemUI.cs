@@ -12,42 +12,41 @@ namespace UI.Player.Quests
 
         private string questId;
         private Action<string> clickCallback;
+        private bool isCompleted;
 
         public string QuestId => questId;
+        public bool IsCompleted => isCompleted;
 
         private void Awake()
         {
-            if (titleLabel == null)
-                titleLabel = GetComponentInChildren<TMP_Text>(true);
-            if (button == null)
-                button = GetComponent<Button>() ?? GetComponentInChildren<Button>(true);
+            EnsureComponents();
         }
 
         private void OnEnable()
         {
-            EnsureButtonListener();
+            RegisterListener();
         }
 
         private void OnDisable()
         {
-            if (button != null)
-                button.onClick.RemoveListener(OnClicked);
+            UnregisterListener();
         }
 
-        public void Initialize(string questIdentifier, Action<string> onClicked)
+        public void Bind(string questIdentifier, string title, bool completed, Action<string> onClicked)
         {
+            EnsureComponents();
+
             questId = questIdentifier;
+            isCompleted = completed;
             clickCallback = onClicked;
-            EnsureButtonListener();
-        }
 
-        public void SetTitle(string text)
-        {
             if (titleLabel != null)
-                titleLabel.text = text ?? string.Empty;
+                titleLabel.text = title ?? string.Empty;
+
+            RegisterListener();
         }
 
-        public void ApplyState(bool selected, bool completed, Color selectedColor, Color activeColor, Color completedColor)
+        public void UpdateVisualState(bool selected, Color selectedColor, Color activeColor, Color completedColor)
         {
             if (titleLabel == null)
                 return;
@@ -55,27 +54,47 @@ namespace UI.Player.Quests
             titleLabel.fontStyle = selected ? FontStyles.Bold : FontStyles.Normal;
             if (selected)
                 titleLabel.color = selectedColor;
-            else if (completed)
+            else if (isCompleted)
                 titleLabel.color = completedColor;
             else
                 titleLabel.color = activeColor;
         }
 
-        private void OnClicked()
+        public void ApplyState(bool selected, bool completed, Color selectedColor, Color activeColor, Color completedColor)
         {
-            if (string.IsNullOrEmpty(questId))
-                return;
-
-            clickCallback?.Invoke(questId);
+            isCompleted = completed;
+            UpdateVisualState(selected, selectedColor, activeColor, completedColor);
         }
 
-        private void EnsureButtonListener()
+        private void OnClicked()
+        {
+            if (!string.IsNullOrEmpty(questId))
+                clickCallback?.Invoke(questId);
+        }
+
+        private void EnsureComponents()
+        {
+            if (titleLabel == null)
+                titleLabel = GetComponentInChildren<TMP_Text>(true);
+            if (button == null)
+                button = GetComponent<Button>() ?? GetComponentInChildren<Button>(true);
+        }
+
+        private void RegisterListener()
         {
             if (button == null)
                 return;
 
             button.onClick.RemoveListener(OnClicked);
             button.onClick.AddListener(OnClicked);
+        }
+
+        private void UnregisterListener()
+        {
+            if (button == null)
+                return;
+
+            button.onClick.RemoveListener(OnClicked);
         }
     }
 }

@@ -1,105 +1,164 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Systems.Statistics;
 using Player.Statistics;
-using System.Collections.Generic;
+using Systems.Statistics;
+using UI.Player.Common;
 
-namespace UI.Player.Statistics {
-public class StatsListUI : MonoBehaviour
+namespace UI.Player.Statistics
 {
-    [SerializeField] private StatsController controller;
-    [SerializeField] private GameObject statEntryPrefab;
-    [SerializeField] private Transform statListParent;
-    [SerializeField] private TextMeshProUGUI pendingText;
-    [SerializeField] private Button confirmButton;
-    [SerializeField] private Button resetButton;
-
-    private Dictionary<EStatistics, StatEntryUI> entries = new();
-    private Dictionary<EStatistics, int> tempAllocations = new();
-
-    private void Start()
+    public class StatsListUI : MonoBehaviour
     {
-        InitStatsUI();
-        RefreshUI();
+        [SerializeField] private StatsController controller;
+        [SerializeField] private GameObject statEntryPrefab;
+        [SerializeField] private Transform statListParent;
+        [SerializeField] private TextMeshProUGUI pendingText;
+        [SerializeField] private Button confirmButton;
+        [SerializeField] private Button resetButton;
 
-        confirmButton.onClick.AddListener(ConfirmAllocations);
-        resetButton.onClick.AddListener(ResetAllocations);
-    }
+        private readonly Dictionary<EStatistics, int> tempAllocations = new();
+        private readonly List<StatViewModel> statBuffer = new();
 
-    private void InitStatsUI()
-    {
-        foreach (var stat in controller.Statistics.container.GetAll())
+        private DynamicListPool<StatEntryUI> entryPool;
+
+        private void Awake()
         {
-            tempAllocations[stat.stat] = 0;
-            var instance = Instantiate(statEntryPrefab, statListParent);
-            var entryUI = instance.GetComponent<StatEntryUI>();
-            entryUI.Setup(stat.stat, OnAddPointClicked, OnRemovePointClicked);
-            entries[stat.stat] = entryUI;
-        }
-    }
-
-    public void RefreshUI()
-    {
-        var container = controller.Statistics.container;
-        int remaining = container.GetPendingPoints() - TotalAllocated();
-
-        foreach (var stat in container.GetAll())
-        {
-            int baseValue = stat.value;
-            int temp = tempAllocations[stat.stat];
-            entries[stat.stat].UpdateValue(baseValue, temp, remaining > 0, temp > 0);
+            entryPool = new DynamicListPool<StatEntryUI>(statEntryPrefab, statListParent);
         }
 
-        pendingText.text = $"Available points: {remaining}";
-    }
-
-    private int TotalAllocated()
-    {
-        int sum = 0;
-        foreach (var pair in tempAllocations)
-            sum += pair.Value;
-        return sum;
-    }
-
-    private void OnAddPointClicked(EStatistics stat)
-    {
-        var container = controller.Statistics.container;
-        if (container.GetPendingPoints() - TotalAllocated() > 0)
+        private void OnEnable()
         {
-            tempAllocations[stat]++;
+            if (confirmButton != null)
+                confirmButton.onClick.AddListener(ConfirmAllocations);
+            if (resetButton != null)
+                resetButton.onClick.AddListener(ResetAllocations);
+
             RefreshUI();
         }
-    }
 
-    private void OnRemovePointClicked(EStatistics stat)
-    {
-        if (tempAllocations[stat] > 0)
+        private void OnDisable()
         {
-            tempAllocations[stat]--;
+            if (confirmButton != null)
+                confirmButton.onClick.RemoveListener(ConfirmAllocations);
+            if (resetButton != null)
+                resetButton.onClick.RemoveListener(ResetAllocations);
+        }
+
+        public void RefreshUI()
+        {
+            if (controller == null || controller.Statistics == null || controller.Statistics.container == null)
+            {
+                entryPool?.Clear();
+                if (pendingText != null)
+                    pendingText.text = "Available points: 0";
+                return;
+            }
+
+            var container = controller.Statistics.container;
+            var stats = container.GetAll();
+            EnsureAllocationEntries(stats);
+
+            statBuffer.Clear();
+            for (int i = 0; i < stats.Count; i++)
+            {
+                var stat = stats[i];
+                int temp = tempAllocations[stat.stat];
+                statBuffer.Add(new StatViewModel(stat.stat, stat.value, temp));
+            }
+
+            int remaining = container.GetPendingPoints() - TotalAllocated();
+
+            entryPool.Render(statBuffer, (item, data, _) =>
+            {
+                item.Configure(data.Stat, OnAddPointClicked, OnRemovePointClicked);
+                item.UpdateValue(data.BaseValue, data.TempAllocation, remaining > 0, data.TempAllocation > 0);
+            });
+
+            if (pendingText != null)
+                pendingText.text = $"Available points: {remaining}";
+        }
+
+        private void EnsureAllocationEntries(IReadOnlyList<(EStatistics stat, int value)> stats)
+        {
+            if (stats == null)
+                return;
+
+            for (int i = 0; i < stats.Count; i++)
+            {
+                var entry = stats[i];
+                if (!tempAllocations.ContainsKey(entry.stat))
+                    tempAllocations[entry.stat] = 0;
+            }
+        }
+
+        private int TotalAllocated()
+        {
+            int sum = 0;
+            foreach (var value in tempAllocations.Values)
+                sum += value;
+            return sum;
+        }
+
+        private void OnAddPointClicked(EStatistics stat)
+        {
+            var container = controller?.Statistics?.container;
+            if (container == null)
+                return;
+
+            if (container.GetPendingPoints() - TotalAllocated() > 0)
+            {
+                tempAllocations[stat]++;
+                RefreshUI();
+            }
+        }
+
+        private void OnRemovePointClicked(EStatistics stat)
+        {
+            if (!tempAllocations.TryGetValue(stat, out int allocated) || allocated <= 0)
+                return;
+
+            tempAllocations[stat] = allocated - 1;
             RefreshUI();
         }
-    }
 
-    private void ConfirmAllocations()
-    {
-        var container = controller.Statistics.container;
-        foreach (var pair in tempAllocations)
+        private void ConfirmAllocations()
         {
-            for (int i = 0; i < pair.Value; i++)
-                container.AllocatePoint(pair.Key);
+            var container = controller?.Statistics?.container;
+            if (container == null)
+                return;
+
+            foreach (var pair in tempAllocations)
+            {
+                for (int i = 0; i < pair.Value; i++)
+                    container.AllocatePoint(pair.Key);
+            }
+
+            ResetAllocations();
+            RefreshUI();
         }
 
-        ResetAllocations();
-        RefreshUI();
-    }
+        private void ResetAllocations()
+        {
+            var keys = new List<EStatistics>(tempAllocations.Keys);
+            for (int i = 0; i < keys.Count; i++)
+                tempAllocations[keys[i]] = 0;
 
-    private void ResetAllocations()
-    {
-        var keys = new List<EStatistics>(tempAllocations.Keys);
-        foreach (var key in keys)
-            tempAllocations[key] = 0;
-        RefreshUI();
+            RefreshUI();
+        }
+
+        private readonly struct StatViewModel
+        {
+            public StatViewModel(EStatistics stat, int baseValue, int tempAllocation)
+            {
+                Stat = stat;
+                BaseValue = baseValue;
+                TempAllocation = tempAllocation;
+            }
+
+            public EStatistics Stat { get; }
+            public int BaseValue { get; }
+            public int TempAllocation { get; }
+        }
     }
-}
 }
