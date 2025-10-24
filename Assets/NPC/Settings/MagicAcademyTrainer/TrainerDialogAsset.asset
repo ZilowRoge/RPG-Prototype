@@ -16,3 +16,4 @@ MonoBehaviour:
   startNodeId: npc_ma_trainer_greeting
   nodes:
   - {fileID: 11400000, guid: ee1f704a7df196644966d0f85fa4343a, type: 2}
+  - {fileID: 11400000, guid: 9ece9d71982c8be4f9b96ad29aa57d27, type: 2}

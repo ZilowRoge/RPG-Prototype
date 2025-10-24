@@ -1,5 +1,5 @@
 // Filename: GameEvents.cs
-// Namespace: Game.Quests
+// Namespace: Quests
 using System;
 using UnityEngine;
 
@@ -7,23 +7,22 @@ namespace Quests
 {
     public static class GameEvents
     {
-        public static event Action<string> onJobAcquired;
-        public static event Action<string> onSymbolLearned;
-        public static event Action<string> onNpcTalked;
-        public static event Action onRegisteredForExam;
+        public static event Action<string> onQuestStarted;
+        public static event Action<string, string, string> onQuestObjectiveCompleted;
+        public static event Action<string, string> onQuestStageCompleted;
 
-        public static void EmitJobAcquired(string jobId) => onJobAcquired?.Invoke(jobId);
-        public static void EmitSymbolLearned(string symbolId) => onSymbolLearned?.Invoke(symbolId);
-        public static void EmitNpcTalked(string npcId) => onNpcTalked?.Invoke(npcId);
-        public static void EmitRegisteredForExam() => onRegisteredForExam?.Invoke();
+        public static void EmitQuestStarted(string questId) => onQuestStarted?.Invoke(questId);
+        public static void EmitQuestObjectiveCompleted(string questId, string stageId, string objectiveId) =>
+            onQuestObjectiveCompleted?.Invoke(questId, stageId, objectiveId);
+        public static void EmitQuestStageCompleted(string questId, string stageId) =>
+            onQuestStageCompleted?.Invoke(questId, stageId);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatic()
         {
-            onJobAcquired = null;
-            onSymbolLearned = null;
-            onNpcTalked = null;
-            onRegisteredForExam = null;
+            onQuestStarted = null;
+            onQuestObjectiveCompleted = null;
+            onQuestStageCompleted = null;
         }
     }
 }

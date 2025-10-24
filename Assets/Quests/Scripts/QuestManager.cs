@@ -37,6 +37,8 @@ namespace Quests
         [SerializeField] QuestDatabase database;
         [SerializeField] List<QuestProgress> activeQuests = new();
 
+        public QuestDatabase Database => database;
+
         public IReadOnlyList<QuestProgress> ActiveQuests => activeQuests;
 
         public bool StartQuest(string questId)
@@ -78,6 +80,7 @@ namespace Quests
                     {
                         op.currentCount = Mathf.Max(op.currentCount, def.requiredCount);
                         op.completed = true;
+                        GameEvents.EmitQuestObjectiveCompleted(qp.questId, stageDef.id, def.id);
                         anyChanged = true;
                     }
                 }
@@ -127,6 +130,7 @@ namespace Quests
             if (!allDone) return;
 
             sp.completed = true;
+            GameEvents.EmitQuestStageCompleted(qp.questId, sp.stageId);
             qp.stageIndex++;
             if (qp.stageIndex >= asset.stages.Count) qp.state = QuestState.Completed;
         }

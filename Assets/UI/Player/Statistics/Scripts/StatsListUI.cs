@@ -6,7 +6,7 @@ using Player.Statistics;
 using System.Collections.Generic;
 
 namespace UI.Player.Statistics {
-public class UIStatsPanel : MonoBehaviour
+public class StatsListUI : MonoBehaviour
 {
     [SerializeField] private StatsController controller;
     [SerializeField] private GameObject statEntryPrefab;
@@ -21,7 +21,7 @@ public class UIStatsPanel : MonoBehaviour
     private void Start()
     {
         InitStatsUI();
-        UpdateUI();
+        RefreshUI();
 
         confirmButton.onClick.AddListener(ConfirmAllocations);
         resetButton.onClick.AddListener(ResetAllocations);
@@ -39,7 +39,7 @@ public class UIStatsPanel : MonoBehaviour
         }
     }
 
-    private void UpdateUI()
+    public void RefreshUI()
     {
         var container = controller.Statistics.container;
         int remaining = container.GetPendingPoints() - TotalAllocated();
@@ -68,7 +68,7 @@ public class UIStatsPanel : MonoBehaviour
         if (container.GetPendingPoints() - TotalAllocated() > 0)
         {
             tempAllocations[stat]++;
-            UpdateUI();
+            RefreshUI();
         }
     }
 
@@ -77,7 +77,7 @@ public class UIStatsPanel : MonoBehaviour
         if (tempAllocations[stat] > 0)
         {
             tempAllocations[stat]--;
-            UpdateUI();
+            RefreshUI();
         }
     }
 
@@ -91,7 +91,7 @@ public class UIStatsPanel : MonoBehaviour
         }
 
         ResetAllocations();
-        UpdateUI();
+        RefreshUI();
     }
 
     private void ResetAllocations()
@@ -99,7 +99,7 @@ public class UIStatsPanel : MonoBehaviour
         var keys = new List<EStatistics>(tempAllocations.Keys);
         foreach (var key in keys)
             tempAllocations[key] = 0;
-        UpdateUI();
+        RefreshUI();
     }
 }
 }

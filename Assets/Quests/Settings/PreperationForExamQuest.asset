@@ -26,12 +26,14 @@ MonoBehaviour:
     - id: q_exam_prep_st0_obj0
       type: 1
       targetId: job_wizard
+      displayName: Become a wizard
       extraId: 
       requiredCount: 0
       visibleInJournal: 0
     - id: q_exam_prep_st0_obj1
       type: 2
       targetId: sym_9
+      displayName: Learn symbol
       extraId: 
       requiredCount: 0
       visibleInJournal: 0
@@ -42,6 +44,7 @@ MonoBehaviour:
     - id: q_exam_prep_st0_obj1
       type: 3
       targetId: exam_prep_finished
+      displayName: Talk to the cleark to finish preperations
       extraId: 
       requiredCount: 0
       visibleInJournal: 0

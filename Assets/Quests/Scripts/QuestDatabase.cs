@@ -1,5 +1,3 @@
-// Filename: QuestDatabase.cs
-// Namespace: Game.Quests
 using System.Collections.Generic;
 using UnityEngine;
 

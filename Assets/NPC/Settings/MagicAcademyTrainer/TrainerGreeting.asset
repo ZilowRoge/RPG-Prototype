@@ -33,12 +33,9 @@ MonoBehaviour:
     - type: 0
       actionId: sym_9_lesson_start
       actionValue: 1
-      onRun:
-        m_PersistentCalls:
-          m_Calls: []
     HideIfLocked: 1
-  - text: This is the Fundamental Symbol, the key that opens your path to all others.
-    nextNodeId: 
+  - text: I finished the lesson
+    nextNodeId: npc_ma_trainer_lesson_finished
     conditions:
     - conditionType: 0
       identifier: sym_9_lesson_finished
@@ -50,9 +47,6 @@ MonoBehaviour:
     - type: 3
       actionId: sym_9
       actionValue: 0
-      onRun:
-        m_PersistentCalls:
-          m_Calls: []
     HideIfLocked: 1
   - text: Maybe later. I need some time to prepare.
     nextNodeId: 

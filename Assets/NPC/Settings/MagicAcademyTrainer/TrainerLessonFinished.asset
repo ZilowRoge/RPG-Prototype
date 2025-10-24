@@ -12,6 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d886ca89e7eeca24a8065e87e03e03d5, type: 3}
   m_Name: TrainerLessonFinished
   m_EditorClassIdentifier: 
-  id: node_id
-  text: 
-  options: []
+  id: npc_ma_trainer_lesson_finished
+  text: This is the Fundamental Symbol, the key that opens your path to all others.
+  options:
+  - text: Bye
+    nextNodeId: 
+    conditions: []
+    onSelect: []
+    HideIfLocked: 0

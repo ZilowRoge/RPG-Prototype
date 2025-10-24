@@ -1,5 +1,3 @@
-// Filename: QuestAsset.cs
-// Namespace: Game.Quests
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,12 +9,7 @@ namespace Quests
         TalkTo,
         AcquireJob,
         LearnSymbol,
-        FlagTrue,
-        // VisitArea,
-        // Collect,
-        // Kill,
-        // UseSymbol,
-        // Interact
+        FlagTrue
     }
 
     [Serializable]
@@ -24,8 +17,9 @@ namespace Quests
     {
         public string id = "obj_id";
         public ObjectiveType type = ObjectiveType.TalkTo;
-        public string targetId = "";       // np. npcId, jobId, itemId, symbolId
-        public string extraId = "";        // np. dla par (np. item + miejsce)
+        public string targetId = "";
+        public string displayName = "";
+        public string extraId = "";
         public int requiredCount = 1;
         public bool visibleInJournal = true;
     }

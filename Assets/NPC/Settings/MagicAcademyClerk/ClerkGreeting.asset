@@ -31,7 +31,7 @@ MonoBehaviour:
     nextNodeId: npc_ma_clerk_exam_start
     conditions:
     - conditionType: 4
-      identifier: jop_wizard
+      identifier: job_wizard
       expectedValue: 1
     - conditionType: 5
       identifier: sym_9

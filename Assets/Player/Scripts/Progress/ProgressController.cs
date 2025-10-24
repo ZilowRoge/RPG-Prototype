@@ -112,6 +112,7 @@ namespace Player.Progress
             if (questManager == null || string.IsNullOrEmpty(questId)) return;
             if (questManager.StartQuest(questId)) {
                 EvaluateQuests();
+                Quests.GameEvents.EmitQuestStarted(questId);
             }
         }
 

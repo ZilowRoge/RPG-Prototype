@@ -59,6 +59,7 @@ namespace Quests.Editor
                     EditorGUILayout.LabelField($"Objective {j}", EditorStyles.miniBoldLabel);
                     EditorGUI.indentLevel++;
                     var idProp = obj.FindPropertyRelative("id");
+                    var displayNameProp = obj.FindPropertyRelative("displayName");
                     var typeProp = obj.FindPropertyRelative("type");
                     var targetProp = obj.FindPropertyRelative("targetId");
                     var extraProp = obj.FindPropertyRelative("extraId");
@@ -66,6 +67,7 @@ namespace Quests.Editor
                     var visibleProp = obj.FindPropertyRelative("visibleInJournal");
 
                     EditorGUILayout.PropertyField(idProp);
+                    EditorGUILayout.PropertyField(displayNameProp);
                     EditorGUILayout.PropertyField(typeProp);
                     var type = (ObjectiveType)typeProp.enumValueIndex;
                     if (type == ObjectiveType.FlagTrue && keys != null && keys.Length > 0)
