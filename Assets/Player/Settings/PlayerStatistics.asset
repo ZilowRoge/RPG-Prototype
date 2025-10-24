@@ -20,16 +20,7 @@ MonoBehaviour:
   healthPerVit: 10
   manaPerInt: 8
   staminaPerEnd: 9
-  stats:
-    stats:
-    - stat: 2
-      value: 11
-    - stat: 0
-      value: 18
-    - stat: 3
-      value: 4
-    - stat: 1
-      value: 18
-    pendingAllocations: 149
-  baseExperienceToLevelUp: 100
-  experienceGrowthRate: 1.25
+  container:
+    stats: []
+    pendingAllocations: 0
+  statisticsPointsPerLevel: 5

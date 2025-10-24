@@ -6,14 +6,14 @@ namespace UI.Player.Statistics
     public class PlayerStatsWindow : PlayerWindowBase
     {
         [SerializeField] private StatsListUI statsPanel;
-        bool initialized;
+        bool dependenciesInitialized;
 
         void EnsureDependencies()
         {
-            if (initialized) return;
+            if (dependenciesInitialized) return;
             if (statsPanel == null)
                 statsPanel = GetComponentInChildren<StatsListUI>(true);
-            initialized = true;
+            dependenciesInitialized = true;
         }
 
         protected override void Awake()

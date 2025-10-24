@@ -6,14 +6,14 @@ namespace UI.Player.Jobs
     public class PlayerJobsWindow : PlayerWindowBase
     {
         [SerializeField] private JobControllerUI jobController;
-        bool initialized;
+        bool dependenciesInitialized;
 
         void EnsureDependencies()
         {
-            if (initialized) return;
+            if (dependenciesInitialized) return;
             if (jobController == null)
                 jobController = GetComponentInChildren<JobControllerUI>(true);
-            initialized = true;
+            dependenciesInitialized = true;
         }
 
         protected override void Awake()
