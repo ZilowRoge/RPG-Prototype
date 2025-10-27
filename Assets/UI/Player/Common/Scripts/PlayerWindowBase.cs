@@ -8,11 +8,7 @@ namespace UI.Player
         [SerializeField] private GameObject windowRoot;
         [SerializeField] private CanvasGroup canvasGroup;
         [SerializeField, HideInInspector] private bool startVisible;
-        [SerializeField] private bool manageCursor = true;
 
-        private bool cursorCaptured;
-        private CursorLockMode previousCursorLockState;
-        private bool previousCursorVisible;
         private bool initialized;
 
         protected virtual void Awake()
@@ -23,7 +19,6 @@ namespace UI.Player
 
         protected GameObject WindowRoot => windowRoot;
         protected CanvasGroup WindowCanvasGroup => canvasGroup;
-        protected bool IsCursorManaged => manageCursor;
 
         protected void SetWindowRoot(GameObject root)
         {
@@ -38,7 +33,6 @@ namespace UI.Player
         }
 
         protected void SetStartVisibility(bool visible) => startVisible = visible;
-        protected void SetManageCursor(bool value) => manageCursor = value;
 
         private void EnsureInitialized()
         {
@@ -106,14 +100,10 @@ namespace UI.Player
 
             if (visible)
             {
-                if (manageCursor)
-                    CaptureCursor();
                 OnShow();
             }
             else
             {
-                if (manageCursor)
-                    ReleaseCursor();
                 OnHide();
                 windowRoot.SetActive(false);
             }
@@ -121,29 +111,5 @@ namespace UI.Player
 
         protected virtual void OnShow() { }
         protected virtual void OnHide() { }
-
-        private void CaptureCursor()
-        {
-            if (cursorCaptured)
-                return;
-
-            cursorCaptured = true;
-            previousCursorLockState = Cursor.lockState;
-            previousCursorVisible = Cursor.visible;
-
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
-
-        private void ReleaseCursor()
-        {
-            if (!cursorCaptured)
-                return;
-
-            cursorCaptured = false;
-            Cursor.lockState = previousCursorLockState;
-            Cursor.visible = previousCursorVisible;
-        }
     }
 }
-

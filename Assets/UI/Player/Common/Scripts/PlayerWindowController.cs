@@ -20,6 +20,7 @@ namespace UI.Player
         [SerializeField] private CanvasGroup rootCanvasGroup;
         [SerializeField] private GameObject windowRootObject;
         [SerializeField] private bool startHidden = true;
+        [SerializeField] private bool manageCursor = true;
 
         [Header("Tabs")]
         [SerializeField] private List<WindowTab> tabs = new();
@@ -28,6 +29,9 @@ namespace UI.Player
         [SerializeField] private bool closeOnEscape = true;
 
         private WindowTab currentTab;
+        private bool cursorCaptured;
+        private CursorLockMode previousCursorLockState;
+        private bool previousCursorVisible;
 
         private void Awake()
         {
@@ -63,6 +67,11 @@ namespace UI.Player
                 ShowDefaultTab();
             else
                 SetRootVisible(false);
+        }
+
+        private void OnDisable()
+        {
+            ReleaseCursor();
         }
 
         private void Update()
@@ -211,12 +220,43 @@ namespace UI.Player
                     windowRootObject.SetActive(false);
                 }
             }
+
+            if (manageCursor)
+            {
+                if (visible)
+                    CaptureCursor();
+                else
+                    ReleaseCursor();
+            }
         }
 
         private bool RootVisible()
         {
             EnsureRootCanvas();
             return windowRootObject != null && windowRootObject.activeSelf && rootCanvasGroup.alpha > 0.001f;
+        }
+
+        private void CaptureCursor()
+        {
+            if (cursorCaptured)
+                return;
+
+            cursorCaptured = true;
+            previousCursorLockState = Cursor.lockState;
+            previousCursorVisible = Cursor.visible;
+
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
+        private void ReleaseCursor()
+        {
+            if (!cursorCaptured)
+                return;
+
+            cursorCaptured = false;
+            Cursor.lockState = previousCursorLockState;
+            Cursor.visible = previousCursorVisible;
         }
     }
 }
