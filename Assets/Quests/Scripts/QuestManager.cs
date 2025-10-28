@@ -85,7 +85,7 @@ namespace Quests
                     }
                 }
 
-                if (anyChanged) TryAdvanceStage(asset, qp);
+                if (anyChanged) TryAdvanceStage(asset, qp, progress);
             }
         }
 
@@ -120,7 +120,7 @@ namespace Quests
             }
         }
 
-        void TryAdvanceStage(QuestAsset asset, QuestProgress qp)
+        void TryAdvanceStage(QuestAsset asset, QuestProgress qp, ProgressController progress)
         {
             var sp = qp.stages[qp.stageIndex];
             bool allDone = true;
@@ -132,7 +132,13 @@ namespace Quests
             sp.completed = true;
             GameEvents.EmitQuestStageCompleted(qp.questId, sp.stageId);
             qp.stageIndex++;
-            if (qp.stageIndex >= asset.stages.Count) qp.state = QuestState.Completed;
+            if (qp.stageIndex >= asset.stages.Count)
+            {
+                qp.state = QuestState.Completed;
+                GameEvents.EmitQuestCompleted(qp.questId);
+                if (asset.rewardXp > 0 && progress != null)
+                    progress.GrantExperience(asset.rewardXp);
+            }
         }
 
         QuestAsset FindAsset(string questId) => database != null ? database.Get(questId) : null;

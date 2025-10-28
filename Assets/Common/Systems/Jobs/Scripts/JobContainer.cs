@@ -23,10 +23,12 @@ namespace Systems.Jobs
 
         public IEnumerable<JobInstance> GetAllJobs() => jobs.Values;
 
-        public void AddExperience(string jobId, int amount)
+        public int AddExperience(string jobId, int amount)
         {
             if (jobs.TryGetValue(jobId, out var job))
-                job.AddExperience(amount);
+                return job.AddExperience(amount);
+
+            return amount > 0 ? amount : 0;
         }
 
         public void Clear() => jobs.Clear();

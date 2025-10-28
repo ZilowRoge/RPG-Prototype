@@ -20,9 +20,9 @@ namespace Systems.Jobs
         public JobInstance(JobData data, Action<JobInstance> onAdvanced)
         {
             Data = data;
-            CurrentLevel = 1;
+            CurrentLevel = 0;
             Experience = 0;
-            PerkPoints = 1;
+            PerkPoints = 0;
             unlockedPerks.Clear();
             OnJobAdvanced += onAdvanced;
         }
@@ -47,9 +47,9 @@ namespace Systems.Jobs
             PerkPoints--;
         }
 
-        public void AddExperience(int amount)
+        public int AddExperience(int amount)
         {
-            if (amount <= 0) return;
+            if (amount <= 0 || Data == null) return 0;
 
             Experience += amount;
 
@@ -59,9 +59,18 @@ namespace Systems.Jobs
                 Experience -= Data.GetRequiredExperience(CurrentLevel);
                 LevelUp();
             }
+
+            if (CurrentLevel >= Data.maxLevel && Experience > 0)
+            {
+                int overflow = Experience;
+                Experience = 0;
+                return overflow;
+            }
+
+            return 0;
         }
 
-        public void SetLevel(int level)       => CurrentLevel = Mathf.Clamp(level, 1, Data.maxLevel);
+        public void SetLevel(int level)       => CurrentLevel = Mathf.Clamp(level, 0, Data.maxLevel);
         public void SetExperience(int exp)    => Experience   = Mathf.Max(0, exp);
         public void SetPerkPoints(int points) => PerkPoints   = Mathf.Max(0, points);
 

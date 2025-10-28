@@ -1,4 +1,8 @@
+using System.Collections.Generic;
+using System.Linq;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using Systems.Jobs;
 using UI.Player.Perks;
 using Player.Progress;
@@ -7,14 +11,57 @@ namespace UI.Player.Jobs
 {
     public class JobControllerUI : MonoBehaviour
     {
+        [Header("Core References")]
         [SerializeField] private ProgressController progressController;
         [SerializeField] private Transform slotParent;
         [SerializeField] private GameObject slotPrefab;
         [SerializeField] private PerkControllerUI perkController;
 
-        private void Start()
+        [Header("Selection Details")]
+        [SerializeField] private TMP_Text availablePerksText;
+        [SerializeField] private TMP_Text availableExperienceText;
+        [SerializeField] private Button addExperienceButton;
+        [SerializeField] private JobExperienceDialogUI experienceDialog;
+
+        private readonly Dictionary<JobInstance, JobEntryUI> entryLookup = new();
+        private JobInstance selectedJob;
+        private bool isSubscribed;
+
+        private void Awake()
         {
+            if (addExperienceButton != null)
+            {
+                addExperienceButton.onClick.RemoveListener(OnAddExperienceClicked);
+                addExperienceButton.onClick.AddListener(OnAddExperienceClicked);
+            }
+        }
+
+        private void OnEnable()
+        {
+            Subscribe();
             Refresh();
+        }
+
+        private void OnDisable()
+        {
+            Unsubscribe();
+            experienceDialog?.Hide();
+        }
+
+        private void Subscribe()
+        {
+            if (isSubscribed || progressController == null) return;
+            progressController.AvailableExperienceChanged += OnAvailableExperienceChanged;
+            progressController.JobExperienceChanged += OnJobExperienceChanged;
+            isSubscribed = true;
+        }
+
+        private void Unsubscribe()
+        {
+            if (!isSubscribed || progressController == null) return;
+            progressController.AvailableExperienceChanged -= OnAvailableExperienceChanged;
+            progressController.JobExperienceChanged -= OnJobExperienceChanged;
+            isSubscribed = false;
         }
 
         public void Refresh()
@@ -31,6 +78,8 @@ namespace UI.Player.Jobs
                 return;
             }
 
+            entryLookup.Clear();
+
             for (int i = slotParent.childCount - 1; i >= 0; i--)
             {
                 var child = slotParent.GetChild(i);
@@ -46,15 +95,103 @@ namespace UI.Player.Jobs
             {
                 var slot = Instantiate(slotPrefab, slotParent);
                 var entry = slot.GetComponent<JobEntryUI>() ?? slot.GetComponentInChildren<JobEntryUI>(true);
-                if (entry != null)
-                    entry.Initialize(job, this);
+                if (entry == null) continue;
+
+                entry.Initialize(job, this);
+            }
+
+            if (selectedJob == null || !entryLookup.ContainsKey(selectedJob))
+                selectedJob = entryLookup.Keys.FirstOrDefault();
+
+            ApplySelection(selectedJob, notifyPerkPanel: true);
+            UpdateAvailableExperienceUI(progressController.AvailableExperience);
+        }
+
+        public void RegisterEntry(JobInstance job, JobEntryUI entry)
+        {
+            if (job == null || entry == null) return;
+            entryLookup[job] = entry;
+        }
+
+        public void OnJobSelected(JobInstance job)
+        {
+            if (job == null || !entryLookup.ContainsKey(job))
+                return;
+
+            ApplySelection(job, notifyPerkPanel: true);
+        }
+
+        private void ApplySelection(JobInstance job, bool notifyPerkPanel)
+        {
+            selectedJob = job;
+
+            UpdateSelectedJobUI();
+
+            if (notifyPerkPanel && selectedJob != null && perkController != null)
+                perkController.DisplayPerks(selectedJob);
+        }
+
+        private void UpdateSelectedJobUI()
+        {
+            if (availablePerksText != null)
+            {
+                if (selectedJob == null)
+                    availablePerksText.text = "Available perks: 0";
+                else
+                    availablePerksText.text = $"Available perks: {selectedJob.PerkPoints}";
+            }
+
+            if (addExperienceButton != null)
+                addExperienceButton.interactable = selectedJob != null;
+        }
+
+        private void UpdateAvailableExperienceUI(int amount)
+        {
+            if (availableExperienceText != null)
+                availableExperienceText.text = $"{Mathf.Max(0, amount)} XP";
+
+            UpdateSelectedJobUI();
+        }
+
+        private void OnAvailableExperienceChanged(int amount)
+        {
+            UpdateAvailableExperienceUI(amount);
+        }
+
+        private void OnJobExperienceChanged(JobInstance job)
+        {
+            if (job == null) return;
+
+            if (entryLookup.TryGetValue(job, out var entry))
+            {
+                entry.Refresh();
+            }
+            else
+            {
+                Refresh();
+                return;
+            }
+
+            if (job == selectedJob)
+            {
+                UpdateSelectedJobUI();
+                if (perkController != null)
+                    perkController.DisplayPerks(selectedJob);
             }
         }
 
-        public void OnJobSelected(JobInstance selectedJob)
+        private void OnAddExperienceClicked()
         {
-            if (perkController != null)
-                perkController.DisplayPerks(selectedJob);
+            if (selectedJob == null || progressController == null)
+                return;
+
+            if (experienceDialog == null)
+            {
+                Debug.LogWarning("JobControllerUI: Experience dialog reference not assigned.", this);
+                return;
+            }
+
+            experienceDialog.Show(selectedJob, progressController);
         }
     }
 }

@@ -12,11 +12,17 @@ namespace Player.Progress
         [SerializeField] private QuestManager questManager;
         [SerializeField] private JobDatabase jobDatabase;
         [SerializeField] private SymbolProgress symbolProgress;
+        [SerializeField] private int startingAvailableExperience = 0;
 
         private readonly Dictionary<string, bool> flags = new Dictionary<string, bool>();
         private readonly JobContainer jobs = new JobContainer();
+        private int availableExperience;
 
         public event System.Action<string, bool> FlagChanged;
+        public event Action<int> AvailableExperienceChanged;
+        public event Action<JobInstance> JobExperienceChanged;
+
+        public int AvailableExperience => availableExperience;
 
         public bool HasJob(string jobId)
         {
@@ -28,10 +34,46 @@ namespace Player.Progress
             var asset = jobDatabase != null ? jobDatabase.GetById(jobId) : null;
             if (asset == null) return;
             jobs.AddJob(asset, OnAnyJobAdvanced);
+            JobExperienceChanged?.Invoke(jobs.GetJob(jobId));
             EvaluateQuests();
         }
 
+        public JobInstance GetJob(string jobId) => jobs.GetJob(jobId);
+
         public IEnumerable<JobInstance> GetAllJobs() => jobs.GetAllJobs();
+
+        public void GrantExperience(int amount)
+        {
+            if (amount <= 0) return;
+
+            availableExperience += amount;
+            AvailableExperienceChanged?.Invoke(availableExperience);
+        }
+
+        public int AllocateExperienceToJob(string jobId, int amount)
+        {
+            if (string.IsNullOrEmpty(jobId) || amount <= 0) return 0;
+            var job = jobs.GetJob(jobId);
+            if (job == null) return 0;
+
+            int spendable = Mathf.Min(amount, availableExperience);
+            if (spendable <= 0) return 0;
+
+            availableExperience -= spendable;
+            int overflow = job.AddExperience(spendable);
+            int consumed = spendable - overflow;
+
+            if (overflow > 0)
+                availableExperience += overflow;
+
+            if (consumed > 0)
+            {
+                AvailableExperienceChanged?.Invoke(availableExperience);
+                JobExperienceChanged?.Invoke(job);
+            }
+
+            return consumed;
+        }
 
         public bool KnowsSymbol(string symbolKey)
         {
@@ -121,6 +163,11 @@ namespace Player.Progress
             if (questManager != null) questManager.EvaluateAll(this);
         }
 
+        private void Awake()
+        {
+            availableExperience = Mathf.Max(0, startingAvailableExperience);
+        }
+
         private static int ParseSymbolId(string raw)
         {
             if (string.IsNullOrWhiteSpace(raw))
@@ -135,6 +182,7 @@ namespace Player.Progress
 
         private void OnAnyJobAdvanced(Systems.Jobs.JobInstance job)
         {
+            JobExperienceChanged?.Invoke(job);
             EvaluateQuests();
         }
     }

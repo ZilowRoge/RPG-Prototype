@@ -10,12 +10,14 @@ namespace Quests
         public static event Action<string> onQuestStarted;
         public static event Action<string, string, string> onQuestObjectiveCompleted;
         public static event Action<string, string> onQuestStageCompleted;
+        public static event Action<string> onQuestCompleted;
 
         public static void EmitQuestStarted(string questId) => onQuestStarted?.Invoke(questId);
         public static void EmitQuestObjectiveCompleted(string questId, string stageId, string objectiveId) =>
             onQuestObjectiveCompleted?.Invoke(questId, stageId, objectiveId);
         public static void EmitQuestStageCompleted(string questId, string stageId) =>
             onQuestStageCompleted?.Invoke(questId, stageId);
+        public static void EmitQuestCompleted(string questId) => onQuestCompleted?.Invoke(questId);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatic()
@@ -23,6 +25,7 @@ namespace Quests
             onQuestStarted = null;
             onQuestObjectiveCompleted = null;
             onQuestStageCompleted = null;
+            onQuestCompleted = null;
         }
     }
 }
