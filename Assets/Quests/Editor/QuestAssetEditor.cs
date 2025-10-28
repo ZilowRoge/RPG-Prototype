@@ -89,6 +89,8 @@ namespace Quests.Editor
 
                     EditorGUILayout.PropertyField(extraProp);
                     EditorGUILayout.PropertyField(countProp);
+                    if (type == ObjectiveType.Elimination && countProp.intValue < 1)
+                        countProp.intValue = 1;
                     EditorGUILayout.PropertyField(visibleProp);
                     EditorGUI.indentLevel--;
                     if (GUILayout.Button("Remove Objective"))

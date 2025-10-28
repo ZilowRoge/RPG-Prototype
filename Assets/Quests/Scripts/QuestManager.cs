@@ -76,7 +76,7 @@ namespace Quests
                     var op = stageProg.objectives[j];
                     if (op.completed) continue;
 
-                    if (IsObjectiveSatisfied(def, progress))
+                    if (IsObjectiveSatisfied(def, op, progress))
                     {
                         op.currentCount = Mathf.Max(op.currentCount, def.requiredCount);
                         op.completed = true;
@@ -103,7 +103,7 @@ namespace Quests
             return qp;
         }
 
-        bool IsObjectiveSatisfied(ObjectiveDef def, ProgressController progress)
+        bool IsObjectiveSatisfied(ObjectiveDef def, ObjectiveProgress op, ProgressController progress)
         {
             switch (def.type)
             {
@@ -115,9 +115,87 @@ namespace Quests
                         return symbolId >= 0 && progress.KnowsSymbol(symbolId);
                 case ObjectiveType.FlagTrue:
                     return progress.GetFlag(def.targetId);
+                case ObjectiveType.Elimination:
+                    if (op == null)
+                        return false;
+                    int required = Mathf.Max(1, def.requiredCount);
+                    return op.currentCount >= required;
                 default:
                     return false;
             }
+        }
+
+        public void ReportElimination(ProgressController progress, string targetId, string extraId = null, int count = 1)
+        {
+            if (count <= 0 || activeQuests.Count == 0)
+                return;
+
+            bool anyProgressMade = false;
+
+            for (int i = 0; i < activeQuests.Count; i++)
+            {
+                var qp = activeQuests[i];
+                if (qp.state != QuestState.Active)
+                    continue;
+
+                var asset = FindAsset(qp.questId);
+                if (asset == null)
+                    continue;
+                if (qp.stageIndex < 0 || qp.stageIndex >= asset.stages.Count)
+                    continue;
+
+                var stageDef = asset.stages[qp.stageIndex];
+                if (stageDef.objectives == null || stageDef.objectives.Count == 0)
+                    continue;
+
+                var stageProg = qp.stages.Count > qp.stageIndex ? qp.stages[qp.stageIndex] : null;
+                if (stageProg == null || stageProg.objectives == null || stageProg.objectives.Count == 0)
+                    continue;
+
+                bool stageUpdated = false;
+
+                int objectiveCount = Mathf.Min(stageDef.objectives.Count, stageProg.objectives.Count);
+                for (int j = 0; j < objectiveCount; j++)
+                {
+                    var def = stageDef.objectives[j];
+                    if (def == null || def.type != ObjectiveType.Elimination)
+                        continue;
+
+                    var op = stageProg.objectives[j];
+                    if (op == null || op.completed)
+                        continue;
+
+                    if (!MatchesCriterion(def.targetId, targetId))
+                        continue;
+                    if (!MatchesCriterion(def.extraId, extraId))
+                        continue;
+
+                    int required = Mathf.Max(1, def.requiredCount);
+                    int previous = op.currentCount;
+                    op.currentCount = Mathf.Clamp(previous + count, 0, required);
+
+                    if (op.currentCount == previous)
+                        continue;
+
+                    anyProgressMade = true;
+                    GameEvents.EmitQuestObjectiveProgressed(qp.questId, stageDef.id, def.id, op.currentCount, required);
+
+                    if (op.currentCount >= required)
+                    {
+                        op.completed = true;
+                        GameEvents.EmitQuestObjectiveCompleted(qp.questId, stageDef.id, def.id);
+                        stageUpdated = true;
+                    }
+                }
+
+                if (stageUpdated)
+                {
+                    TryAdvanceStage(asset, qp, progress);
+                }
+            }
+
+            if (anyProgressMade && progress != null)
+                EvaluateAll(progress);
         }
 
         void TryAdvanceStage(QuestAsset asset, QuestProgress qp, ProgressController progress)
@@ -152,6 +230,17 @@ namespace Quests
                 symbolKey = symbolKey.Substring(4);
 
             return int.TryParse(symbolKey, out var id) ? id : -1;
-        }    
+        }
+
+        static bool MatchesCriterion(string expected, string candidate)
+        {
+            if (string.IsNullOrEmpty(expected) || expected == "any")
+                return true;
+
+            if (string.IsNullOrEmpty(candidate))
+                return false;
+
+            return string.Equals(expected, candidate, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

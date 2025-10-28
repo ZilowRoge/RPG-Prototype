@@ -67,6 +67,7 @@ namespace UI.Player.Quests
             GameEvents.onQuestStarted += HandleQuestStarted;
             GameEvents.onQuestStageCompleted += HandleQuestStageCompleted;
             GameEvents.onQuestObjectiveCompleted += HandleQuestObjectiveCompleted;
+            GameEvents.onQuestObjectiveProgressed += HandleQuestObjectiveProgressed;
 
             RefreshUI();
         }
@@ -79,6 +80,7 @@ namespace UI.Player.Quests
             GameEvents.onQuestStarted -= HandleQuestStarted;
             GameEvents.onQuestStageCompleted -= HandleQuestStageCompleted;
             GameEvents.onQuestObjectiveCompleted -= HandleQuestObjectiveCompleted;
+            GameEvents.onQuestObjectiveProgressed -= HandleQuestObjectiveProgressed;
         }
 
         public void ToggleVisible() => Toggle();
@@ -92,6 +94,7 @@ namespace UI.Player.Quests
         private void HandleQuestStarted(string questId) => RefreshUI();
         private void HandleQuestStageCompleted(string questId, string stageId) => RefreshUI();
         private void HandleQuestObjectiveCompleted(string questId, string stageId, string objectiveId) => RefreshUI();
+        private void HandleQuestObjectiveProgressed(string questId, string stageId, string objectiveId, int current, int required) => RefreshUI();
 
         private void RefreshUI()
         {

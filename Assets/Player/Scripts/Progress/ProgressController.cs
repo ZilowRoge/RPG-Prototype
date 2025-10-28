@@ -149,6 +149,13 @@ namespace Player.Progress
             EvaluateQuests();
         }
 
+        public void ReportElimination(string targetId, string extraId = null, int count = 1)
+        {
+            if (questManager == null)
+                return;
+            questManager.ReportElimination(this, targetId, extraId, count);
+        }
+
         public void StartQuest(string questId)
         {
             if (questManager == null || string.IsNullOrEmpty(questId)) return;

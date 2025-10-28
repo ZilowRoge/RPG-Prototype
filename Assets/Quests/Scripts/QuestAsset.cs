@@ -9,7 +9,8 @@ namespace Quests
         TalkTo,
         AcquireJob,
         LearnSymbol,
-        FlagTrue
+        FlagTrue,
+        Elimination
     }
 
     [Serializable]
