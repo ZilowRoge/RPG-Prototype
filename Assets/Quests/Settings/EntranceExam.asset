@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 590f52822a79aca4bbf9cc8f95325ca8, type: 3}
+  m_Name: EntranceExam
+  m_EditorClassIdentifier: 
+  questId: q_magic_entrance_exam
+  title: Entrance Exam
+  shortDescription: You need to pass the exam to enter the academy.
+  rewardXp: 300
+  rewardNote: 
+  stages:
+  - id: q_magic_exam_st0
+    title: Control exam
+    description: 
+    objectives:
+    - id: q_magic_exam_st0_obj0
+      type: 3
+      targetId: controll_exam_passed
+      displayName: 
+      extraId: 
+      requiredCount: 0
+      visibleInJournal: 1
+  - id: q_magic_exam_st1
+    title: 
+    description: 
+    objectives:
+    - id: q_magic_exam_st0_obj0
+      type: 3
+      targetId: exam_prep_finished
+      displayName: 
+      extraId: 
+      requiredCount: 0
+      visibleInJournal: 1
