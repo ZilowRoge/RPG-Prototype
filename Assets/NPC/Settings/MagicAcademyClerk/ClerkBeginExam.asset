@@ -13,11 +13,10 @@ MonoBehaviour:
   m_Name: ClerkBeginExam
   m_EditorClassIdentifier: 
   id: npc_ma_clerk_exam_start
-  text: "\u201CAll requirements have been met. You\u2019re officially ready for the
-    entrance examination.\u201D\n\u201CProceed through the closed doors on your right
-    the examiner will be waiting for you inside.\u201D"
+  text: "All requirements have been met. You\u2019re officially ready for the entrance
+    examination. Find the examiner to take the exam."
   options:
-  - text: Thank you
+  - text: Thank you.
     nextNodeId: 
     conditions: []
     onSelect:

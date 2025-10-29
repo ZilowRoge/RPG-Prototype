@@ -15,7 +15,7 @@ MonoBehaviour:
   questId: q_magic_entrance_exam
   title: Entrance Exam
   shortDescription: You need to pass the exam to enter the academy.
-  rewardXp: 300
+  rewardXp: 350
   rewardNote: 
   stages:
   - id: q_magic_exam_st0
@@ -25,18 +25,29 @@ MonoBehaviour:
     - id: q_magic_exam_st0_obj0
       type: 3
       targetId: controll_exam_passed
-      displayName: 
+      displayName: Channel the symbol into exam orb
       extraId: 
       requiredCount: 0
       visibleInJournal: 1
   - id: q_magic_exam_st1
-    title: 
+    title: Pression Exam
     description: 
     objectives:
-    - id: q_magic_exam_st0_obj0
-      type: 3
-      targetId: exam_prep_finished
-      displayName: 
+    - id: q_magic_exam_st1_obj0
+      type: 4
+      targetId: exam_consturct
+      displayName: Stop the constracts by targeting them with a spell.
       extraId: 
-      requiredCount: 0
+      requiredCount: 3
+      visibleInJournal: 1
+  - id: q_magic_exam_st2
+    title: Fight Exam
+    description: 
+    objectives:
+    - id: q_magic_exam_st2_obj0
+      type: 4
+      targetId: exam_construct
+      displayName: Stop the constracts by targeting them with a spell.
+      extraId: 
+      requiredCount: 5
       visibleInJournal: 1

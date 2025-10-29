@@ -12,6 +12,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d886ca89e7eeca24a8065e87e03e03d5, type: 3}
   m_Name: ExamDetails
   m_EditorClassIdentifier: 
-  id: node_id
-  text: 
-  options: []
+  id: ma_exeminer_exam_details
+  text: "The exam has three stages.\nControl, prove you can handle your symbols.\nPressure,
+    stay focused when things get tense.\nCombat, put it all into action.\nSimple
+    enough\u2026 but most candidates fail before the end."
+  options:
+  - text: I'm ready.
+    nextNodeId: 
+    conditions: []
+    onSelect:
+    - type: 1
+      actionId: q_magic_entrance_exam
+      actionValue: 0
+    - type: 0
+      actionId: entrance_exam_started
+      actionValue: 1
+    HideIfLocked: 0
+  - text: I'm not ready.
+    nextNodeId: 
+    conditions: []
+    onSelect: []
+    HideIfLocked: 0

@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86975a9bf1bebc54b99c83db784766ee, type: 3}
   m_Name: ExaminerDialog
   m_EditorClassIdentifier: 
-  dialogId: npc_id_or_unique_key
-  startNodeId: start
-  nodes: []
+  dialogId: npc_ma_exaniner_dialog
+  startNodeId: ma_exeminer_greeting
+  nodes:
+  - {fileID: 11400000, guid: a294e77b14d05eb40b5124b8666d0f77, type: 2}
+  - {fileID: 11400000, guid: d35ea0f6e179bde4cae302cea82fa4cd, type: 2}

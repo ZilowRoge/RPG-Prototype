@@ -12,6 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d886ca89e7eeca24a8065e87e03e03d5, type: 3}
   m_Name: Greetings
   m_EditorClassIdentifier: 
-  id: node_id
-  text: 
-  options: []
+  id: ma_exeminer_greeting
+  text: Hello, do you want to start the exam?
+  options:
+  - text: Yes, I would like to start the exam
+    nextNodeId: ma_exeminer_exam_details
+    conditions:
+    - conditionType: 0
+      identifier: exam_prep_finished
+      expectedValue: 1
+    onSelect: []
+    HideIfLocked: 1
+  - text: No, I don't have time
+    nextNodeId: 
+    conditions: []
+    onSelect: []
+    HideIfLocked: 1
