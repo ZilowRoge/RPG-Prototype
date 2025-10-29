@@ -13,9 +13,13 @@ MonoBehaviour:
   m_Name: ExamDetails
   m_EditorClassIdentifier: 
   id: ma_exeminer_exam_details
-  text: "The exam has three stages.\nControl, prove you can handle your symbols.\nPressure,
-    stay focused when things get tense.\nCombat, put it all into action.\nSimple
-    enough\u2026 but most candidates fail before the end."
+  text: "First, Control. Approach the focus orb and channel your symbol into it.
+    Let\u2019s see if you can keep your mana steady.\nSecond, Pressure. When you\u2019re
+    ready, step onto the marked seal. You\u2019ll face a test of reflex and focus,
+    destroy the targets before they vanish.\nAnd finally, Combat. Move to the central
+    arena and declare your readiness. The constructs of the Academy will test your
+    skill in real confrontation.\nEach test will push you further. Few make it through
+    all three, fewer still with their confidence intact."
   options:
   - text: I'm ready.
     nextNodeId: 
