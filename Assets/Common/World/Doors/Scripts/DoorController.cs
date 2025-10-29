@@ -28,6 +28,8 @@ namespace Common.Systems.SymbolTraining
             return true;
         }
 
+        public void Open() => TryOpen();
+
         public bool TryClose()
         {
             if (doorAnimator == null || string.IsNullOrEmpty(closeTriggerName))
@@ -36,5 +38,7 @@ namespace Common.Systems.SymbolTraining
             doorAnimator.SetTrigger(closeTriggerName);
             return true;
         }
+
+        public void Close() => TryClose();
     }
 }
