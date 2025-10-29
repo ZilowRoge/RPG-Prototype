@@ -25,7 +25,18 @@ namespace Player {
         {
             if (!v.isPressed) return;
             Debug.Log("Key [E] pressed");
-            current?.Interact(gameObject);
+            var interactable = current;
+            var tooltip = FindTooltip(interactable);
+            interactable?.Interact(gameObject);
+            tooltip?.HideAfterInteraction();
+        }
+
+        private static InteractionTooltip FindTooltip(IInteractable interactable)
+        {
+            if (interactable is not Component component) return null;
+            return component.GetComponent<InteractionTooltip>()
+                ?? component.GetComponentInParent<InteractionTooltip>()
+                ?? component.GetComponentInChildren<InteractionTooltip>(true);
         }
     }
 }

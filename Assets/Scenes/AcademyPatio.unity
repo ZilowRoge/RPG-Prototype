@@ -1115,6 +1115,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 5, y: 1, z: 4}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &56595004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 56594997}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57c209b8f7f8c1649b544d1a55233e44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tooltipRoot: {fileID: 1979645167}
+  tooltipLabel: {fileID: 1979645168}
+  message: Press [E] to interact
 --- !u!1 &61910624
 GameObject:
   m_ObjectHideFlags: 0
@@ -1298,6 +1313,7 @@ GameObject:
   m_Component:
   - component: {fileID: 88237152}
   - component: {fileID: 88237153}
+  - component: {fileID: 88237154}
   m_Layer: 5
   m_Name: PlayerBarsUI
   m_TagString: Untagged
@@ -1335,6 +1351,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 88237151}
   m_CullTransparentMesh: 1
+--- !u!114 &88237154
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 88237151}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a74a2e6233f92549aeff9791ac5961a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stats: {fileID: 1419299023}
+  healthFill: {fileID: 241742749}
+  healthLabel: {fileID: 1853025799}
+  manaFill: {fileID: 187529980}
+  manaLabel: {fileID: 1083758833}
+  staminaFill: {fileID: 693916740}
+  staminaLabel: {fileID: 861801194}
 --- !u!1 &90567442
 GameObject:
   m_ObjectHideFlags: 0
@@ -2336,6 +2371,21 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &212695017
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 212695008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57c209b8f7f8c1649b544d1a55233e44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tooltipRoot: {fileID: 1979645167}
+  tooltipLabel: {fileID: 1979645168}
+  message: Press [E] to channel the symbol
 --- !u!1001 &215603063
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4639,11 +4689,31 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3944218801610856193, guid: 4defe75a29b943b45a4accf5b7223fe9, type: 3}
   m_PrefabInstance: {fileID: 431439432}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &438901101 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 335868235042536714, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
+  m_PrefabInstance: {fileID: 735282028}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &438901102 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2303735124615543602, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
   m_PrefabInstance: {fileID: 735282028}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &438901110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 438901101}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57c209b8f7f8c1649b544d1a55233e44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tooltipRoot: {fileID: 1979645167}
+  tooltipLabel: {fileID: 1979645168}
+  message: Press [E] to talk
 --- !u!1001 &441955607
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4655,6 +4725,10 @@ PrefabInstance:
     - target: {fileID: 335868235042536714, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
       propertyPath: m_Name
       value: NPC_Trainer
+      objectReference: {fileID: 0}
+    - target: {fileID: 571691024007917823, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2303735124615543602, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
       propertyPath: m_LocalPosition.x
@@ -4717,6 +4791,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 335868235042536714, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2067592056}
+    - targetCorrespondingSourceObject: {fileID: 335868235042536714, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2067592063}
   m_SourcePrefab: {fileID: 100100000, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
 --- !u!1 &442123922
 GameObject:
@@ -6920,7 +6997,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5642695397872016747, guid: 5aff5d228d310704082c590669bddfb1, type: 3}
       propertyPath: m_Name
-      value: Doors (1)
+      value: EntranceDoors
       objectReference: {fileID: 0}
     - target: {fileID: 5642695397872016747, guid: 5aff5d228d310704082c590669bddfb1, type: 3}
       propertyPath: m_Layer
@@ -7107,6 +7184,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: NPC_Examiner
       objectReference: {fileID: 0}
+    - target: {fileID: 571691024007917823, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2303735124615543602, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
       propertyPath: m_LocalPosition.x
       value: -6.22
@@ -7174,7 +7255,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 335868235042536714, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 438901110}
   m_SourcePrefab: {fileID: 100100000, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
 --- !u!1001 &738337125
 PrefabInstance:
@@ -12898,6 +12982,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5642695397872016747, guid: 5aff5d228d310704082c590669bddfb1, type: 3}
       insertIndex: -1
       addedObject: {fileID: 56595001}
+    - targetCorrespondingSourceObject: {fileID: 5642695397872016747, guid: 5aff5d228d310704082c590669bddfb1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 56595004}
   m_SourcePrefab: {fileID: 100100000, guid: 5aff5d228d310704082c590669bddfb1, type: 3}
 --- !u!1 &1219515936
 GameObject:
@@ -15847,6 +15934,26 @@ MonoBehaviour:
   debugHitColor: {r: 1, g: 0.92, b: 0.016, a: 0.9}
   debugHitMarkerSize: 0.2
   viewCamera: {fileID: 961739752}
+--- !u!1 &1424702910 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 335868235042536714, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
+  m_PrefabInstance: {fileID: 7279073529067687520}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1424702916
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1424702910}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57c209b8f7f8c1649b544d1a55233e44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tooltipRoot: {fileID: 1979645167}
+  tooltipLabel: {fileID: 1979645168}
+  message: Press [E] to talk
 --- !u!1001 &1435378555
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17341,7 +17448,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -17580,6 +17687,7 @@ RectTransform:
   - {fileID: 239787803}
   - {fileID: 1175744651}
   - {fileID: 702114964}
+  - {fileID: 1979645170}
   m_Father: {fileID: 1416891395}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -21117,6 +21225,142 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1974907191}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1979645167
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1979645170}
+  - component: {fileID: 1979645169}
+  - component: {fileID: 1979645168}
+  m_Layer: 5
+  m_Name: Tooltip
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1979645168
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1979645167}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: 
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 26
+  m_fontSizeBase: 26
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 0
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!222 &1979645169
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1979645167}
+  m_CullTransparentMesh: 1
+--- !u!224 &1979645170
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1979645167}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1672017038}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: 250}
+  m_SizeDelta: {x: 500, y: 50}
+  m_Pivot: {x: 0.5, y: 0}
 --- !u!4 &1982681381 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7623580377522706765, guid: dc96519f7fd1d8f4fa905c716f07cfda, type: 3}
@@ -22485,6 +22729,21 @@ MonoBehaviour:
   - startFlag: sym_9_lesson_start
     lesson: {fileID: 11400000, guid: b3e9bd3f9e865244c95b260c526d2f09, type: 2}
     resetFlagAfterStart: 0
+--- !u!114 &2067592063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2067592049}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57c209b8f7f8c1649b544d1a55233e44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tooltipRoot: {fileID: 1979645167}
+  tooltipLabel: {fileID: 1979645168}
+  message: Press [E] to talk
 --- !u!1 &2076583802
 GameObject:
   m_ObjectHideFlags: 0
@@ -23784,6 +24043,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: NPC_Clerk
       objectReference: {fileID: 0}
+    - target: {fileID: 571691024007917823, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2303735124615543602, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
       propertyPath: m_LocalPosition.x
       value: -9.225441
@@ -23835,7 +24098,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8823891461486392593, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
       insertIndex: -1
       addedObject: {fileID: 220584915}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 335868235042536714, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1424702916}
   m_SourcePrefab: {fileID: 100100000, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}
 --- !u!224 &7290648483182317588
 RectTransform:
@@ -24031,6 +24297,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4272174999879358864, guid: f78dbbd542275a74895c89b6a0327eca, type: 3}
       insertIndex: -1
       addedObject: {fileID: 212695015}
+    - targetCorrespondingSourceObject: {fileID: 4272174999879358864, guid: f78dbbd542275a74895c89b6a0327eca, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 212695017}
     - targetCorrespondingSourceObject: {fileID: 6311828764225302911, guid: f78dbbd542275a74895c89b6a0327eca, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1508724848}
