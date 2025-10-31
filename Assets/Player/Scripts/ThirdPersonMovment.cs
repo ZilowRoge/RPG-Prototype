@@ -21,6 +21,12 @@ namespace Player
         {
             controller = GetComponent<CharacterController>();
             cameraTransform = Camera.main.transform;
+            if (statsController == null)
+            {
+                statsController = GetComponent<StatsController>();
+                if (statsController == null)
+                    statsController = FindFirstObjectByType<StatsController>();
+            }
         }
 
         public void OnMove(InputValue value)
@@ -52,8 +58,33 @@ namespace Player
             bool isMovingBackward = forwardDot < -0.5f;
             bool isMoving = moveDir.sqrMagnitude > 0.01f;
 
-            bool isRunning = isMoving && !isMovingBackward && isSprintActive;
-            float currentSpeed = isRunning ? statsController.runSpeed : statsController.walkSpeed;
+            bool wantsToRun = isMoving && !isMovingBackward && isSprintActive;
+            bool hasStamina = statsController == null || statsController.CurrentStamina > 0f;
+            bool isRunning = wantsToRun && hasStamina;
+
+            if (isRunning && statsController != null)
+            {
+                float costPerSecond = statsController.Statistics != null
+                    ? statsController.Statistics.sprintStaminaCostPerSecond
+                    : 0f;
+
+                if (costPerSecond > 0f)
+                {
+                    if (!statsController.TryConsumeStamina(costPerSecond * Time.deltaTime))
+                    {
+                        isRunning = false;
+                        isSprintActive = false;
+                    }
+                }
+            }
+            else if (!hasStamina && isSprintActive)
+            {
+                isSprintActive = false;
+            }
+
+            float walkSpeed = statsController != null ? statsController.walkSpeed : 0f;
+            float runSpeed = statsController != null ? statsController.runSpeed : walkSpeed;
+            float currentSpeed = isRunning ? runSpeed : walkSpeed;
 
             if (isMoving)
             {

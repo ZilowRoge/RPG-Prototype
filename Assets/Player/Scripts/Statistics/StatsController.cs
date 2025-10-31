@@ -76,11 +76,45 @@ namespace Player.Statistics
             if (currentHealth < 0f) currentHealth = 0f;
         }
 
+        public bool TryConsumeStamina(float amount)
+        {
+            if (amount <= 0f)
+                return true;
+
+            if (currentStamina >= amount)
+            {
+                currentStamina -= amount;
+                if (currentStamina < 0f) currentStamina = 0f;
+                return true;
+            }
+
+            return false;
+        }
+
         public void RefillOnLevelUp()
         {
             currentHealth = maxHealth;
             currentMana = maxMana;
             currentStamina = maxStamina;
+        }
+
+        private void Update()
+        {
+            float delta = Time.deltaTime;
+            if (delta <= 0f || statistics == null)
+                return;
+
+            RegenerateResource(ref currentHealth, maxHealth, statistics.healthRegenPerSecond, delta);
+            RegenerateResource(ref currentMana, maxMana, statistics.manaRegenPerSecond, delta);
+            RegenerateResource(ref currentStamina, maxStamina, statistics.staminaRegenPerSecond, delta);
+        }
+
+        private static void RegenerateResource(ref float current, float max, float ratePerSecond, float deltaTime)
+        {
+            if (ratePerSecond <= 0f || current >= max)
+                return;
+
+            current = Mathf.Min(max, current + ratePerSecond * deltaTime);
         }
     }
 }

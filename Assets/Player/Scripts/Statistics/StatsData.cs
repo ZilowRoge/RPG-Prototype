@@ -17,6 +17,17 @@ namespace Player.Statistics
         public float manaPerInt = 10f;
         public float staminaPerEnd = 10f;
 
+        [Header("Regeneration")]
+        [Tooltip("Passive health regeneration in points per second.")]
+        public float healthRegenPerSecond = 1f;
+        [Tooltip("Passive mana regeneration in points per second.")]
+        public float manaRegenPerSecond = 2.5f;
+        [Tooltip("Passive stamina regeneration in points per second.")]
+        public float staminaRegenPerSecond = 5f;
+
+        [Tooltip("Stamina consumed per second while the player is sprinting.")]
+        public float sprintStaminaCostPerSecond = 8f;
+
         [SerializeField]
         public StatsContainer container = new();
 
