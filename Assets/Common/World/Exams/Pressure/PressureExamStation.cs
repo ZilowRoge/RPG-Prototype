@@ -1,7 +1,5 @@
-using System;
 using Common.World.Interaction;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Common.World.Exams.Pressure
 {
@@ -11,35 +9,25 @@ namespace Common.World.Exams.Pressure
     [AddComponentMenu("Game/World/Exams/Pressure/Pressure Exam Station")]
     public class PressureExamStation : MonoBehaviour, IInteractable
     {
-        [Serializable] private class PlayerEvent : UnityEvent<GameObject> { }
-
         [Header("References")]
         [SerializeField] private PressureExamController controller;
-        [SerializeField] private Transform playerStandPoint;
+        [SerializeField] private Collider stationTrigger;
 
         [Header("Behaviour")]
-        [SerializeField] private bool snapPlayerToStandPoint = true;
-        [SerializeField] private bool alignRotation = true;
-        [SerializeField] private bool zeroPlayerVelocityOnStart = true;
         [SerializeField] private bool allowRepeatAfterCompletion = true;
 
-        [Header("Events")]
-        [SerializeField] private UnityEvent onInteractionRejected;
-        [SerializeField] private UnityEvent onExamStarted;
-        [SerializeField] private PlayerEvent onExamStartedWithPlayer;
-        [SerializeField] private UnityEvent onExamEnded;
-        [SerializeField] private PlayerEvent onExamEndedWithPlayer;
+        private GameObject currentParticipant;
 
-        private GameObject activePlayer;
-
-        private void OnEnable()
+        private void Awake()
         {
-            Subscribe();
-        }
+            if (stationTrigger == null)
+                stationTrigger = GetComponent<Collider>();
 
-        private void OnDisable()
-        {
-            Unsubscribe();
+            if (stationTrigger != null && !stationTrigger.isTrigger)
+            {
+                Debug.LogWarning($"{nameof(PressureExamStation)} on {name} expects a trigger collider.", this);
+                stationTrigger.isTrigger = true;
+            }
         }
 
         public void Interact(GameObject player)
@@ -49,89 +37,48 @@ namespace Common.World.Exams.Pressure
 
             if (controller.IsRunning)
             {
-                onInteractionRejected?.Invoke();
                 return;
             }
 
             if (controller.HasCompleted && !allowRepeatAfterCompletion)
             {
-                onInteractionRejected?.Invoke();
                 return;
             }
 
             bool began = controller.TryBeginExam(player);
             if (!began)
             {
-                onInteractionRejected?.Invoke();
                 return;
             }
 
-            activePlayer = player;
-
-            if (snapPlayerToStandPoint && playerStandPoint != null)
-            {
-                player.transform.SetPositionAndRotation(playerStandPoint.position,
-                    alignRotation ? playerStandPoint.rotation : player.transform.rotation);
-            }
-
-            if (zeroPlayerVelocityOnStart)
-                ZeroPlayerVelocity(player);
-
-            onExamStarted?.Invoke();
-            onExamStartedWithPlayer?.Invoke(player);
+            currentParticipant = player;
         }
 
-        private void HandleExamEnded()
+        private void OnTriggerExit(Collider other)
         {
-            if (activePlayer == null)
+            if (controller == null || !controller.IsRunning)
                 return;
 
-            var player = activePlayer;
-            activePlayer = null;
+            if (other == null || currentParticipant == null)
+                return;
 
-            onExamEnded?.Invoke();
-            onExamEndedWithPlayer?.Invoke(player);
-        }
-
-        private void HandleStateChanged(PressureExamController.ExamState state)
-        {
-            if (state == PressureExamController.ExamState.Idle)
-                HandleExamEnded();
-        }
-
-        private void ZeroPlayerVelocity(GameObject player)
-        {
-            if (player.TryGetComponent<Rigidbody>(out var rb))
+            if (!ReferenceEquals(other.gameObject, currentParticipant) &&
+                !other.transform.IsChildOf(currentParticipant.transform))
             {
-                rb.linearVelocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
+                return;
             }
 
-            if (player.TryGetComponent<CharacterController>(out var cc))
-            {
-                cc.enabled = false;
-                cc.enabled = true;
-            }
+            controller.AbortExam();
+            currentParticipant = null;
         }
 
-        private void Subscribe()
+        private void LateUpdate()
         {
             if (controller == null)
                 return;
 
-            controller.ExamFailed += HandleExamEnded;
-            controller.ExamCompleted += HandleExamEnded;
-            controller.StateChanged += HandleStateChanged;
-        }
-
-        private void Unsubscribe()
-        {
-            if (controller == null)
-                return;
-
-            controller.ExamFailed -= HandleExamEnded;
-            controller.ExamCompleted -= HandleExamEnded;
-            controller.StateChanged -= HandleStateChanged;
+            if (!controller.IsRunning)
+                currentParticipant = null;
         }
     }
 }

@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8790b2cd34a9d114889d625e40f5efac, type: 3}
-  m_Name: PlayerStatistics
+  m_Name: ExamTargetStats
   m_EditorClassIdentifier: 
-  walkSpeed: 3
-  runSpeed: 6
-  baseHealth: 50
-  baseMana: 100
-  baseStamina: 40
-  healthPerVit: 10
-  manaPerInt: 8
-  staminaPerEnd: 9
+  walkSpeed: 0
+  runSpeed: 0
+  baseHealth: 1
+  baseMana: 1
+  baseStamina: 1
+  healthPerVit: 0
+  manaPerInt: 0
+  staminaPerEnd: 0
   container:
     stats: []
     pendingAllocations: 0
-  statisticsPointsPerLevel: 5
+  statisticsPointsPerLevel: 0

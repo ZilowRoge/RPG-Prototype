@@ -27,7 +27,6 @@ namespace Common.World.Exams.Pressure
         [SerializeField] private PressureExamConfig config;
         [SerializeField] private ShieldStreamSpawner shieldSpawner;
         [SerializeField] private PressureExamUI examUI;
-        [SerializeField] private ProgressFlagEmitter successFlagEmitter;
 
         [Header("Events")]
         [SerializeField] private UnityEvent onExamPreparing;
@@ -39,10 +38,6 @@ namespace Common.World.Exams.Pressure
         [SerializeField] private bool allowRepeatAfterSuccess = true;
 
         public event Action<ExamState> StateChanged;
-        public event Action ExamPreparing;
-        public event Action ExamStarted;
-        public event Action ExamFailed;
-        public event Action ExamCompleted;
         public event Action<int> HitsChanged;
         public event Action<int, int> MissesChanged;
         public event Action<int, int> WaveAdvanced;
@@ -89,7 +84,6 @@ namespace Common.World.Exams.Pressure
             CurrentParticipant = playerObject;
 
             SetState(ExamState.Preparing);
-            ExamPreparing?.Invoke();
             onExamPreparing?.Invoke();
             examUI?.HandleExamPreparing(this);
 
@@ -126,7 +120,6 @@ namespace Common.World.Exams.Pressure
                 yield break;
 
             SetState(ExamState.Running);
-            ExamStarted?.Invoke();
             onExamStarted?.Invoke();
             examUI?.HandleExamStarted(this);
 
@@ -235,7 +228,6 @@ namespace Common.World.Exams.Pressure
 
             SetState(ExamState.Failed);
             CurrentParticipant = null;
-            ExamFailed?.Invoke();
             onExamFailed?.Invoke();
             examUI?.HandleExamFailed(this, currentMisses, config.MaxMisses);
 
@@ -256,9 +248,6 @@ namespace Common.World.Exams.Pressure
             HasCompleted = true;
             SetState(ExamState.Completed);
             CurrentParticipant = null;
-            successFlagEmitter?.Emit();
-
-            ExamCompleted?.Invoke();
             onExamCompleted?.Invoke();
             int maxMisses = config != null ? config.MaxMisses : 0;
             examUI?.HandleExamCompleted(this, currentHits, currentMisses, maxMisses);
@@ -278,7 +267,6 @@ namespace Common.World.Exams.Pressure
             SetState(ExamState.Idle);
             CurrentParticipant = null;
             ResetCounters();
-            examUI?.HandleReadyForRetry(this);
             postRoutine = null;
         }
 

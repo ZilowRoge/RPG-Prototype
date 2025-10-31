@@ -7,4 +7,3 @@ namespace Player.Interfaces
         Transform TargetTransform { get; }
     }
 }
-

@@ -105,6 +105,7 @@ namespace Player.FightSystem.Magic
         {
             if (preparedSpell != null && IsCastInputTriggered())
             {
+
                 CastPreparedSpell();
             }
         }
@@ -186,6 +187,7 @@ namespace Player.FightSystem.Magic
                     effectiveTarget = targetSelector.CurrentTarget;
                 }
             }
+            Debug.Log($"[CastManager] Target selected: {effectiveTarget}.", this);
             casterData = new CasterData(statsController, castOrigin, effectiveTarget);
             return true;
         }

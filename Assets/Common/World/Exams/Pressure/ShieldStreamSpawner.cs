@@ -11,10 +11,10 @@ namespace Common.World.Exams.Pressure
     public class ShieldStreamSpawner : MonoBehaviour
     {
         [SerializeField] private ExamDummy dummyPrefab;
-        [SerializeField] private Transform spawnPoint;
-        [SerializeField] private Transform targetPoint;
+        [SerializeField] private List<Transform> spawnPoints = new();
         [SerializeField, Min(0)] private int prewarmCount = 6;
         [SerializeField] private bool expandPool = true;
+        [SerializeField, Min(0.1f)] private float travelDistance = 10f;
 
         private readonly Queue<ExamDummy> pool = new();
         private readonly HashSet<ExamDummy> active = new();
@@ -43,8 +43,8 @@ namespace Common.World.Exams.Pressure
             if (dummy == null)
                 return null;
 
-            var origin = spawnPoint != null ? spawnPoint.position : transform.position;
-            var target = targetPoint != null ? targetPoint.position : origin + transform.forward * 5f;
+            var origin = ResolveSpawnPosition();
+            var target = ResolveTargetPosition(origin);
 
             active.Add(dummy);
             dummy.Launch(origin, target, speed, onHit, onMiss, releasedDummy =>
@@ -92,6 +92,7 @@ namespace Common.World.Exams.Pressure
         private ExamDummy CreateInstance()
         {
             var dummy = Instantiate(dummyPrefab, transform);
+            dummy.gameObject.name = "Exam Target";
             dummy.gameObject.SetActive(false);
             return dummy;
         }
@@ -107,6 +108,36 @@ namespace Common.World.Exams.Pressure
                 dummy.gameObject.SetActive(false);
                 pool.Enqueue(dummy);
             }
+        }
+
+        private Vector3 ResolveSpawnPosition()
+        {
+            if (spawnPoints != null)
+            {
+                // Remove null references lazily.
+                for (int i = spawnPoints.Count - 1; i >= 0; i--)
+                {
+                    if (spawnPoints[i] != null)
+                        continue;
+                    spawnPoints.RemoveAt(i);
+                }
+
+                if (spawnPoints.Count > 0)
+                {
+                    int index = UnityEngine.Random.Range(0, spawnPoints.Count);
+                    var chosen = spawnPoints[index];
+                    if (chosen != null)
+                        return chosen.position;
+                }
+            }
+
+            return transform.position;
+        }
+
+        private Vector3 ResolveTargetPosition(Vector3 origin)
+        {
+            float distance = Mathf.Max(0.1f, travelDistance);
+            return origin + Vector3.back * distance;
         }
     }
 }
