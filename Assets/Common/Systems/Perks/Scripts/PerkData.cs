@@ -8,8 +8,6 @@ public class PerkData : ScriptableObject
     [Header("Perk Metadata")]
     public string perkName;
     public string description;
-    public int unlockLevel;
-
     [Header("Effects")]
     public List<PerkEffectBase> effects;
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Systems.Jobs;
+using UnityEngine.Serialization;
 
 namespace Systems.SaveSystem.SaveData {
     [Serializable]
@@ -10,15 +11,15 @@ namespace Systems.SaveSystem.SaveData {
         public int level;
         public int experience;
         public int perkPoints;
-        public List<string> perkNames;
+        [FormerlySerializedAs("perkNames")] public List<string> unlockedNodeIds;
 
-        public SerializedJobEntry(string jobId, int level, int experience, int perkPoints, List<string> perkNames)
+        public SerializedJobEntry(string jobId, int level, int experience, int perkPoints, List<string> nodeIds)
         {
             this.jobId      = jobId;
             this.level      = level;
             this.experience = experience;
             this.perkPoints = perkPoints;
-            this.perkNames  = perkNames ?? new List<string>();
+            this.unlockedNodeIds  = nodeIds ?? new List<string>();
         }
     }
 }

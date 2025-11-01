@@ -14,7 +14,7 @@ namespace Systems.Jobs
         public int Experience { get; private set; }
         public int PerkPoints { get; private set; }
 
-        private List<PerkData> unlockedPerks = new();
+        private readonly List<JobPerkNode> unlockedNodes = new();
         private event Action<JobInstance> OnJobAdvanced;
 
         public JobInstance(JobData data, Action<JobInstance> onAdvanced)
@@ -23,7 +23,7 @@ namespace Systems.Jobs
             CurrentLevel = 0;
             Experience = 0;
             PerkPoints = 0;
-            unlockedPerks.Clear();
+            unlockedNodes.Clear();
             OnJobAdvanced += onAdvanced;
         }
 
@@ -33,18 +33,57 @@ namespace Systems.Jobs
             return Mathf.Clamp01((float)Experience / requiredExp);
         }
 
-        public bool IsPerkUnlocked(PerkData perk) => unlockedPerks.Contains(perk);
+        public bool IsNodeUnlocked(JobPerkNode node) => node != null && unlockedNodes.Contains(node);
+
+        public bool IsPerkUnlocked(PerkData perk)
+        {
+            if (perk == null) return false;
+            return unlockedNodes.Any(node => node?.Perk == perk);
+        }
+
+        public bool CanUnlock(JobPerkNode node)
+        {
+            if (Data == null || node == null) return false;
+            if (!node.HasPerk) return false;
+            if (PerkPoints <= 0) return false;
+            if (IsNodeUnlocked(node)) return false;
+
+            return ArePrerequisitesMet(node);
+        }
 
         public bool CanUnlock(PerkData perk)
         {
-            return PerkPoints > 0 && CurrentLevel >= perk.unlockLevel && !IsPerkUnlocked(perk);
+            if (Data == null || perk == null) return false;
+
+            foreach (var node in Data.PerkNodes)
+            {
+                if (node?.Perk == perk && CanUnlock(node))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public void Unlock(JobPerkNode node)
+        {
+            if (!CanUnlock(node)) return;
+
+            unlockedNodes.Add(node);
+            PerkPoints--;
         }
 
         public void Unlock(PerkData perk)
         {
-            if (IsPerkUnlocked(perk)) return;
-            unlockedPerks.Add(perk);
-            PerkPoints--;
+            if (Data == null || perk == null) return;
+
+            foreach (var node in Data.PerkNodes)
+            {
+                if (node?.Perk != perk) continue;
+                if (!CanUnlock(node)) continue;
+
+                Unlock(node);
+                break;
+            }
         }
 
         public int AddExperience(int amount)
@@ -74,32 +113,63 @@ namespace Systems.Jobs
         public void SetExperience(int exp)    => Experience   = Mathf.Max(0, exp);
         public void SetPerkPoints(int points) => PerkPoints   = Mathf.Max(0, points);
 
-        public void SetUnlockedPerks(IEnumerable<string> perkIds)
+        public void SetUnlockedNodes(IEnumerable<string> nodeIds)
         {
-            unlockedPerks.Clear();
-            if (perkIds == null) return;
+            unlockedNodes.Clear();
+            if (nodeIds == null) return;
 
-            foreach (var id in perkIds.Where(s => !string.IsNullOrEmpty(s)).Distinct())
+            foreach (var id in nodeIds.Where(s => !string.IsNullOrEmpty(s)).Distinct())
             {
-                var perk = FindPerkInJob(id);
-                if (perk != null) unlockedPerks.Add(perk);
+                var node = Data?.GetNodeById(id);
+                if (node == null && Data?.PerkNodes != null)
+                {
+                    node = Data.PerkNodes
+                        .FirstOrDefault(n =>
+                            n != null &&
+                            n.HasPerk &&
+                            n.Perk != null &&
+                            string.Equals(n.Perk.perkName, id, StringComparison.OrdinalIgnoreCase));
+                }
+
+                if (node != null && node.HasPerk && !IsNodeUnlocked(node))
+                    unlockedNodes.Add(node);
             }
         }
 
-        public List<string> GetUnlockedPerkIds()
+        [Obsolete("Use SetUnlockedNodes instead.")]
+        public void SetUnlockedPerks(IEnumerable<string> perkIds) => SetUnlockedNodes(perkIds);
+
+        public List<string> GetUnlockedNodeIds()
         {
-            return unlockedPerks
-                .Where(p => p != null && !string.IsNullOrEmpty(p.perkName))
-                .Select(p => p.perkName)
+            return unlockedNodes
+                .Where(node => node != null && !string.IsNullOrEmpty(node.NodeId))
+                .Select(node => node.NodeId)
                 .ToList();
         }
 
-        private PerkData FindPerkInJob(string perkId)
+        [Obsolete("Use GetUnlockedNodeIds instead.")]
+        public List<string> GetUnlockedPerkIds() => GetUnlockedNodeIds();
+
+        private bool ArePrerequisitesMet(JobPerkNode node)
         {
-            if (Data == null) return null;
-            var list = Data.availablePerks;
-            if (list == null) return null;
-            return list.FirstOrDefault(p => p != null && p.perkName == perkId);
+            if (node == null) return false;
+
+            var connections = node.ConnectedNodes;
+            if (connections == null || connections.Count == 0)
+                return true;
+
+            foreach (var connection in connections)
+            {
+                if (connection == null) continue;
+
+                if (!connection.HasPerk)
+                    return true;
+
+                if (IsNodeUnlocked(connection))
+                    return true;
+            }
+
+            return false;
         }
 
         private void LevelUp()

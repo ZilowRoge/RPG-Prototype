@@ -18,7 +18,6 @@ namespace UI.Player.Jobs
         [SerializeField] private PerkControllerUI perkController;
 
         [Header("Selection Details")]
-        [SerializeField] private TMP_Text availablePerksText;
         [SerializeField] private TMP_Text availableExperienceText;
         [SerializeField] private Button addExperienceButton;
         [SerializeField] private JobExperienceDialogUI experienceDialog;
@@ -128,19 +127,11 @@ namespace UI.Player.Jobs
             UpdateSelectedJobUI();
 
             if (notifyPerkPanel && selectedJob != null && perkController != null)
-                perkController.DisplayPerks(selectedJob);
+                perkController.Show(selectedJob);
         }
 
         private void UpdateSelectedJobUI()
         {
-            if (availablePerksText != null)
-            {
-                if (selectedJob == null)
-                    availablePerksText.text = "Available perks: 0";
-                else
-                    availablePerksText.text = $"Available perks: {selectedJob.PerkPoints}";
-            }
-
             if (addExperienceButton != null)
                 addExperienceButton.interactable = selectedJob != null;
         }
@@ -176,7 +167,7 @@ namespace UI.Player.Jobs
             {
                 UpdateSelectedJobUI();
                 if (perkController != null)
-                    perkController.DisplayPerks(selectedJob);
+                    perkController.Show(selectedJob);
             }
         }
 

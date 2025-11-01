@@ -3,6 +3,7 @@ public enum EEffectType
 {
     ManaRegenPercent,
     AddStatistics,
-    AddMaxMana
+    AddMaxMana,
+    SpellPower
 }
 }

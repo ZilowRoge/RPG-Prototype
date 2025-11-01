@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b5ecfa0f7e8401eb0b1a4bb6e94c596, type: 3}
+  m_Name: SpellMastery
+  m_EditorClassIdentifier: 
+  nodeId: wizard/_spell_control
+  perk: {fileID: 11400000, guid: ac8a9b1e94f013c43a88173e1166a2b4, type: 2}
+  position: {x: 40, y: 80}
+  connectedNodes:
+  - {fileID: 11400000, guid: 472750261b656ff488edaabe180d8a46, type: 2}

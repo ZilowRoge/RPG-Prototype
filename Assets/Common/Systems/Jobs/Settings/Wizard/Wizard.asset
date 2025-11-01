@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-6401095924501619305
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b5ecfa0f7e8401eb0b1a4bb6e94c596, type: 3}
+  m_Name: Node_Mana Focus
+  m_EditorClassIdentifier: 
+  nodeId: Mana Focus
+  perk: {fileID: 11400000, guid: c5a6d3b54d5c6c544b2354d857fd9472, type: 2}
+  position: {x: 440, y: -0}
+  connectedNodes: []
+--- !u!114 &-5543501667422340887
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b5ecfa0f7e8401eb0b1a4bb6e94c596, type: 3}
+  m_Name: Node_Expanded Mind
+  m_EditorClassIdentifier: 
+  nodeId: Expanded Mind
+  perk: {fileID: 11400000, guid: f71a5e8a9161d744098d0d761b6f3ea6, type: 2}
+  position: {x: 0, y: -0}
+  connectedNodes: []
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c5e1cc12c08126428de384a8c0ef1e9, type: 3}
+  m_Name: Wizard
+  m_EditorClassIdentifier: 
+  id: job_wizard
+  displayName: Wizard
+  tier: 0
+  maxLevel: 20
+  description: This job specializes in casting magic
+  icon: {fileID: 0}
+  baseExpToLevel: 100
+  expGrowthRate: 1.25
+  perkNodes:
+  - {fileID: 11400000, guid: 472750261b656ff488edaabe180d8a46, type: 2}
+  - {fileID: 11400000, guid: 0f4a2e9a419bb364383fbe4aa6adeb35, type: 2}
+  - {fileID: 11400000, guid: d943cd7a791f9974884f340d01d10821, type: 2}
+--- !u!114 &6094886342162899168
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b5ecfa0f7e8401eb0b1a4bb6e94c596, type: 3}
+  m_Name: Node_Forceful Will
+  m_EditorClassIdentifier: 
+  nodeId: Forceful Will
+  perk: {fileID: 11400000, guid: c10d3ed26d4f4344e8aaff3eaaf8863c, type: 2}
+  position: {x: 220, y: -0}
+  connectedNodes: []

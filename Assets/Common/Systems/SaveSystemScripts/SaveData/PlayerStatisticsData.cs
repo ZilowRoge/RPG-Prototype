@@ -44,7 +44,7 @@ namespace Systems.SaveSystem.SaveData {
                     job.CurrentLevel,
                     job.Experience,
                     job.PerkPoints,
-                    job.GetUnlockedPerkIds()
+                    job.GetUnlockedNodeIds()
                 ));
             }
             this.jobs = serialized;
@@ -96,7 +96,7 @@ namespace Systems.SaveSystem.SaveData {
                 ji.SetLevel(s.level);
                 ji.SetExperience(s.experience);
                 ji.SetPerkPoints(s.perkPoints);
-                ji.SetUnlockedPerks(s.perkNames);
+                ji.SetUnlockedNodes(s.unlockedNodeIds);
             }
         }
     }

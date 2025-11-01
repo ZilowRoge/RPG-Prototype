@@ -12,7 +12,7 @@ namespace Player.Progress
         [SerializeField] private QuestManager questManager;
         [SerializeField] private JobDatabase jobDatabase;
         [SerializeField] private SymbolProgress symbolProgress;
-        [SerializeField] private int startingAvailableExperience = 0;
+        [SerializeField] private int startingAvailableExperience = 20000;
 
         private readonly Dictionary<string, bool> flags = new Dictionary<string, bool>();
         private readonly JobContainer jobs = new JobContainer();
@@ -23,7 +23,11 @@ namespace Player.Progress
         public event Action<JobInstance> JobExperienceChanged;
 
         public int AvailableExperience => availableExperience;
-
+        
+        private void Start() {
+            AddJob("job_wizard");
+        }
+        
         public bool HasJob(string jobId)
         {
             return jobs.HasJob(jobId);
