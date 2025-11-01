@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b5ecfa0f7e8401eb0b1a4bb6e94c596, type: 3}
   m_Name: ManaFlow
   m_EditorClassIdentifier: 
-  nodeId: wizard_mana_focus
+  nodeId: 94f08522432a4caca8042708dc7bb000
   perk: {fileID: 11400000, guid: c5a6d3b54d5c6c544b2354d857fd9472, type: 2}
-  position: {x: -40, y: 80}
+  position: {x: -60, y: 160}
   connectedNodes:
-  - {fileID: 11400000, guid: 472750261b656ff488edaabe180d8a46, type: 2}
+  - {fileID: 11400000, guid: 0f4a2e9a419bb364383fbe4aa6adeb35, type: 2}
+  - {fileID: 11400000, guid: cd318b0c3b60ead4292fe8456e1ac7a4, type: 2}

@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b5ecfa0f7e8401eb0b1a4bb6e94c596, type: 3}
   m_Name: SpellMastery
   m_EditorClassIdentifier: 
-  nodeId: wizard/_spell_control
+  nodeId: 2f18087dd4594636bc713f20c127bef6
   perk: {fileID: 11400000, guid: ac8a9b1e94f013c43a88173e1166a2b4, type: 2}
-  position: {x: 40, y: 80}
+  position: {x: 40, y: 240}
   connectedNodes:
-  - {fileID: 11400000, guid: 472750261b656ff488edaabe180d8a46, type: 2}
+  - {fileID: 11400000, guid: 770f1f33eb01dc540b00d0bcd4c99eff, type: 2}
+  - {fileID: 11400000, guid: 7c7bca4afefa1c2439543c93097f7c83, type: 2}

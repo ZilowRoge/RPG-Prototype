@@ -55,7 +55,12 @@ MonoBehaviour:
   perkNodes:
   - {fileID: 11400000, guid: 472750261b656ff488edaabe180d8a46, type: 2}
   - {fileID: 11400000, guid: 0f4a2e9a419bb364383fbe4aa6adeb35, type: 2}
+  - {fileID: 11400000, guid: 7c7bca4afefa1c2439543c93097f7c83, type: 2}
+  - {fileID: 11400000, guid: cd318b0c3b60ead4292fe8456e1ac7a4, type: 2}
+  - {fileID: 11400000, guid: 532d4f47168bcb1449e7648e46410a42, type: 2}
   - {fileID: 11400000, guid: d943cd7a791f9974884f340d01d10821, type: 2}
+  - {fileID: 11400000, guid: 770f1f33eb01dc540b00d0bcd4c99eff, type: 2}
+  - {fileID: 11400000, guid: fe0af68f907a3ec41a7851aa5340a634, type: 2}
 --- !u!114 &6094886342162899168
 MonoBehaviour:
   m_ObjectHideFlags: 1

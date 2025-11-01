@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b5ecfa0f7e8401eb0b1a4bb6e94c596, type: 3}
   m_Name: InitialPerk
   m_EditorClassIdentifier: 
-  nodeId: wizard_initial_perk
+  nodeId: 5bc28c30a410498c9edac3cb0c6ad97e
   perk: {fileID: 0}
   position: {x: 0, y: 0}
   connectedNodes:

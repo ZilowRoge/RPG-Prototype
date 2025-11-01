@@ -78,21 +78,24 @@ namespace UI.Player.Perks
             if (!includeEffectList || perk.effects == null || perk.effects.Count == 0)
                 return description;
 
-            var effectNames = new List<string>();
+            var effectDescriptions = new List<string>();
             foreach (var effect in perk.effects)
             {
                 if (effect == null)
                     continue;
 
-                var keyName = effect.key.ToString();
-                if (!string.IsNullOrWhiteSpace(keyName))
-                    effectNames.Add(keyName);
+                var text = effect.GetEffectString();
+                if (!string.IsNullOrWhiteSpace(text))
+                    effectDescriptions.Add(text);
             }
 
-            if (effectNames.Count == 0)
+            if (effectDescriptions.Count == 0)
                 return description;
 
-            var joined = $"{effectsLabel}{string.Join(", ", effectNames)}";
+            var joined = string.Join("\n", effectDescriptions);
+            if (!string.IsNullOrWhiteSpace(effectsLabel))
+                joined = $"{effectsLabel.Trim()}\n{joined}";
+
             return string.IsNullOrWhiteSpace(description)
                 ? joined
                 : $"{description}\n\n{joined}";
