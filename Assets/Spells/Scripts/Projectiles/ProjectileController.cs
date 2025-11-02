@@ -57,7 +57,9 @@ namespace Spells.Projectiles
                 var tPos = target.position;
                 if ((transform.position - tPos).sqrMagnitude <= hitRadius * hitRadius)
                 {
-                    target.GetComponent<StatsController>()?.ReceiveDamage(damage);
+                    var stats = target.GetComponent<StatsController>();
+                    if (stats != null)
+                        stats.ReceiveDamage(damage, this);
                     Destroy(gameObject);
                 }
             }

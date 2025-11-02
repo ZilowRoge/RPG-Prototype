@@ -108,7 +108,7 @@ namespace UI.Player.Target
                 fillImage.fillAmount = Mathf.Clamp01(currentHealth / maxHealth);
 
             if (label != null)
-                label.text = $"{displayName} {Mathf.CeilToInt(currentHealth)}/{Mathf.CeilToInt(maxHealth)}";
+                label.text = $"{displayName}";// {Mathf.CeilToInt(currentHealth)}/{Mathf.CeilToInt(maxHealth)}";
         }
     }
 }

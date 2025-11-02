@@ -3,6 +3,7 @@ using Player.Interfaces;
 using Systems.Statistics;
 using Player.Perks;
 using Systems.Perks;
+using Player.Events;
 
 namespace Player.Statistics
 {
@@ -10,19 +11,17 @@ namespace Player.Statistics
     {
         [SerializeField] private StatsData statistics;
         [SerializeField] private PlayerPerkRuntime perkRuntime;
+        [SerializeField] private PlayerEventHub playerEvents;
+        private bool loggedMissingEventHub;
 
         private float currentHealth;
         private float currentMana;
         private float currentStamina;
+
         public StatsData Statistics => statistics;
 
-        public float maxHealth
-        {
-            get
-            {
-                return statistics.baseHealth + GetTotalStat(EStatistics.VIT) * statistics.healthPerVit;
-            }
-        }
+        public float maxHealth =>
+            statistics.baseHealth + GetTotalStat(EStatistics.VIT) * statistics.healthPerVit;
 
         public float maxMana
         {
@@ -34,45 +33,22 @@ namespace Player.Statistics
             }
         }
 
-        public float maxStamina
-        {
-            get
-            {
-                return statistics.baseStamina + GetTotalStat(EStatistics.END) * statistics.staminaPerEnd;
-            }
-        }
+        public float maxStamina =>
+            statistics.baseStamina + GetTotalStat(EStatistics.END) * statistics.staminaPerEnd;
 
-        public float walkSpeed
-        {
-            get { return statistics.walkSpeed; }
-        }
+        public float walkSpeed => statistics.walkSpeed;
+        public float runSpeed => statistics.runSpeed;
 
-        public float runSpeed
-        {
-            get { return statistics.runSpeed; }
-        }
-
-        public float CurrentHealth
-        {
-            get { return currentHealth; }
-        }
-
-        public float CurrentMana
-        {
-            get { return currentMana; }
-        }
-
-        public float CurrentStamina
-        {
-            get { return currentStamina; }
-        }
+        public float CurrentHealth => currentHealth;
+        public float CurrentMana => currentMana;
+        public float CurrentStamina => currentStamina;
 
         private void Awake()
         {
             if (perkRuntime == null)
-            {
                 perkRuntime = GetComponent<PlayerPerkRuntime>() ?? GetComponentInParent<PlayerPerkRuntime>();
-            }
+
+            EnsureEventHub();
 
             currentHealth = maxHealth;
             currentMana = maxMana;
@@ -81,30 +57,40 @@ namespace Player.Statistics
 
         private void OnEnable()
         {
-            if (perkRuntime != null)
-                perkRuntime.UpdateResources += OnPerkResourcesUpdated;
+            EnsureEventHub();
+
+            if (playerEvents != null)
+                playerEvents.PerkResourcesUpdated += OnPerkResourcesUpdated;
         }
 
         private void OnDisable()
         {
-            if (perkRuntime != null)
-                perkRuntime.UpdateResources -= OnPerkResourcesUpdated;
+            if (playerEvents != null)
+            {
+                playerEvents.PerkResourcesUpdated -= OnPerkResourcesUpdated;
+            }
         }
 
         public bool UseMana(float amount)
         {
+            if (amount <= 0f)
+                return true;
+
             if (currentMana >= amount)
             {
                 currentMana -= amount;
                 return true;
             }
+
             return false;
         }
 
-        public void ReceiveDamage(float amount)
+        public void ReceiveDamage(float amount, Component source = null)
         {
-            currentHealth -= amount;
-            if (currentHealth < 0f) currentHealth = 0f;
+            if (amount <= 0f)
+                return;
+
+            currentHealth = Mathf.Max(0f, currentHealth - amount);
         }
 
         public bool TryConsumeStamina(float amount)
@@ -115,7 +101,8 @@ namespace Player.Statistics
             if (currentStamina >= amount)
             {
                 currentStamina -= amount;
-                if (currentStamina < 0f) currentStamina = 0f;
+                if (currentStamina < 0f)
+                    currentStamina = 0f;
                 return true;
             }
 
@@ -167,6 +154,23 @@ namespace Player.Statistics
             float baseRate = statistics.manaRegenPerSecond;
             float percentBonus = perkRuntime != null ? perkRuntime.GetPercentBonus(EEffectType.ManaRegenPercent) : 0f;
             return baseRate * (1f + percentBonus);
+        }
+
+        private void EnsureEventHub()
+        {
+            if (playerEvents != null)
+            {
+                loggedMissingEventHub = false;
+                return;
+            }
+
+            playerEvents = GetComponent<PlayerEventHub>() ?? GetComponentInParent<PlayerEventHub>() ?? FindFirstObjectByType<PlayerEventHub>();
+
+            if (playerEvents == null && !loggedMissingEventHub)
+            {
+                Debug.LogWarning("[StatsController] PlayerEventHub is not assigned. Perk resource updates will not be received.");
+                loggedMissingEventHub = true;
+            }
         }
     }
 }

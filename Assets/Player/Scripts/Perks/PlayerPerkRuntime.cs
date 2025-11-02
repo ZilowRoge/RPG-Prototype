@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Player.Events;
 using Player.Progress;
 using Systems.Jobs;
 using Systems.Perks;
@@ -19,6 +20,8 @@ namespace Player.Perks
     {
         [Header("References")]
         [SerializeField] private ProgressController progressController;
+        [SerializeField] private PlayerEventHub playerEvents;
+        private bool hasLoggedMissingEventHub;
 
         private readonly Dictionary<JobInstance, Action<JobInstance, JobPerkNode>> jobSubscriptions = new();
         private readonly Dictionary<EEffectType, float> flatBonuses = new();
@@ -27,9 +30,54 @@ namespace Player.Perks
         private readonly List<IntervalTracker> intervalEffects = new();
         private readonly List<(PerkIntervalTriggerEffect interval, PerkEffectBase reward)> triggerBuffer = new();
         private float castSpellPowerBonus;
-        public event Action UpdateResources;
-        public event Action<PerkIntervalTriggerEffect> IntervalEffectPrimed;
-        public event Action<PerkIntervalTriggerEffect, PerkEffectBase> IntervalEffectTriggered;
+
+        private void Reset()
+        {
+            CacheReferences();
+        }
+
+        private void OnValidate()
+        {
+            CacheReferences();
+        }
+
+        private void Awake()
+        {
+            CacheReferences();
+        }
+
+        private void OnEnable()
+        {
+            CacheReferences();
+
+            if (playerEvents != null)
+            {
+                playerEvents.JobExperienceChanged += OnJobExperienceChanged;
+            }
+            else
+            {
+                WarnMissingEventHub();
+            }
+
+            RebuildAll();
+        }
+
+        private void OnDisable()
+        {
+            if (playerEvents != null)
+            {
+                playerEvents.JobExperienceChanged -= OnJobExperienceChanged;
+            }
+
+            foreach (var kvp in jobSubscriptions)
+            {
+                if (kvp.Key != null)
+                    kvp.Key.PerkUnlocked -= kvp.Value;
+            }
+
+            jobSubscriptions.Clear();
+            intervalEffects.Clear();
+        }
 
         public float GetFlatBonus(EEffectType type) =>
             flatBonuses.TryGetValue(type, out var value) ? value : 0f;
@@ -44,32 +92,6 @@ namespace Player.Perks
         public float BaseSpellPowerMultiplier => 1f + SpellPowerPercentBonus;
         public float CurrentCastSpellPowerBonus => castSpellPowerBonus;
         public float SpellPowerMultiplier => 1f + SpellPowerPercentBonus + castSpellPowerBonus;
-
-        private void OnEnable()
-        {
-            if (progressController == null)
-                progressController = GetComponentInParent<ProgressController>();
-
-            if (progressController != null)
-                progressController.JobExperienceChanged += OnJobExperienceChanged;
-
-            RebuildAll();
-        }
-
-        private void OnDisable()
-        {
-            if (progressController != null)
-                progressController.JobExperienceChanged -= OnJobExperienceChanged;
-
-            foreach (var kvp in jobSubscriptions)
-            {
-                if (kvp.Key != null)
-                    kvp.Key.PerkUnlocked -= kvp.Value;
-            }
-
-            jobSubscriptions.Clear();
-            intervalEffects.Clear();
-        }
 
         private void OnJobExperienceChanged(JobInstance job)
         {
@@ -96,7 +118,7 @@ namespace Player.Perks
                 return;
 
             ProcessPerk(node.Perk);
-            UpdateResources?.Invoke();
+            NotifyPerkResourcesUpdated();
         }
 
         private void RebuildAll()
@@ -116,7 +138,7 @@ namespace Player.Perks
                 }
             }
 
-            UpdateResources?.Invoke();
+            NotifyPerkResourcesUpdated();
         }
 
         private void CollectJobPerks(JobInstance job)
@@ -186,14 +208,14 @@ namespace Player.Perks
                 {
                     intervalEffects[i] = tracker;
                     if (tracker.WillTriggerNext)
-                        IntervalEffectPrimed?.Invoke(tracker.Effect);
+                        NotifyPerkIntervalPrimed(tracker.Effect);
                 }
             }
 
             foreach (var pair in triggerBuffer)
             {
                 ApplyCastReward(pair.reward);
-                IntervalEffectTriggered?.Invoke(pair.interval, pair.reward);
+                NotifyPerkIntervalTriggered(pair.interval, pair.reward);
             }
 
             return triggerBuffer;
@@ -209,6 +231,65 @@ namespace Player.Perks
             }
         }
 
+        private void CacheReferences()
+        {
+            if (progressController == null)
+                progressController = GetComponent<ProgressController>() ?? GetComponentInParent<ProgressController>();
+
+            if (playerEvents == null && progressController != null)
+                playerEvents = progressController.EventHub;
+
+            if (playerEvents == null)
+                playerEvents = GetComponent<PlayerEventHub>() ?? GetComponentInParent<PlayerEventHub>() ?? FindFirstObjectByType<PlayerEventHub>();
+
+            if (playerEvents != null)
+                hasLoggedMissingEventHub = false;
+        }
+
+        private void NotifyPerkResourcesUpdated()
+        {
+            if (playerEvents != null)
+            {
+                playerEvents.NotifyPerkResourcesUpdated();
+            }
+            else
+            {
+                WarnMissingEventHub();
+            }
+        }
+
+        private void NotifyPerkIntervalPrimed(PerkIntervalTriggerEffect effect)
+        {
+            if (playerEvents != null)
+            {
+                playerEvents.NotifyPerkIntervalPrimed(effect);
+            }
+            else
+            {
+                WarnMissingEventHub();
+            }
+        }
+
+        private void NotifyPerkIntervalTriggered(PerkIntervalTriggerEffect effect, PerkEffectBase reward)
+        {
+            if (playerEvents != null)
+            {
+                playerEvents.NotifyPerkIntervalTriggered(effect, reward);
+            }
+            else
+            {
+                WarnMissingEventHub();
+            }
+        }
+
+        private void WarnMissingEventHub()
+        {
+            if (hasLoggedMissingEventHub)
+                return;
+
+            Debug.LogWarning("[PlayerPerkRuntime] PlayerEventHub is not assigned. Perk notifications will not be broadcast.");
+            hasLoggedMissingEventHub = true;
+        }
 
         private readonly struct IntervalTracker
         {

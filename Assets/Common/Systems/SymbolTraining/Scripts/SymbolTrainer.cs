@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Player.FightSystem.Magic;
 using Player.Progress;
+using Player.Events;
 using UnityEngine;
 
 namespace Common.Systems.SymbolTraining
@@ -23,6 +24,7 @@ namespace Common.Systems.SymbolTraining
         [SerializeField] private List<LessonTrigger> lessonTriggers = new();
 
         private bool subscriptionsInitialized;
+        private PlayerEventHub playerEvents;
 
         private void Awake()
         {
@@ -34,16 +36,21 @@ namespace Common.Systems.SymbolTraining
             EnsureDependencies();
             if (progressController != null && !subscriptionsInitialized)
             {
-                progressController.FlagChanged += OnFlagChanged;
+                playerEvents = progressController.EventHub ?? playerEvents;
+                if (playerEvents != null)
+                    playerEvents.FlagChanged += OnFlagChanged;
                 subscriptionsInitialized = true;
             }
         }
 
         private void OnDisable()
         {
-            if (progressController != null && subscriptionsInitialized)
+            if (subscriptionsInitialized)
             {
-                progressController.FlagChanged -= OnFlagChanged;
+                if (playerEvents == null && progressController != null)
+                    playerEvents = progressController.EventHub;
+                if (playerEvents != null)
+                    playerEvents.FlagChanged -= OnFlagChanged;
                 subscriptionsInitialized = false;
             }
         }
@@ -149,6 +156,8 @@ namespace Common.Systems.SymbolTraining
         {
             if (progressController == null)
                 progressController = FindFirstObjectByType<ProgressController>();
+            if (playerEvents == null && progressController != null)
+                playerEvents = progressController.EventHub;
             if (inputManager == null)
                 inputManager = FindFirstObjectByType<SymbolInputManager>();
             if (lessonConsumer == null)

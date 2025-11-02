@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Player.Perks;
+using Player.Events;
 using Systems.Perks;
 
 namespace UI.Player.Perks
@@ -13,7 +13,7 @@ namespace UI.Player.Perks
     public class EffectIndicatorUI : MonoBehaviour
     {
         [Header("References")]
-        [SerializeField] private PlayerPerkRuntime perkRuntime;
+        [SerializeField] private PlayerEventHub playerEvents;
         [SerializeField] private GameObject effectEntryPrefab;
         [SerializeField] private Transform entryParent;
 
@@ -24,22 +24,23 @@ namespace UI.Player.Perks
 
         private void OnEnable()
         {
-            if (perkRuntime == null)
-                perkRuntime = FindFirstObjectByType<PlayerPerkRuntime>();
+            if (playerEvents == null)
+                playerEvents = FindFirstObjectByType<PlayerEventHub>();
 
-            if (perkRuntime != null)
+            if (playerEvents != null)
             {
-                perkRuntime.IntervalEffectPrimed += OnIntervalEffectPrimed;
-                perkRuntime.IntervalEffectTriggered += OnIntervalEffectTriggered;
+                playerEvents.PerkIntervalPrimed += OnIntervalEffectPrimed;
+                playerEvents.PerkIntervalTriggered += OnIntervalEffectTriggered;
             }
         }
 
         private void OnDisable()
         {
-            if (perkRuntime != null)
+            if (playerEvents != null)
             {
-                perkRuntime.IntervalEffectPrimed -= OnIntervalEffectPrimed;
-                perkRuntime.IntervalEffectTriggered -= OnIntervalEffectTriggered;
+                playerEvents.PerkIntervalPrimed -= OnIntervalEffectPrimed;
+                playerEvents.PerkIntervalTriggered -= OnIntervalEffectTriggered;
+                playerEvents = null;
             }
 
             ClearEntries();

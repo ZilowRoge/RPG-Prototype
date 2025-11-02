@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Player.Progress;
+using Player.Events;
 using Systems.Jobs;
 
 namespace UI.Player.Jobs
@@ -21,6 +22,7 @@ namespace UI.Player.Jobs
         private ProgressController progressController;
         private JobInstance jobInstance;
         private bool isVisible;
+        private PlayerEventHub playerEvents;
 
         private void Awake()
         {
@@ -38,11 +40,12 @@ namespace UI.Player.Jobs
             if (amountSlider != null)
                 amountSlider.onValueChanged.RemoveListener(OnSliderChanged);
 
-            if (progressController != null)
-                progressController.AvailableExperienceChanged -= OnAvailableExperienceChanged;
+            if (playerEvents != null)
+                playerEvents.AvailableExperienceChanged -= OnAvailableExperienceChanged;
 
             jobInstance = job;
             progressController = controller;
+            playerEvents = progressController != null ? progressController.EventHub : null;
 
             if (root != null)
                 root.SetActive(true);
@@ -68,7 +71,8 @@ namespace UI.Player.Jobs
                 amountSlider.wholeNumbers = true;
             }
 
-            progressController.AvailableExperienceChanged += OnAvailableExperienceChanged;
+            if (playerEvents != null)
+                playerEvents.AvailableExperienceChanged += OnAvailableExperienceChanged;
             isVisible = true;
         }
 
@@ -77,8 +81,8 @@ namespace UI.Player.Jobs
             if (!isVisible && root != null)
                 root.SetActive(false);
 
-            if (progressController != null)
-                progressController.AvailableExperienceChanged -= OnAvailableExperienceChanged;
+            if (playerEvents != null)
+                playerEvents.AvailableExperienceChanged -= OnAvailableExperienceChanged;
 
             if (amountSlider != null)
                 amountSlider.onValueChanged.RemoveListener(OnSliderChanged);
@@ -89,6 +93,7 @@ namespace UI.Player.Jobs
 
             jobInstance = null;
             progressController = null;
+            playerEvents = null;
         }
 
         private void OnConfirm()

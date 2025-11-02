@@ -23,8 +23,6 @@ namespace Player.FightSystem.Magic
 
         [SerializeField] private Player.Perks.PlayerPerkRuntime perkRuntime;
 
-        public event Action<Spell> SpellCast;
-
         private void Awake()
         {
             if (skillDatabase != null)
@@ -156,7 +154,6 @@ namespace Player.FightSystem.Magic
             if (result == CastResult.Success)
             {
                 Debug.Log($"Casting {preparedSpell.name}!");
-                SpellCast?.Invoke(preparedSpell);
 
                 if (triggeredRewards != null)
                 {

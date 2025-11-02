@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Player.Statistics;
 using Player.Progress;
+using Player.Events;
 
 namespace UI.Player.Statistics {
 public class PlayerStatusUI : MonoBehaviour
@@ -18,19 +19,21 @@ public class PlayerStatusUI : MonoBehaviour
     [Header("Text")]
     [SerializeField] private TextMeshProUGUI levelText;
     [SerializeField] private TextMeshProUGUI experienceText;
+    [SerializeField] private PlayerEventHub playerEvents;
 
     private void OnEnable()
     {
-        if (progress != null)
-            progress.AvailableExperienceChanged += HandleExperienceChanged;
+        CacheEventHub();
+        if (playerEvents != null)
+            playerEvents.AvailableExperienceChanged += HandleExperienceChanged;
 
         RefreshExperience();
     }
 
     private void OnDisable()
     {
-        if (progress != null)
-            progress.AvailableExperienceChanged -= HandleExperienceChanged;
+        if (playerEvents != null)
+            playerEvents.AvailableExperienceChanged -= HandleExperienceChanged;
     }
 
     private void Update()
@@ -54,6 +57,12 @@ public class PlayerStatusUI : MonoBehaviour
     {
         if (experienceText != null)
             experienceText.text = $"{amount} XP";
+    }
+
+    private void CacheEventHub()
+    {
+        if (playerEvents == null && progress != null)
+            playerEvents = progress.EventHub;
     }
 }
 }

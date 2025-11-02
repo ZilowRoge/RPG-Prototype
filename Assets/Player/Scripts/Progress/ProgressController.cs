@@ -4,6 +4,7 @@ using Player.Interfaces;
 using Quests;
 using System.Collections.Generic;
 using Systems.Jobs;
+using Player.Events;
 
 namespace Player.Progress
 {
@@ -13,16 +14,23 @@ namespace Player.Progress
         [SerializeField] private JobDatabase jobDatabase;
         [SerializeField] private SymbolProgress symbolProgress;
         [SerializeField] private int startingAvailableExperience = 20000;
+        [SerializeField] private PlayerEventHub playerEvents;
 
         private readonly Dictionary<string, bool> flags = new Dictionary<string, bool>();
         private readonly JobContainer jobs = new JobContainer();
         private int availableExperience;
-
-        public event System.Action<string, bool> FlagChanged;
-        public event Action<int> AvailableExperienceChanged;
-        public event Action<JobInstance> JobExperienceChanged;
+        private bool loggedMissingEventHub;
 
         public int AvailableExperience => availableExperience;
+        public PlayerEventHub EventHub
+        {
+            get
+            {
+                if (playerEvents == null)
+                    CacheEventHub();
+                return playerEvents;
+            }
+        }
         
         private void Start() {
             AddJob("job_wizard");
@@ -38,7 +46,8 @@ namespace Player.Progress
             var asset = jobDatabase != null ? jobDatabase.GetById(jobId) : null;
             if (asset == null) return;
             jobs.AddJob(asset, OnAnyJobAdvanced);
-            JobExperienceChanged?.Invoke(jobs.GetJob(jobId));
+            var jobInstance = jobs.GetJob(jobId);
+            NotifyJobExperienceChanged(jobInstance);
             EvaluateQuests();
         }
 
@@ -51,7 +60,7 @@ namespace Player.Progress
             if (amount <= 0) return;
 
             availableExperience += amount;
-            AvailableExperienceChanged?.Invoke(availableExperience);
+            NotifyAvailableExperienceChanged();
         }
 
         public int AllocateExperienceToJob(string jobId, int amount)
@@ -72,8 +81,8 @@ namespace Player.Progress
 
             if (consumed > 0)
             {
-                AvailableExperienceChanged?.Invoke(availableExperience);
-                JobExperienceChanged?.Invoke(job);
+                NotifyAvailableExperienceChanged();
+                NotifyJobExperienceChanged(job);
             }
 
             return consumed;
@@ -149,7 +158,7 @@ namespace Player.Progress
         {
             if (string.IsNullOrEmpty(key)) return;
             flags[key] = value;
-            FlagChanged?.Invoke(key, value);
+            NotifyFlagChanged(key, value);
             EvaluateQuests();
         }
 
@@ -176,7 +185,13 @@ namespace Player.Progress
 
         private void Awake()
         {
+            CacheEventHub();
             availableExperience = Mathf.Max(0, startingAvailableExperience);
+        }
+
+        private void OnValidate()
+        {
+            CacheEventHub();
         }
 
         private static int ParseSymbolId(string raw)
@@ -193,12 +208,62 @@ namespace Player.Progress
 
         private void OnAnyJobAdvanced(Systems.Jobs.JobInstance job)
         {
-            JobExperienceChanged?.Invoke(job);
+            NotifyJobExperienceChanged(job);
             EvaluateQuests();
+        }
+
+        private void NotifyAvailableExperienceChanged()
+        {
+            if (playerEvents != null)
+            {
+                playerEvents.NotifyAvailableExperienceChanged(availableExperience);
+            }
+            else
+            {
+                WarnMissingEventHub();
+            }
+        }
+
+        private void NotifyJobExperienceChanged(JobInstance job)
+        {
+            if (playerEvents != null)
+            {
+                playerEvents.NotifyJobExperienceChanged(job);
+            }
+            else
+            {
+                WarnMissingEventHub();
+            }
+        }
+
+        private void NotifyFlagChanged(string key, bool value)
+        {
+            if (playerEvents != null)
+            {
+                playerEvents.NotifyFlagChanged(key, value);
+            }
+            else
+            {
+                WarnMissingEventHub();
+            }
+        }
+
+        private void CacheEventHub()
+        {
+            if (playerEvents == null)
+                playerEvents = GetComponent<PlayerEventHub>() ?? GetComponentInParent<PlayerEventHub>() ?? FindFirstObjectByType<PlayerEventHub>();
+
+            if (playerEvents != null)
+                loggedMissingEventHub = false;
+        }
+
+        private void WarnMissingEventHub()
+        {
+            if (loggedMissingEventHub)
+                return;
+
+            Debug.LogWarning("[ProgressController] PlayerEventHub is not assigned. Progress notifications will not be broadcast.");
+            loggedMissingEventHub = true;
         }
     }
 }
-
-
-
-

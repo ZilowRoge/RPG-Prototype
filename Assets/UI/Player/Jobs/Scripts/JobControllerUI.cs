@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using Systems.Jobs;
 using UI.Player.Perks;
 using Player.Progress;
+using Player.Events;
 
 namespace UI.Player.Jobs
 {
@@ -25,6 +26,7 @@ namespace UI.Player.Jobs
         private readonly Dictionary<JobInstance, JobEntryUI> entryLookup = new();
         private JobInstance selectedJob;
         private bool isSubscribed;
+        private PlayerEventHub playerEvents;
 
         private void Awake()
         {
@@ -50,17 +52,29 @@ namespace UI.Player.Jobs
         private void Subscribe()
         {
             if (isSubscribed || progressController == null) return;
-            progressController.AvailableExperienceChanged += OnAvailableExperienceChanged;
-            progressController.JobExperienceChanged += OnJobExperienceChanged;
+            playerEvents = progressController.EventHub ?? playerEvents;
+            if (playerEvents == null) return;
+
+            playerEvents.AvailableExperienceChanged += OnAvailableExperienceChanged;
+            playerEvents.JobExperienceChanged += OnJobExperienceChanged;
             isSubscribed = true;
         }
 
         private void Unsubscribe()
         {
-            if (!isSubscribed || progressController == null) return;
-            progressController.AvailableExperienceChanged -= OnAvailableExperienceChanged;
-            progressController.JobExperienceChanged -= OnJobExperienceChanged;
+            if (!isSubscribed) return;
+
+            if (playerEvents == null && progressController != null)
+                playerEvents = progressController.EventHub;
+
+            if (playerEvents != null)
+            {
+                playerEvents.AvailableExperienceChanged -= OnAvailableExperienceChanged;
+                playerEvents.JobExperienceChanged -= OnJobExperienceChanged;
+            }
+
             isSubscribed = false;
+            playerEvents = null;
         }
 
         public void Refresh()
