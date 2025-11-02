@@ -12,11 +12,8 @@ namespace Player.Statistics
         [SerializeField] private StatsData statistics;
         [SerializeField] private PlayerPerkRuntime perkRuntime;
         [SerializeField] private PlayerEventHub playerEvents;
+        [SerializeField] private StatsRuntime runtime = new();
         private bool loggedMissingEventHub;
-
-        private float currentHealth;
-        private float currentMana;
-        private float currentStamina;
 
         public StatsData Statistics => statistics;
 
@@ -39,9 +36,9 @@ namespace Player.Statistics
         public float walkSpeed => statistics.walkSpeed;
         public float runSpeed => statistics.runSpeed;
 
-        public float CurrentHealth => currentHealth;
-        public float CurrentMana => currentMana;
-        public float CurrentStamina => currentStamina;
+        public float CurrentHealth => runtime.CurrentHealth;
+        public float CurrentMana => runtime.CurrentMana;
+        public float CurrentStamina => runtime.CurrentStamina;
 
         private void Awake()
         {
@@ -50,9 +47,7 @@ namespace Player.Statistics
 
             EnsureEventHub();
 
-            currentHealth = maxHealth;
-            currentMana = maxMana;
-            currentStamina = maxStamina;
+            runtime.Initialize(maxHealth, maxMana, maxStamina);
         }
 
         private void OnEnable()
@@ -73,54 +68,27 @@ namespace Player.Statistics
 
         public bool UseMana(float amount)
         {
-            if (amount <= 0f)
-                return true;
-
-            if (currentMana >= amount)
-            {
-                currentMana -= amount;
-                return true;
-            }
-
-            return false;
+            return runtime.UseMana(amount);
         }
 
         public void ReceiveDamage(float amount, Component source = null)
         {
-            if (amount <= 0f)
-                return;
-
-            currentHealth = Mathf.Max(0f, currentHealth - amount);
+            runtime.ReceiveDamage(amount);
         }
 
         public bool TryConsumeStamina(float amount)
         {
-            if (amount <= 0f)
-                return true;
-
-            if (currentStamina >= amount)
-            {
-                currentStamina -= amount;
-                if (currentStamina < 0f)
-                    currentStamina = 0f;
-                return true;
-            }
-
-            return false;
+            return runtime.TryConsumeStamina(amount);
         }
 
         public void RefillOnLevelUp()
         {
-            currentHealth = maxHealth;
-            currentMana = maxMana;
-            currentStamina = maxStamina;
+            runtime.Refill(maxHealth, maxMana, maxStamina);
         }
 
         private void OnPerkResourcesUpdated()
         {
-            currentHealth = Mathf.Min(currentHealth, maxHealth);
-            currentMana = Mathf.Min(currentMana, maxMana);
-            currentStamina = Mathf.Min(currentStamina, maxStamina);
+            runtime.ClampToMax(maxHealth, maxMana, maxStamina);
         }
 
         private void Update()
@@ -129,17 +97,14 @@ namespace Player.Statistics
             if (delta <= 0f || statistics == null)
                 return;
 
-            RegenerateResource(ref currentHealth, maxHealth, statistics.healthRegenPerSecond, delta);
-            RegenerateResource(ref currentMana, maxMana, GetManaRegenRate(), delta);
-            RegenerateResource(ref currentStamina, maxStamina, statistics.staminaRegenPerSecond, delta);
-        }
-
-        private static void RegenerateResource(ref float current, float max, float ratePerSecond, float deltaTime)
-        {
-            if (ratePerSecond <= 0f || current >= max)
-                return;
-
-            current = Mathf.Min(max, current + ratePerSecond * deltaTime);
+            runtime.Regenerate(
+                delta,
+                maxHealth,
+                statistics.healthRegenPerSecond,
+                maxMana,
+                GetManaRegenRate(),
+                maxStamina,
+                statistics.staminaRegenPerSecond);
         }
 
         private int GetTotalStat(EStatistics stat)
