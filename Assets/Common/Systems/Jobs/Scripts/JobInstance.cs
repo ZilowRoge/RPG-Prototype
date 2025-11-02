@@ -16,6 +16,7 @@ namespace Systems.Jobs
 
         private readonly List<JobPerkNode> unlockedNodes = new();
         private event Action<JobInstance> OnJobAdvanced;
+        public event Action<JobInstance, JobPerkNode> PerkUnlocked;
 
         public JobInstance(JobData data, Action<JobInstance> onAdvanced)
         {
@@ -70,6 +71,7 @@ namespace Systems.Jobs
 
             unlockedNodes.Add(node);
             PerkPoints--;
+            PerkUnlocked?.Invoke(this, node);
         }
 
         public void Unlock(PerkData perk)
@@ -149,6 +151,8 @@ namespace Systems.Jobs
 
         [Obsolete("Use GetUnlockedNodeIds instead.")]
         public List<string> GetUnlockedPerkIds() => GetUnlockedNodeIds();
+
+        public IEnumerable<JobPerkNode> GetUnlockedNodes() => unlockedNodes;
 
         private bool ArePrerequisitesMet(JobPerkNode node)
         {

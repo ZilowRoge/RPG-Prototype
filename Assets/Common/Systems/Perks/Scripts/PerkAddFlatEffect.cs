@@ -10,10 +10,10 @@ namespace Systems.Perks
 
         public override string GetEffectString()
         {
-            var label = key switch
+            var label = effectType switch
             {
                 EEffectType.AddMaxMana => "Max Mana",
-                _ => FormatKeyDisplay(key)
+                _ => FormatKeyDisplay(effectType)
             };
 
             if (label.StartsWith("Add ", StringComparison.OrdinalIgnoreCase))

@@ -1,12 +1,14 @@
 using System.Globalization;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Systems.Perks
 {
     public abstract class PerkEffectBase : ScriptableObject
     {
-        public EEffectType key;
+        [FormerlySerializedAs("key")]
+        public EEffectType effectType;
 
         public abstract string GetEffectString();
 

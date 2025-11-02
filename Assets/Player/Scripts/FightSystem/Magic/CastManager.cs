@@ -1,9 +1,11 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using Player.Statistics;
 using Spells;
 using Player.Targeting;
+using Systems.Perks;
 
 namespace Player.FightSystem.Magic
 {
@@ -18,6 +20,10 @@ namespace Player.FightSystem.Magic
         private readonly List<int> currentSymbols = new();
         private Spell preparedSpell = null;
         private SpellCastingService spellService;
+
+        [SerializeField] private Player.Perks.PlayerPerkRuntime perkRuntime;
+
+        public event Action<Spell> SpellCast;
 
         private void Awake()
         {
@@ -38,6 +44,9 @@ namespace Player.FightSystem.Magic
                     Debug.LogWarning("[CastManager] StatsController is missing.", this);
                 }
             }
+
+            if (perkRuntime == null)
+                perkRuntime = GetComponent<Player.Perks.PlayerPerkRuntime>();
         }
 
         public void SetTarget(Transform newTarget)
@@ -139,10 +148,27 @@ namespace Player.FightSystem.Magic
                 return;
             }
 
+            IReadOnlyList<(PerkIntervalTriggerEffect interval, PerkEffectBase reward)> triggeredRewards = null;
+            if (perkRuntime != null)
+                triggeredRewards = perkRuntime.PrepareForCast(preparedSpell);
+
             var result = spellService.Cast(preparedSpell, casterData);
             if (result == CastResult.Success)
             {
                 Debug.Log($"Casting {preparedSpell.name}!");
+                SpellCast?.Invoke(preparedSpell);
+
+                if (triggeredRewards != null)
+                {
+                    foreach (var pair in triggeredRewards)
+                    {
+                        var reward = pair.reward;
+                        if (reward != null)
+                        {
+                            Debug.Log($"[CastManager] Perk triggered: {reward.GetEffectString()}");
+                        }
+                    }
+                }
             }
             else
             {
@@ -188,7 +214,7 @@ namespace Player.FightSystem.Magic
                 }
             }
             Debug.Log($"[CastManager] Target selected: {effectiveTarget}.", this);
-            casterData = new CasterData(statsController, castOrigin, effectiveTarget);
+            casterData = new CasterData(statsController, castOrigin, effectiveTarget, perkRuntime);
             return true;
         }
     }

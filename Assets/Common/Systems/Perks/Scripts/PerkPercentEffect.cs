@@ -10,9 +10,8 @@ namespace Systems.Perks
 
         public override string GetEffectString()
         {
-            float scaled = Mathf.Abs(value) <= 1f ? value * 100f : value;
-            var label = TrimPercentSuffix(FormatKeyDisplay(key));
-            return $"{FormatSignedFloat(scaled)}% {label}";
+            var label = TrimPercentSuffix(FormatKeyDisplay(effectType));
+            return $"{FormatSignedFloat(value)}% {label}";
         }
 
         private static string TrimPercentSuffix(string label)

@@ -21,15 +21,10 @@ namespace Spells
 
             var proj = Object.Instantiate(projectilePrefab, caster.castOrigin.position, Quaternion.LookRotation(caster.castOrigin.forward, Vector3.up));
             var ctrl = proj.GetComponent<ProjectileController>();
-            if (ctrl == null)
-            {
-                ctrl = proj.AddComponent<ProjectileController>();
-                // If an old projectile script exists, disable it to avoid conflicts
-                var legacy = proj.GetComponent<MagicMissileProjectile>();
-                if (legacy != null) legacy.enabled = false;
-            }
-            ctrl.Init(mover, caster.target, projectileSpeed, damage, caster.castOrigin.forward);
+
+            float spellPowerMultiplier = caster != null ? caster.SpellPowerMultiplier : 1f;
+            float finalDamage = damage * Mathf.Max(0f, spellPowerMultiplier);
+            ctrl.Init(mover, caster.target, projectileSpeed, finalDamage, caster.castOrigin.forward);
         }
     }
 }
-

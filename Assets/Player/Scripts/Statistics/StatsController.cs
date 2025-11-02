@@ -1,12 +1,15 @@
 using UnityEngine;
 using Player.Interfaces;
 using Systems.Statistics;
+using Player.Perks;
+using Systems.Perks;
 
 namespace Player.Statistics
 {
     public class StatsController : MonoBehaviour, IStatsReadOnly
     {
         [SerializeField] private StatsData statistics;
+        [SerializeField] private PlayerPerkRuntime perkRuntime;
 
         private float currentHealth;
         private float currentMana;
@@ -15,17 +18,28 @@ namespace Player.Statistics
 
         public float maxHealth
         {
-            get { return statistics.baseHealth + statistics.container.Get(EStatistics.VIT) * statistics.healthPerVit; }
+            get
+            {
+                return statistics.baseHealth + GetTotalStat(EStatistics.VIT) * statistics.healthPerVit;
+            }
         }
 
         public float maxMana
         {
-            get { return statistics.baseMana + statistics.container.Get(EStatistics.INT) * statistics.manaPerInt; }
+            get
+            {
+                float baseValue = statistics.baseMana + GetTotalStat(EStatistics.INT) * statistics.manaPerInt;
+                baseValue += perkRuntime != null ? perkRuntime.GetFlatBonus(EEffectType.AddMaxMana) : 0f;
+                return baseValue;
+            }
         }
 
         public float maxStamina
         {
-            get { return statistics.baseStamina + statistics.container.Get(EStatistics.END) * statistics.staminaPerEnd; }
+            get
+            {
+                return statistics.baseStamina + GetTotalStat(EStatistics.END) * statistics.staminaPerEnd;
+            }
         }
 
         public float walkSpeed
@@ -55,9 +69,26 @@ namespace Player.Statistics
 
         private void Awake()
         {
+            if (perkRuntime == null)
+            {
+                perkRuntime = GetComponent<PlayerPerkRuntime>() ?? GetComponentInParent<PlayerPerkRuntime>();
+            }
+
             currentHealth = maxHealth;
             currentMana = maxMana;
             currentStamina = maxStamina;
+        }
+
+        private void OnEnable()
+        {
+            if (perkRuntime != null)
+                perkRuntime.UpdateResources += OnPerkResourcesUpdated;
+        }
+
+        private void OnDisable()
+        {
+            if (perkRuntime != null)
+                perkRuntime.UpdateResources -= OnPerkResourcesUpdated;
         }
 
         public bool UseMana(float amount)
@@ -98,6 +129,13 @@ namespace Player.Statistics
             currentStamina = maxStamina;
         }
 
+        private void OnPerkResourcesUpdated()
+        {
+            currentHealth = Mathf.Min(currentHealth, maxHealth);
+            currentMana = Mathf.Min(currentMana, maxMana);
+            currentStamina = Mathf.Min(currentStamina, maxStamina);
+        }
+
         private void Update()
         {
             float delta = Time.deltaTime;
@@ -105,7 +143,7 @@ namespace Player.Statistics
                 return;
 
             RegenerateResource(ref currentHealth, maxHealth, statistics.healthRegenPerSecond, delta);
-            RegenerateResource(ref currentMana, maxMana, statistics.manaRegenPerSecond, delta);
+            RegenerateResource(ref currentMana, maxMana, GetManaRegenRate(), delta);
             RegenerateResource(ref currentStamina, maxStamina, statistics.staminaRegenPerSecond, delta);
         }
 
@@ -115,6 +153,20 @@ namespace Player.Statistics
                 return;
 
             current = Mathf.Min(max, current + ratePerSecond * deltaTime);
+        }
+
+        private int GetTotalStat(EStatistics stat)
+        {
+            int baseValue = statistics != null ? statistics.container.Get(stat) : 0;
+            int bonus = perkRuntime != null ? perkRuntime.GetStatBonus(stat) : 0;
+            return baseValue + bonus;
+        }
+
+        private float GetManaRegenRate()
+        {
+            float baseRate = statistics.manaRegenPerSecond;
+            float percentBonus = perkRuntime != null ? perkRuntime.GetPercentBonus(EEffectType.ManaRegenPercent) : 0f;
+            return baseRate * (1f + percentBonus);
         }
     }
 }

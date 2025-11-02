@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 7276814179921253188}
   - component: {fileID: 6441451143290550452}
   - component: {fileID: 7963321526500336466}
-  - component: {fileID: 5934238110524169845}
+  - component: {fileID: 8293315111687453957}
   m_Layer: 0
   m_Name: MagicMissile
   m_TagString: Untagged
@@ -254,7 +254,7 @@ TrailRenderer:
   m_Autodestruct: 0
   m_Emitting: 1
   m_ApplyActiveColorSpace: 1
---- !u!114 &5934238110524169845
+--- !u!114 &8293315111687453957
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -263,6 +263,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1708353066763615851}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a722941939d47784187a07febf36e48c, type: 3}
+  m_Script: {fileID: 11500000, guid: 1530c8a2d69bcc54aa9b1d6727138816, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  target: {fileID: 0}
+  speed: 0
+  damage: 0
+  initialForward: {x: 0, y: 0, z: 0}
+  maxLifetime: 8
+  hitRadius: 0.25
