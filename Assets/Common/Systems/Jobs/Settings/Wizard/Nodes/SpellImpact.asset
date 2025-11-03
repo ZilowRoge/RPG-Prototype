@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SpellImpact
   m_EditorClassIdentifier: 
   nodeId: ee5a55029a454126aadfb475a5ce6b83
-  perk: {fileID: 11400000, guid: ac8a9b1e94f013c43a88173e1166a2b4, type: 2}
+  perk: {fileID: 11400000, guid: d462f94df09387b428206847014f946d, type: 2}
   position: {x: 60, y: 160}
   connectedNodes:
   - {fileID: 11400000, guid: d943cd7a791f9974884f340d01d10821, type: 2}

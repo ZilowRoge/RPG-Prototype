@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c351e79cd14745247ac017412139509f, type: 3}
   m_Name: SpellImpact
   m_EditorClassIdentifier: 
-  perkName: 
-  description: 
-  effects: []
+  perkName: Spell Impact
+  description: Every third spell has incresed spell power
+  effects:
+  - {fileID: 11400000, guid: 7745c087a87d45d4cbb86752efeec607, type: 2}

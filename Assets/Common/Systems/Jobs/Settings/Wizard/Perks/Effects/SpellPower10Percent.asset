@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0f8a170a41c56d41a7936dffbbf038d, type: 3}
   m_Name: SpellPower10Percent
   m_EditorClassIdentifier: 
-  key: 0
-  value: 0
+  effectType: 3
+  value: 10
