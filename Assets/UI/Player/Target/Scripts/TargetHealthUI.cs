@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Player.Statistics;
+using Player.Interfaces;
 using Player.Targeting;
 
 namespace UI.Player.Target
@@ -22,7 +22,8 @@ namespace UI.Player.Target
         [SerializeField] private bool hideWhenNoTarget = true;
 
         private Transform cachedTarget;
-        private StatsController currentStats;
+        private IHealthProvider currentHealth;
+        private Component currentHealthComponent;
         private float nextUpdateTime;
         private bool hasTarget;
 
@@ -36,7 +37,7 @@ namespace UI.Player.Target
         {
             SynchroniseTarget(targetSelector != null ? targetSelector.CurrentTarget : null);
             nextUpdateTime = 0f;
-            hasTarget = currentStats != null;
+            hasTarget = currentHealth != null;
         }
 
         private void Update()
@@ -64,15 +65,29 @@ namespace UI.Player.Target
         private void SynchroniseTarget(Transform target)
         {
             cachedTarget = target;
-            currentStats = target != null ? target.GetComponentInParent<StatsController>() : null;
-            hasTarget = currentStats != null;
+            if (target != null)
+            {
+                currentHealth = target.GetComponentInParent<IHealthProvider>();
+                currentHealthComponent = currentHealth as Component;
+                if (currentHealth == null)
+                {
+                    Debug.LogWarning($"[TargetHealthUI] Target '{target.name}' is missing IHealthProvider in parent chain.", this);
+                }
+            }
+            else
+            {
+                currentHealth = null;
+                currentHealthComponent = null;
+            }
+
+            hasTarget = currentHealth != null;
             UpdateVisibility();
             RefreshUI();
         }
 
         private void UpdateVisibility()
         {
-            bool visible = currentStats != null;
+            bool visible = currentHealth != null;
 
             if (canvasGroup != null)
             {
@@ -91,7 +106,7 @@ namespace UI.Player.Target
 
         private void RefreshUI()
         {
-            if (currentStats == null)
+            if (currentHealth == null)
             {
                 if (fillImage != null) fillImage.fillAmount = 0f;
                 if (label != null) label.text = string.Empty;
@@ -100,15 +115,16 @@ namespace UI.Player.Target
                 return;
             }
 
-            float currentHealth = Mathf.Max(0f, currentStats.CurrentHealth);
-            float maxHealth = Mathf.Max(1f, currentStats.maxHealth);
-            string displayName = currentStats.gameObject.name;
+            float currentValue = Mathf.Max(0f, currentHealth.CurrentHealth);
+            float maxValue = Mathf.Max(1f, currentHealth.maxHealth);
+            var displayTransform = currentHealthComponent != null ? currentHealthComponent.transform : cachedTarget;
+            string displayName = displayTransform != null ? displayTransform.gameObject.name : string.Empty;
 
             if (fillImage != null)
-                fillImage.fillAmount = Mathf.Clamp01(currentHealth / maxHealth);
+                fillImage.fillAmount = Mathf.Clamp01(currentValue / maxValue);
 
             if (label != null)
-                label.text = $"{displayName}";// {Mathf.CeilToInt(currentHealth)}/{Mathf.CeilToInt(maxHealth)}";
+                label.text = $"{displayName}";
         }
     }
 }

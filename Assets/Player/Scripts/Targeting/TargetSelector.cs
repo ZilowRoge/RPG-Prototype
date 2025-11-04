@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using UnityEngine;
-using Player.Statistics;
 using Player.Interfaces;
 
 namespace Player.Targeting
@@ -58,6 +56,9 @@ namespace Player.Targeting
 
         private void Update()
         {
+            if (CurrentTarget != null && !IsTargetValid(CurrentTarget))
+                CurrentTarget = null;
+
             if (Time.time < nextUpdateTime) return;
             nextUpdateTime = Time.time + Mathf.Max(0.01f, updateInterval);
 
@@ -246,20 +247,54 @@ namespace Player.Targeting
             if (col == null) return null;
             var t = col.transform;
             if (IsSelf(t)) return null;
-            // Prefer explicit targetable marker if present
-            var targetable = t.GetComponentInParent<ITargetable>();
-            if (targetable != null)
+            // Look for damageable actors and prefer their explicit target marker if present
+            var damageable = t.GetComponentInParent<IDamageable>();
+            if (damageable is Component damageComponent)
             {
-                var tr = targetable.TargetTransform;
-                if (tr != null && !(selfRoot != null && tr.IsChildOf(selfRoot)))
-                    return tr;
-            }
+                if (IsSelf(damageComponent.transform))
+                    return null;
 
-            // Fallback: allow StatsController as legacy target source
-            var sc = t.GetComponentInParent<StatsController>();
-            if (sc != null && !(selfRoot != null && sc.transform.IsChildOf(selfRoot)))
-                return sc.transform;
+                if (damageable is IHealthProvider healthProvider)
+                {
+                    if (healthProvider.CurrentHealth <= 0f)
+                        return null;
+                }
+
+                if (damageable is Enemies.Controllers.StatsController enemyStats && enemyStats.IsDead)
+                    return null;
+
+                Transform candidate = null;
+                var targetable = damageComponent.GetComponent<ITargetable>() ??
+                                 damageComponent.GetComponentInChildren<ITargetable>();
+                if (targetable != null)
+                    candidate = targetable.TargetTransform;
+
+                if (candidate == null)
+                    candidate = damageComponent.transform;
+
+                if (candidate != null && !(selfRoot != null && candidate.IsChildOf(selfRoot)))
+                    return candidate;
+            }
             return null;
+        }
+
+        private bool IsTargetValid(Transform target)
+        {
+            if (target == null)
+                return false;
+
+            if (!target.gameObject.activeInHierarchy)
+                return false;
+
+            var healthProvider = target.GetComponentInParent<IHealthProvider>();
+            if (healthProvider != null && healthProvider.CurrentHealth <= 0f)
+                return false;
+
+            var enemyStats = target.GetComponentInParent<Enemies.Controllers.StatsController>();
+            if (enemyStats != null && enemyStats.IsDead)
+                return false;
+
+            return !IsSelf(target);
         }
         
         public void ClearTarget()

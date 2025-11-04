@@ -1,5 +1,6 @@
 using UnityEngine;
 using Player.Statistics;
+using Player.Interfaces;
 
 namespace Spells.Projectiles
 {
@@ -57,9 +58,9 @@ namespace Spells.Projectiles
                 var tPos = target.position;
                 if ((transform.position - tPos).sqrMagnitude <= hitRadius * hitRadius)
                 {
-                    var stats = target.GetComponent<StatsController>();
-                    if (stats != null)
-                        stats.ReceiveDamage(damage, this);
+                    var damageables = target.GetComponents<IDamageable>();
+                    for (int i = 0; i < damageables.Length; i++)
+                        damageables[i].ReceiveDamage(damage, transform);
                     Destroy(gameObject);
                 }
             }

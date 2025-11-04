@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using Player.Interfaces;
 using Systems.Statistics;
@@ -7,12 +8,17 @@ using Player.Events;
 
 namespace Player.Statistics
 {
-    public class StatsController : MonoBehaviour, IStatsReadOnly
+    public class StatsController : MonoBehaviour, IStatsReadOnly, IDamageable, IKnockbackable, IHealthProvider
     {
         [SerializeField] private StatsData statistics;
         [SerializeField] private PlayerPerkRuntime perkRuntime;
         [SerializeField] private PlayerEventHub playerEvents;
         [SerializeField] private StatsRuntime runtime = new();
+        [Header("Knockback")]
+        [SerializeField, Tooltip("Duration in seconds over which knockback displacement is applied.")]
+        private float knockbackDuration = 0.15f;
+        [SerializeField, Tooltip("Optional override for the CharacterController used to apply knockback.")]
+        private CharacterController characterController;
         private bool loggedMissingEventHub;
 
         public StatsData Statistics => statistics;
@@ -40,10 +46,15 @@ namespace Player.Statistics
         public float CurrentMana => runtime.CurrentMana;
         public float CurrentStamina => runtime.CurrentStamina;
 
+        private Coroutine knockbackRoutine;
+
         private void Awake()
         {
             if (perkRuntime == null)
                 perkRuntime = GetComponent<PlayerPerkRuntime>() ?? GetComponentInParent<PlayerPerkRuntime>();
+
+            if (characterController == null)
+                characterController = GetComponent<CharacterController>();
 
             EnsureEventHub();
 
@@ -71,9 +82,36 @@ namespace Player.Statistics
             return runtime.UseMana(amount);
         }
 
-        public void ReceiveDamage(float amount, Component source = null)
+        public void ReceiveDamage(float amount, Transform source = null)
         {
             runtime.ReceiveDamage(amount);
+        }
+
+        public void ApplyKnockback(Vector3 direction, float force)
+        {
+            if (force <= 0f)
+                return;
+
+            direction.y = 0f;
+            direction = direction == Vector3.zero ? transform.forward : direction.normalized;
+
+            var body = GetComponent<Rigidbody>();
+            if (body != null)
+            {
+                body.AddForce(direction * force, ForceMode.Impulse);
+                return;
+            }
+
+            if (characterController == null)
+                characterController = GetComponent<CharacterController>();
+
+            if (characterController != null)
+            {
+                if (knockbackRoutine != null)
+                    StopCoroutine(knockbackRoutine);
+
+                knockbackRoutine = StartCoroutine(ApplyControllerKnockback(direction, force));
+            }
         }
 
         public bool TryConsumeStamina(float amount)
@@ -136,6 +174,29 @@ namespace Player.Statistics
                 Debug.LogWarning("[StatsController] PlayerEventHub is not assigned. Perk resource updates will not be received.");
                 loggedMissingEventHub = true;
             }
+        }
+
+        private IEnumerator ApplyControllerKnockback(Vector3 direction, float force)
+        {
+            if (characterController == null)
+            {
+                knockbackRoutine = null;
+                yield break;
+            }
+
+            float duration = Mathf.Max(0.01f, knockbackDuration);
+            float elapsed = 0f;
+            Vector3 displacementPerSecond = direction * (force / duration);
+
+            while (elapsed < duration)
+            {
+                float delta = Time.deltaTime;
+                characterController.Move(displacementPerSecond * delta);
+                elapsed += delta;
+                yield return null;
+            }
+
+            knockbackRoutine = null;
         }
     }
 }

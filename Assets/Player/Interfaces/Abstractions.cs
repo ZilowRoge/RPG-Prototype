@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Player.Interfaces
 {
     public interface IProgressReadOnly
@@ -23,5 +25,21 @@ namespace Player.Interfaces
 
     public interface IStatsReadOnly : IResourceStatsReadOnly, IMovementStatsReadOnly
     {
+    }
+
+    public interface IHealthProvider
+    {
+        float CurrentHealth { get; }
+        float maxHealth { get; }
+    }
+
+    public interface IDamageable
+    {
+        void ReceiveDamage(float amount, Transform source = null);
+    }
+
+    public interface IKnockbackable
+    {
+        void ApplyKnockback(Vector3 direction, float force);
     }
 }
