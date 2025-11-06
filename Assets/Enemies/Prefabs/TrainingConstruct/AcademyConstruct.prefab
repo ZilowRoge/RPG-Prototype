@@ -14,7 +14,8 @@ GameObject:
   - component: {fileID: 5307976819153632278}
   - component: {fileID: 4814187483711311995}
   - component: {fileID: 348201346200443783}
-  m_Layer: 0
+  - component: {fileID: 502027721938705633}
+  m_Layer: 7
   m_Name: AcademyConstruct
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -29,7 +30,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3357124388210588224}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -30, y: 6.38, z: 85.44}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -108,6 +109,7 @@ MonoBehaviour:
     currentMana: 0
     currentStamina: 0
   navMeshKnockbackResumeDelay: 0.2
+  deathDestroyDelay: 5
 --- !u!135 &348201346200443783
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -129,6 +131,19 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &502027721938705633
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3357124388210588224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 879397b8d61f4bc45b122f920751cdaa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetRoot: {fileID: 3527809143213896339}
 --- !u!1 &3968176126921582840
 GameObject:
   m_ObjectHideFlags: 0
@@ -140,7 +155,7 @@ GameObject:
   - component: {fileID: 8060080917183880636}
   - component: {fileID: 6978201328674596520}
   - component: {fileID: 5792850275492739759}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -18,5 +18,6 @@ MonoBehaviour:
     m_Bits: 64
   includeTriggers: 0
   damageMultiplier: 1
-  impactVfx: {fileID: 0}
-  vfxLifetime: 2
+  impactVfx: {fileID: 6637131271381622232, guid: 5830a3a7cd120e546a492402ed226eac, type: 3}
+  chargingVfx: {fileID: 3317388673648193202, guid: 79aff898cd50a6f43bcb0cde87a02b89, type: 3}
+  vfxLifetime: 3

@@ -30,6 +30,7 @@ namespace Enemies.Controllers
         public bool IsDead => isDead;
 
         private Coroutine navMeshKnockbackRoutine;
+        public event Action<StatsController, Transform> Died;
 
         private void Awake()
         {

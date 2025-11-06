@@ -72,8 +72,10 @@ namespace Enemies.TrainingConstruct
             if (playerTarget == null)
             {
                 var playerObject = GameObject.FindGameObjectWithTag("Player");
-                if (playerObject != null)
+                if (playerObject != null) {
+                    Debug.Log("[TrainingCOntructBrain] Player found");
                     playerTarget = playerObject.transform;
+                }
             }
 
             idleAnchor = transform.position;

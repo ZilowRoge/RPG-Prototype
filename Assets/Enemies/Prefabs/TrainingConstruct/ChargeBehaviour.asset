@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: ChargeBehaviour
   m_EditorClassIdentifier: 
   damageMultiplier: 1
-  knockbackForce: 8
+  knockbackForce: 3

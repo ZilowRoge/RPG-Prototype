@@ -19,12 +19,12 @@ MonoBehaviour:
     moveSpeed: 5
   chase:
     speed: 8
-    acceleration: 5
-    preferredMinDistance: 8
-    preferredMaxDistance: 10
+    acceleration: 4
+    preferredMinDistance: 0.5
+    preferredMaxDistance: 3.5
   charge:
     dashSpeed: 15
-    dashDuration: 5
+    dashDuration: 0.65
     collisionRadius: 0.8
     collisionMask:
       serializedVersion: 2

@@ -23,14 +23,14 @@ MonoBehaviour:
   - type: 1
     attack: {fileID: 11400000, guid: 0f7acdf1921b573429ee72b061f026d0, type: 2}
     minDistance: 8
-    maxDistance: 9
+    maxDistance: 10
     chargeUpDuration: 0
-    cooldownModifier: 0
-    recoveryDuration: 1
+    cooldownModifier: 1
+    recoveryDuration: 2
   - type: 0
     attack: {fileID: 11400000, guid: 440fa8151da8b9946b5b7ce974e97153, type: 2}
     minDistance: 0.5
-    maxDistance: 1.5
+    maxDistance: 3.5
     chargeUpDuration: 0.7
-    cooldownModifier: 0
-    recoveryDuration: 3
+    cooldownModifier: 1
+    recoveryDuration: 4
