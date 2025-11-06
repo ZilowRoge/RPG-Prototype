@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Enemies.Controllers;
 using UnityEngine;
+using UnityEngine.Events;
 namespace Common.World.Exams.Combat
 {
     /// <summary>
@@ -23,6 +24,9 @@ namespace Common.World.Exams.Combat
 
         [Header("References")]
         [SerializeField] private CombatExamConfig config;
+
+        [Header("Events")]
+        [SerializeField] private UnityEvent onExamPassed;
 
         [Header("Behaviour")]
         [SerializeField] private bool allowRepeatAfterSuccess = true;
@@ -293,6 +297,8 @@ namespace Common.World.Exams.Combat
             CurrentParticipant = null;
 
             ResetExamState(destroyEnemies: false);
+
+            onExamPassed?.Invoke();
 
             if (allowRepeatAfterSuccess)
             {

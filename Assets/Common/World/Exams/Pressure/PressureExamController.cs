@@ -29,18 +29,12 @@ namespace Common.World.Exams.Pressure
         [SerializeField] private PressureExamUI examUI;
 
         [Header("Events")]
-        [SerializeField] private UnityEvent onExamPreparing;
-        [SerializeField] private UnityEvent onExamStarted;
-        [SerializeField] private UnityEvent onExamFailed;
-        [SerializeField] private UnityEvent onExamCompleted;
+        [SerializeField] private UnityEvent onExamPassed;
 
         [Header("Behaviour")]
         [SerializeField] private bool allowRepeatAfterSuccess = true;
 
         public event Action<ExamState> StateChanged;
-        public event Action<int> HitsChanged;
-        public event Action<int, int> MissesChanged;
-        public event Action<int, int> WaveAdvanced;
 
         public ExamState State { get; private set; } = ExamState.Idle;
         public bool IsRunning => State == ExamState.Preparing || State == ExamState.Running;
@@ -84,7 +78,6 @@ namespace Common.World.Exams.Pressure
             CurrentParticipant = playerObject;
 
             SetState(ExamState.Preparing);
-            onExamPreparing?.Invoke();
             examUI?.HandleExamPreparing(this);
 
             examRoutine = StartCoroutine(RunExamRoutine());
@@ -120,7 +113,6 @@ namespace Common.World.Exams.Pressure
                 yield break;
 
             SetState(ExamState.Running);
-            onExamStarted?.Invoke();
             examUI?.HandleExamStarted(this);
 
             var waves = config.Waves;
@@ -136,7 +128,6 @@ namespace Common.World.Exams.Pressure
                     yield break;
 
                 currentWaveIndex = i;
-                WaveAdvanced?.Invoke(i, waves.Count);
                 examUI?.HandleWaveAdvanced(i, waves.Count);
 
                 yield return RunWave(waves[i]);
@@ -197,14 +188,12 @@ namespace Common.World.Exams.Pressure
         private void OnDummyHit(ExamDummy dummy)
         {
             currentHits++;
-            HitsChanged?.Invoke(currentHits);
             examUI?.HandleHitCountChanged(currentHits);
         }
 
         private void OnDummyMiss(ExamDummy dummy)
         {
             currentMisses++;
-            MissesChanged?.Invoke(currentMisses, config.MaxMisses);
             examUI?.HandleMissCountChanged(currentMisses, config.MaxMisses);
 
             if (config.MaxMisses > 0 && currentMisses >= config.MaxMisses)
@@ -228,7 +217,6 @@ namespace Common.World.Exams.Pressure
 
             SetState(ExamState.Failed);
             CurrentParticipant = null;
-            onExamFailed?.Invoke();
             examUI?.HandleExamFailed(this, currentMisses, config.MaxMisses);
 
             float restartDelay = config != null ? config.RestartDelay : 0f;
@@ -248,9 +236,9 @@ namespace Common.World.Exams.Pressure
             HasCompleted = true;
             SetState(ExamState.Completed);
             CurrentParticipant = null;
-            onExamCompleted?.Invoke();
             int maxMisses = config != null ? config.MaxMisses : 0;
             examUI?.HandleExamCompleted(this, currentHits, currentMisses, maxMisses);
+            onExamPassed?.Invoke();
 
             if (allowRepeatAfterSuccess)
             {
@@ -279,15 +267,12 @@ namespace Common.World.Exams.Pressure
             if (!notifyUi)
                 return;
 
-            HitsChanged?.Invoke(currentHits);
             int maxMisses = config != null ? config.MaxMisses : 0;
             int totalWaves = config != null && config.Waves != null ? config.Waves.Count : 0;
 
-            MissesChanged?.Invoke(currentMisses, maxMisses);
             examUI?.HandleHitCountChanged(currentHits);
             examUI?.HandleMissCountChanged(currentMisses, maxMisses);
             examUI?.HandleWaveAdvanced(0, totalWaves);
-            WaveAdvanced?.Invoke(0, totalWaves);
         }
 
         private void SetState(ExamState state)
