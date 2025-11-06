@@ -10,6 +10,13 @@ namespace Enemies.Combat
         private float damageMultiplier = 1.5f;
         [SerializeField, Tooltip("Optional knockback force applied to the target's rigidbody.")]
         private float knockbackForce = 8f;
+        [SerializeField, Tooltip("Optional VFX prefab spawned when the charge begins.")]
+        private GameObject chargeVfxPrefab;
+        [SerializeField, Tooltip("Offset along the charge direction (local Z) where the VFX should appear.")]
+        private float chargeVfxOffset = 2f;
+
+        public GameObject ChargeVfxPrefab => chargeVfxPrefab;
+        public float ChargeVfxOffset => Mathf.Max(0f, chargeVfxOffset);
 
         public override void Execute(in AttackContext context)
         {

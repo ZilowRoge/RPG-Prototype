@@ -14,3 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damageMultiplier: 1
   knockbackForce: 3
+  chargeVfxPrefab: {fileID: 1270556572785109120, guid: 1b362ec95f71c7940894015fa713c6b2, type: 3}
+  chargeVfxOffset: 2

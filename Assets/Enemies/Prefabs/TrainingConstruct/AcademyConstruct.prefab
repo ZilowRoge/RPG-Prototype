@@ -58,7 +58,7 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 2
-  m_BaseOffset: 1
+  m_BaseOffset: 0.95
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!114 &2049809984276426085
@@ -78,6 +78,8 @@ MonoBehaviour:
   attackController: {fileID: 5307976819153632278}
   navMeshAgent: {fileID: 1808798302557194400}
   chargeHitbox: {fileID: 1820700913397096177}
+  aggroOnDamage: 1
+  damageAggroDuration: 5
   currentState: 0
 --- !u!114 &5307976819153632278
 MonoBehaviour:
@@ -259,7 +261,7 @@ Transform:
   m_GameObject: {fileID: 7432802408667598722}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.6}
+  m_LocalPosition: {x: 0, y: 0, z: 0.75}
   m_LocalScale: {x: 1.2, y: 1.2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

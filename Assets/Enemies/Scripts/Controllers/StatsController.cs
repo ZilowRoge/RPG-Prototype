@@ -30,6 +30,7 @@ namespace Enemies.Controllers
         public bool IsDead => isDead;
 
         private Coroutine navMeshKnockbackRoutine;
+        public event Action<StatsController, float, Transform> Damaged;
         public event Action<StatsController, Transform> Died;
 
         private void Awake()
@@ -72,6 +73,7 @@ namespace Enemies.Controllers
 
             EnemyDebug.Log($"[StatsController] {name} received damage {amount} from {(source != null ? source.name : "unknown")}.", this);
             runtime.ReceiveDamage(amount);
+            Damaged?.Invoke(this, amount, source);
             if (runtime.CurrentHealth <= 0f)
                 HandleDeath(source);
         }

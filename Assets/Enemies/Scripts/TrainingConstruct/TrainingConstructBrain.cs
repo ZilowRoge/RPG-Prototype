@@ -32,6 +32,11 @@ namespace Enemies.TrainingConstruct
         [SerializeField] private AttackController attackController;
         [SerializeField] private NavMeshAgent navMeshAgent;
         [SerializeField] private ChargeHitbox chargeHitbox;
+        [Header("Damage Awareness")]
+        [SerializeField, Tooltip("When true, any incoming damage will force the construct to detect and chase the attacker.")]
+        private bool aggroOnDamage = true;
+        [SerializeField, Tooltip("How long (seconds) the construct remembers being damaged for aggro purposes.")]
+        private float damageAggroDuration = 5f;
 
         [SerializeField] private ConstructState currentState = ConstructState.Idle;
         private Coroutine stateRoutine;
@@ -40,6 +45,8 @@ namespace Enemies.TrainingConstruct
         private float baseSpeed;
         private float baseAcceleration;
         private AttackRule currentAttackRule;
+        private float damageAggroTimer;
+        private StatsController statsController;
 
         private MovementConfig MovementConfig => behaviourConfig != null ? behaviourConfig.Movement : null;
         private MovementConfig.IdleSettings IdleSettings => MovementConfig?.Idle ?? default;
@@ -55,6 +62,7 @@ namespace Enemies.TrainingConstruct
         private float DetectionRange => DetectionSettings.detectionRange > 0f ? DetectionSettings.detectionRange : 10f;
         private float LeashRangeMultiplier => DetectionSettings.leashRangeMultiplier > 0f ? DetectionSettings.leashRangeMultiplier : 1.25f;
         private float LeashRange => DetectionRange * LeashRangeMultiplier;
+        private bool HasDamageAggro => aggroOnDamage && damageAggroTimer > 0f;
 
         private void Awake()
         {
@@ -68,6 +76,11 @@ namespace Enemies.TrainingConstruct
                 chargeHitbox = GetComponentInChildren<ChargeHitbox>(true);
             if (chargeHitbox == null)
                 EnemyDebug.LogWarning("[TrainingConstructBrain] ChargeHitbox is not assigned.", this);
+
+            statsController = GetComponent<StatsController>();
+            if (statsController == null)
+                EnemyDebug.LogWarning("[TrainingConstructBrain] StatsController is not assigned.", this);
+            damageAggroDuration = Mathf.Max(0f, damageAggroDuration);
 
             if (playerTarget == null)
             {
@@ -87,13 +100,29 @@ namespace Enemies.TrainingConstruct
 
         private void OnEnable()
         {
+            if (statsController != null)
+                statsController.Damaged += OnConstructDamaged;
+
             SwitchState(ConstructState.Idle);
+        }
+
+        private void OnDisable()
+        {
+            if (statsController != null)
+                statsController.Damaged -= OnConstructDamaged;
         }
 
         private void Update()
         {
             if (playerTarget == null)
                 return;
+
+            if (HasDamageAggro)
+            {
+                damageAggroTimer -= Time.deltaTime;
+                if (damageAggroTimer < 0f)
+                    damageAggroTimer = 0f;
+            }
 
             switch (currentState)
             {
@@ -134,7 +163,7 @@ namespace Enemies.TrainingConstruct
                 TryMoveToRandomIdlePoint();
             }
 
-            if (IsPlayerWithinRange(DetectionRange))
+            if (HasDamageAggro || IsPlayerWithinRange(DetectionRange))
             {
                 SwitchState(ConstructState.Detect);
             }
@@ -142,7 +171,7 @@ namespace Enemies.TrainingConstruct
 
         private void UpdateDetect()
         {
-            if (!IsPlayerWithinRange(DetectionRange))
+            if (!HasDamageAggro && !IsPlayerWithinRange(DetectionRange))
             {
                 SwitchState(ConstructState.Idle);
                 return;
@@ -153,7 +182,7 @@ namespace Enemies.TrainingConstruct
 
         private void UpdateChase()
         {
-            if (!IsPlayerWithinRange(LeashRange))
+            if (!HasDamageAggro && !IsPlayerWithinRange(LeashRange))
             {
                 SwitchState(ConstructState.Idle);
                 return;
@@ -390,6 +419,44 @@ namespace Enemies.TrainingConstruct
             float dashSpeed = ChargeSettings.dashSpeed > 0f ? ChargeSettings.dashSpeed : 12f;
             float dashDuration = ChargeSettings.dashDuration > 0f ? ChargeSettings.dashDuration : 0.75f;
 
+            var chargeBehaviour = rule?.Attack?.Behaviour as ChargeAttackBehaviour;
+            GameObject chargeVfxInstance = null;
+            bool destroyVfxManually = false;
+            if (chargeBehaviour != null)
+            {
+                var vfxPrefab = chargeBehaviour.ChargeVfxPrefab;
+                if (vfxPrefab != null)
+                {
+                    Quaternion vfxRotation = Quaternion.LookRotation(direction, Vector3.up);
+                    chargeVfxInstance = Instantiate(vfxPrefab, transform.position, vfxRotation, transform);
+                    float offset = Mathf.Max(0f, chargeBehaviour.ChargeVfxOffset);
+                    chargeVfxInstance.transform.localPosition = Vector3.forward * offset;
+                    if (dashDuration > 0f)
+                    {
+                        var particleSystems = chargeVfxInstance.GetComponentsInChildren<ParticleSystem>(true);
+                        for (int i = 0; i < particleSystems.Length; i++)
+                        {
+                            var ps = particleSystems[i];
+                            if (ps == null)
+                                continue;
+
+                            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                            var main = ps.main;
+                            main.duration = dashDuration - 0.15f;
+                            ps.Play();
+                        }
+                    }
+                    if (dashDuration > 0f)
+                    {
+                        Destroy(chargeVfxInstance, dashDuration + 0.1f);
+                    }
+                    else
+                    {
+                        destroyVfxManually = true;
+                    }
+                }
+            }
+
             System.Action<Collider> onChargeHit = null;
             if (chargeHitbox != null)
             {
@@ -433,6 +500,9 @@ namespace Enemies.TrainingConstruct
                 chargeHitbox.Hit -= onChargeHit;
                 chargeHitbox.Deactivate();
             }
+
+            if (chargeVfxInstance != null && destroyVfxManually)
+                Destroy(chargeVfxInstance);
 
             EnsureAgentOnNavMesh("Charge end");
             SetAgentStopped(true);
@@ -511,6 +581,7 @@ namespace Enemies.TrainingConstruct
 
         public void ResetBehaviour()
         {
+            damageAggroTimer = 0f;
             SwitchState(ConstructState.Idle);
         }
 
@@ -597,6 +668,23 @@ namespace Enemies.TrainingConstruct
                     impulse.DrawGizmos(transform.position);
                 }
             }
+        }
+
+        private void OnConstructDamaged(StatsController controller, float damage, Transform source)
+        {
+            if (!aggroOnDamage || controller != statsController)
+                return;
+
+            if (damage <= 0f)
+                return;
+
+            damageAggroTimer = Mathf.Max(damageAggroTimer, Mathf.Max(0.01f, damageAggroDuration));
+
+            if (source != null && playerTarget == null)
+                playerTarget = source;
+
+            if (currentState == ConstructState.Idle || currentState == ConstructState.Detect)
+                SwitchState(ConstructState.Detect);
         }
     }
 }
