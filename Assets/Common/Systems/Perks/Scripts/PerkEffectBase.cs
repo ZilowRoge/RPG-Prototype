@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.Text;
 using UnityEngine;
@@ -27,10 +28,8 @@ namespace Systems.Perks
             return "0";
         }
 
-        protected static string FormatKeyDisplay(EEffectType effectKey)
-        {
-            return SplitCamelCase(effectKey.ToString());
-        }
+        protected static string FormatKeyDisplay(EEffectType effectKey) =>
+            TrimPercentWord(SplitCamelCase(effectKey.ToString()));
 
         protected static string SplitCamelCase(string raw)
         {
@@ -52,6 +51,21 @@ namespace Systems.Perks
             }
 
             return builder.ToString();
+        }
+
+        private static string TrimPercentWord(string label)
+        {
+            if (string.IsNullOrWhiteSpace(label))
+                return string.Empty;
+
+            const string suffix = " Percent";
+            if (label.EndsWith(suffix, StringComparison.Ordinal))
+            {
+                var trimmed = label.Substring(0, label.Length - suffix.Length).TrimEnd();
+                return trimmed;
+            }
+
+            return label;
         }
     }
 }

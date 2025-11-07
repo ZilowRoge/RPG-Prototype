@@ -155,7 +155,7 @@ namespace Player.Statistics
         private float GetManaRegenRate()
         {
             float baseRate = statistics.manaRegenPerSecond;
-            float percentBonus = perkRuntime != null ? perkRuntime.GetPercentBonus(EEffectType.ManaRegenPercent) : 0f;
+            float percentBonus = perkRuntime != null ? perkRuntime.GetPercentBonus(EEffectType.ManaRegeneration) : 0f;
             return baseRate * (1f + percentBonus);
         }
 

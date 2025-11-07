@@ -64,5 +64,6 @@ public class PlayerStatusUI : MonoBehaviour
         if (playerEvents == null && progress != null)
             playerEvents = progress.EventHub;
     }
+
 }
 }

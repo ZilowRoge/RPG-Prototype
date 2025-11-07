@@ -23,9 +23,6 @@ MonoBehaviour:
   - text: "Yes, I\u2019m ready to learn."
     nextNodeId: 
     conditions:
-    - conditionType: 1
-      identifier: q_exam_prep
-      expectedValue: 1
     - conditionType: 0
       identifier: sym_9_lesson_finished
       expectedValue: 0

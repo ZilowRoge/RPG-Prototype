@@ -1,7 +1,7 @@
 namespace Systems.Perks {
 public enum EEffectType
 {
-    ManaRegenPercent,
+    ManaRegeneration,
     AddStatistics,
     AddMaxMana,
     SpellPower

@@ -13,12 +13,14 @@ namespace UI.Player.Quests
         [SerializeField] private TMP_Text questDescriptionText;
 
         [Header("Objectives")]
+        [SerializeField] private TMP_Text objectivesHeaderText;
         [SerializeField] private Transform objectivesContent;
         [SerializeField] private GameObject objectiveItemPrefab;
         [SerializeField] private string defaultObjectiveLabel = "Objective";
         [SerializeField] private string emptyObjectivesLabel = "No objectives";
 
         [Header("Rewards")]
+        [SerializeField] private TMP_Text rewardsHeaderText;
         [SerializeField] private Transform rewardsContent;
         [SerializeField] private GameObject rewardItemPrefab;
         [SerializeField] private string emptyRewardsLabel = "No rewards";
@@ -37,6 +39,8 @@ namespace UI.Player.Quests
         {
             if (questTitleText != null) questTitleText.text = string.Empty;
             if (questDescriptionText != null) questDescriptionText.text = string.Empty;
+            ToggleObjectivesVisible(false);
+            ToggleRewardsVisible(false);
             objectivePool?.Clear();
             rewardPool?.Clear();
         }
@@ -45,6 +49,10 @@ namespace UI.Player.Quests
         {
             if (questTitleText != null) questTitleText.text = questTitle ?? string.Empty;
             if (questDescriptionText != null) questDescriptionText.text = questDescription ?? string.Empty;
+
+            bool hasQuest = !string.IsNullOrEmpty(questTitle);
+            ToggleObjectivesVisible(hasQuest);
+            ToggleRewardsVisible(hasQuest);
 
             PopulateObjectives(asset, stage, stageProgress);
             PopulateRewards(asset);
@@ -96,7 +104,14 @@ namespace UI.Player.Quests
             }
 
             if (objectiveBuffer.Count == 0)
+            {
                 AddObjectiveEntry(emptyObjectivesLabel, false);
+                ToggleObjectivesVisible(false);
+            }
+            else
+            {
+                ToggleObjectivesVisible(true);
+            }
 
             objectivePool.Render(objectiveBuffer, (item, data, _) =>
             {
@@ -129,7 +144,14 @@ namespace UI.Player.Quests
             }
 
             if (rewardBuffer.Count == 0)
+            {
                 AddRewardEntry(emptyRewardsLabel);
+                ToggleRewardsVisible(false);
+            }
+            else
+            {
+                ToggleRewardsVisible(true);
+            }
 
             rewardPool.Render(rewardBuffer, (item, data, _) =>
             {
@@ -263,6 +285,22 @@ namespace UI.Player.Quests
                 objectivePool = new DynamicListPool<QuestObjectiveItemUI>(objectiveItemPrefab, objectivesContent);
             if (rewardPool == null)
                 rewardPool = new DynamicListPool<QuestRewardItemUI>(rewardItemPrefab, rewardsContent);
+        }
+
+        private void ToggleObjectivesVisible(bool visible)
+        {
+            if (objectivesHeaderText != null)
+                objectivesHeaderText.gameObject.SetActive(visible);
+            if (objectivesContent != null)
+                objectivesContent.gameObject.SetActive(visible);
+        }
+
+        private void ToggleRewardsVisible(bool visible)
+        {
+            if (rewardsHeaderText != null)
+                rewardsHeaderText.gameObject.SetActive(visible);
+            if (rewardsContent != null)
+                rewardsContent.gameObject.SetActive(visible);
         }
 
         private readonly struct ObjectiveViewModel

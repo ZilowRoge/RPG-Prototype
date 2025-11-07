@@ -14,6 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   perkName: Mana Focus
   description: Increses mana regeneration rate
-  unlockLevel: 2
   effects:
-  - {fileID: 11400000, guid: f55cf555dfcdd90409bc782c53d6d10a, type: 2}
+  - {fileID: 11400000, guid: d14aeb7f813d6224c8ff1df66f0d430e, type: 2}

@@ -20,22 +20,12 @@ namespace UI.Player.Jobs
 
         [Header("Selection Details")]
         [SerializeField] private TMP_Text availableExperienceText;
-        [SerializeField] private Button addExperienceButton;
         [SerializeField] private JobExperienceDialogUI experienceDialog;
 
         private readonly Dictionary<JobInstance, JobEntryUI> entryLookup = new();
         private JobInstance selectedJob;
         private bool isSubscribed;
         private PlayerEventHub playerEvents;
-
-        private void Awake()
-        {
-            if (addExperienceButton != null)
-            {
-                addExperienceButton.onClick.RemoveListener(OnAddExperienceClicked);
-                addExperienceButton.onClick.AddListener(OnAddExperienceClicked);
-            }
-        }
 
         private void OnEnable()
         {
@@ -138,24 +128,14 @@ namespace UI.Player.Jobs
         {
             selectedJob = job;
 
-            UpdateSelectedJobUI();
-
             if (notifyPerkPanel && selectedJob != null && perkController != null)
                 perkController.Show(selectedJob);
-        }
-
-        private void UpdateSelectedJobUI()
-        {
-            if (addExperienceButton != null)
-                addExperienceButton.interactable = selectedJob != null;
         }
 
         private void UpdateAvailableExperienceUI(int amount)
         {
             if (availableExperienceText != null)
                 availableExperienceText.text = $"{Mathf.Max(0, amount)} XP";
-
-            UpdateSelectedJobUI();
         }
 
         private void OnAvailableExperienceChanged(int amount)
@@ -179,15 +159,14 @@ namespace UI.Player.Jobs
 
             if (job == selectedJob)
             {
-                UpdateSelectedJobUI();
                 if (perkController != null)
                     perkController.Show(selectedJob);
             }
         }
 
-        private void OnAddExperienceClicked()
+        internal void RequestExperienceAllocation(JobInstance job)
         {
-            if (selectedJob == null || progressController == null)
+            if (job == null || progressController == null)
                 return;
 
             if (experienceDialog == null)
@@ -196,7 +175,7 @@ namespace UI.Player.Jobs
                 return;
             }
 
-            experienceDialog.Show(selectedJob, progressController);
+            experienceDialog.Show(job, progressController);
         }
     }
 }

@@ -12,6 +12,7 @@ namespace UI.Player.Jobs
         [SerializeField] private TextMeshProUGUI levelText;
         [SerializeField] private Image slider;
         [SerializeField] private Button selectButton;
+        [SerializeField] private Button addExperienceButton;
 
         private JobInstance job;
         private JobControllerUI controller;
@@ -51,6 +52,11 @@ namespace UI.Player.Jobs
             controller?.OnJobSelected(job);
         }
 
+        private void OnAddExperienceClicked()
+        {
+            controller?.RequestExperienceAllocation(job);
+        }
+
         public void OnPointerClick(PointerEventData eventData)
         {
             controller?.OnJobSelected(job);
@@ -61,11 +67,17 @@ namespace UI.Player.Jobs
             if (selectButton == null)
                 selectButton = GetComponent<Button>();
 
-            if (selectButton == null)
-                return;
+            if (selectButton != null)
+            {
+                selectButton.onClick.RemoveListener(OnClick);
+                selectButton.onClick.AddListener(OnClick);
+            }
 
-            selectButton.onClick.RemoveListener(OnClick);
-            selectButton.onClick.AddListener(OnClick);
+            if (addExperienceButton != null)
+            {
+                addExperienceButton.onClick.RemoveListener(OnAddExperienceClicked);
+                addExperienceButton.onClick.AddListener(OnAddExperienceClicked);
+            }
         }
     }
 }

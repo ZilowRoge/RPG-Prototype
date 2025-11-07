@@ -50,6 +50,7 @@ namespace UI.Player.Quests
                 }
             }
 
+            SortViewBuffer();
             currentSelection = DetermineSelection(selectedQuestId);
 
             itemPool.Render(viewBuffer, (item, model, _) =>
@@ -93,6 +94,19 @@ namespace UI.Player.Quests
                 return viewBuffer[0].QuestId;
 
             return null;
+        }
+
+        private void SortViewBuffer()
+        {
+            if (viewBuffer.Count <= 1)
+                return;
+
+            viewBuffer.Sort((a, b) =>
+            {
+                if (a.Completed == b.Completed)
+                    return string.Compare(a.Title, b.Title, StringComparison.Ordinal);
+                return a.Completed ? 1 : -1;
+            });
         }
 
         private bool ContainsInBuffer(string questId)
