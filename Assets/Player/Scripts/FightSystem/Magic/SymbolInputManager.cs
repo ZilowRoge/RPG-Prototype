@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Barracuda;
@@ -10,12 +11,15 @@ namespace Player.FightSystem.Magic
         [SerializeField] private SymbolDrawUI symbolDrawUI;
         [SerializeField] private NNModel modelAsset;
         [SerializeField] private MonoBehaviour defaultCombatConsumerBehaviour;
+        [SerializeField, Tooltip("Time window (seconds) to allow chaining symbols before finalizing the sequence.")]
+        private float continuationWindow = 0.75f;
 
         private PlayerControlls controls;
         private SymbolRecognizer symbolRecognizer;
         private ISymbolConsumer activeConsumer;
         private ISymbolConsumer defaultCombatConsumer;
         private bool isDrawing;
+        private Coroutine pendingFinishRoutine;
 
         public ISymbolConsumer ActiveConsumer => activeConsumer;
         public ISymbolConsumer DefaultCombatConsumer => defaultCombatConsumer;
@@ -40,6 +44,7 @@ namespace Player.FightSystem.Magic
             controls.Player.AlternativeUse.started += _ => StartDrawing();
             controls.Player.AlternativeUse.canceled += _ => FinishDrawing();
 
+            controls.Player.Attack.started += _ => OnFireStarted();
             controls.Player.Attack.canceled += _ => OnFireCanceled();
         }
 
@@ -86,6 +91,7 @@ namespace Player.FightSystem.Magic
                 return;
             }
             Debug.Log("Start drawing");
+            CancelPendingFinish();
             isDrawing = true;
             symbolDrawUI.gameObject.SetActive(true);
             symbolDrawUI.ClearTexture();
@@ -97,7 +103,13 @@ namespace Player.FightSystem.Magic
         private void FinishDrawing(bool notifyConsumer = true)
         {
             if (!isDrawing)
+            {
+                if (notifyConsumer)
+                    ScheduleConsumerNotification();
+                else
+                    CancelPendingFinish();
                 return;
+            }
 
             isDrawing = false;
 
@@ -111,7 +123,18 @@ namespace Player.FightSystem.Magic
             Cursor.visible = false;
 
             if (notifyConsumer)
-                activeConsumer?.OnDrawingFinished();
+                activeConsumer?.OnSymbolSequenceCommitted();
+            else
+                CancelPendingFinish();
+        }
+
+        private void OnFireStarted()
+        {
+            if (!isDrawing)
+                return;
+
+            Debug.Log("[SymbolInputManager] Fire input started. Canceling continuation window.");
+            CancelPendingFinish();
         }
 
         private void OnFireCanceled()
@@ -130,8 +153,45 @@ namespace Player.FightSystem.Magic
                 Debug.LogWarning("Symbol not recognized.");
                 return;
             }
-
             activeConsumer?.OnSymbolRecognized(symbolId.ToString());
+            ScheduleConsumerNotification();
+        }
+
+        private void ScheduleConsumerNotification()
+        {
+            CancelPendingFinish();
+
+            if (continuationWindow <= 0f)
+            {
+                activeConsumer?.OnSymbolSequenceCommitted();
+                return;
+            }
+
+            pendingFinishRoutine = StartCoroutine(ContinuationWindowRoutine());
+        }
+
+        private IEnumerator ContinuationWindowRoutine()
+        {
+            Debug.Log($"[SymbolInputManager] Continuation window started ({continuationWindow:F2}s).");
+            float elapsed = 0f;
+            while (elapsed < continuationWindow)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            pendingFinishRoutine = null;
+            Debug.Log("[SymbolInputManager] Continuation window expired. Finalizing symbol sequence.");
+            activeConsumer?.OnSymbolSequenceCommitted();
+        }
+
+        private void CancelPendingFinish()
+        {
+            if (pendingFinishRoutine != null)
+            {
+                StopCoroutine(pendingFinishRoutine);
+                pendingFinishRoutine = null;
+            }
         }
     }
 }

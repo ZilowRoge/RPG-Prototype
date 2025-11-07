@@ -65,7 +65,7 @@ namespace Player.FightSystem.Magic
             }
         }
 
-        public void OnDrawingFinished()
+        public void OnSymbolSequenceCommitted()
         {
             if (currentSymbols.Count == 0)
             {
@@ -91,8 +91,17 @@ namespace Player.FightSystem.Magic
             var result = spellService.TryPrepareSpell(currentSymbols, casterData, out var spell);
             if (result == CastResult.Success)
             {
-                preparedSpell = spell;
-                Debug.Log($"[CastManager] Prepared spell: {preparedSpell.name}");
+                if (spell.CastOnActivation)
+                {
+                    Debug.Log($"[CastManager] Spell '{spell.name}' casts on activation. Executing immediately.");
+                    ExecuteSpellCast(spell, casterData);
+                    preparedSpell = null;
+                }
+                else
+                {
+                    preparedSpell = spell;
+                    Debug.Log($"[CastManager] Prepared spell: {preparedSpell.name}");
+                }
             }
             else if (result == CastResult.InvalidSymbol)
             {
@@ -112,7 +121,6 @@ namespace Player.FightSystem.Magic
         {
             if (preparedSpell != null && IsCastInputTriggered())
             {
-
                 CastPreparedSpell();
             }
         }
@@ -133,45 +141,13 @@ namespace Player.FightSystem.Magic
             if (preparedSpell == null)
                 return;
 
-            if (spellService == null)
-            {
-                Debug.LogWarning("[CastManager] Spell service is not initialized.", this);
-                preparedSpell = null;
-                return;
-            }
-
             if (!TryBuildCasterData(out var casterData))
             {
                 preparedSpell = null;
                 return;
             }
 
-            IReadOnlyList<(PerkIntervalTriggerEffect interval, PerkEffectBase reward)> triggeredRewards = null;
-            if (perkRuntime != null)
-                triggeredRewards = perkRuntime.PrepareForCast(preparedSpell);
-
-            var result = spellService.Cast(preparedSpell, casterData);
-            if (result == CastResult.Success)
-            {
-                Debug.Log($"Casting {preparedSpell.name}!");
-
-                if (triggeredRewards != null)
-                {
-                    foreach (var pair in triggeredRewards)
-                    {
-                        var reward = pair.reward;
-                        if (reward != null)
-                        {
-                            Debug.Log($"[CastManager] Perk triggered: {reward.GetEffectString()}");
-                        }
-                    }
-                }
-            }
-            else
-            {
-                Debug.LogWarning($"[CastManager] Spell cast failed: {result}");
-            }
-
+            ExecuteSpellCast(preparedSpell, casterData);
             preparedSpell = null;
         }
 
@@ -213,6 +189,44 @@ namespace Player.FightSystem.Magic
             Debug.Log($"[CastManager] Target selected: {effectiveTarget}.", this);
             casterData = new CasterData(statsController, castOrigin, effectiveTarget, perkRuntime);
             return true;
+        }
+
+        private void ExecuteSpellCast(Spell spell, CasterData casterData)
+        {
+            if (spell == null || casterData == null)
+                return;
+
+            if (spellService == null)
+            {
+                Debug.LogWarning("[CastManager] Spell service is not initialized.", this);
+                return;
+            }
+
+            IReadOnlyList<(PerkIntervalTriggerEffect interval, PerkEffectBase reward)> triggeredRewards = null;
+            if (perkRuntime != null)
+                triggeredRewards = perkRuntime.PrepareForCast(spell);
+
+            var result = spellService.Cast(spell, casterData);
+            if (result == CastResult.Success)
+            {
+                Debug.Log($"Casting {spell.name}!");
+
+                if (triggeredRewards != null)
+                {
+                    foreach (var pair in triggeredRewards)
+                    {
+                        var reward = pair.reward;
+                        if (reward != null)
+                        {
+                            Debug.Log($"[CastManager] Perk triggered: {reward.GetEffectString()}");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"[CastManager] Spell cast failed: {result}");
+            }
         }
     }
 }

@@ -15,6 +15,7 @@ namespace Common.Systems.SymbolTraining
         private int successfulAttempts;
         private int totalAttempts;
         private bool isActive;
+        private string pendingSymbolId;
         private Action<bool, SymbolLesson, ISymbolConsumer> completionCallback;
 
         public bool IsLessonActive => isActive;
@@ -70,12 +71,24 @@ namespace Common.Systems.SymbolTraining
 
         public void OnSymbolRecognized(string symbolId)
         {
+            if (!isActive)
+                return;
+
+            pendingSymbolId = symbolId;
+        }
+
+        public void OnSymbolSequenceCommitted()
+        {
             if (!isActive || currentLesson == null)
+                return;
+
+            if (string.IsNullOrWhiteSpace(pendingSymbolId))
                 return;
 
             totalAttempts++;
 
-            string recognizedId = symbolId?.Trim();
+            string recognizedId = pendingSymbolId?.Trim();
+            pendingSymbolId = null;
             string expectedId = currentLesson.SymbolId;
 
             bool matched = !string.IsNullOrWhiteSpace(recognizedId) &&
@@ -107,11 +120,6 @@ namespace Common.Systems.SymbolTraining
             }
 
             TryFailLessonOnAttempts();
-        }
-
-        public void OnDrawingFinished()
-        {
-            // Lessons do not react to drawing stop events.
         }
 
         private void TryFailLessonOnAttempts()
@@ -148,6 +156,7 @@ namespace Common.Systems.SymbolTraining
             isActive = false;
             currentLesson = null;
             previousConsumer = null;
+            pendingSymbolId = null;
             completionCallback = null;
         }
 

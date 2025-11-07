@@ -22,6 +22,7 @@ namespace Common.World.Orb
         private SymbolInputManager inputManager;
         private bool awaiting;
         private Interactor activeInteractor;
+        private string pendingSymbolId;
         public string LastRecognizedSymbol { get; private set; }
 
         public void Interact(GameObject player)
@@ -73,11 +74,22 @@ namespace Common.World.Orb
             if (!awaiting)
                 return;
 
+            pendingSymbolId = recognizedId;
+        }
+
+        public void OnSymbolSequenceCommitted()
+        {
+            if (!awaiting)
+                return;
+
             var expected = requiredSymbolId?.Trim();
-            var recognized = recognizedId?.Trim();
+            var recognized = pendingSymbolId?.Trim();
+            pendingSymbolId = null;
+
+            if (string.IsNullOrWhiteSpace(recognized))
+                return;
 
             bool matched = !string.IsNullOrWhiteSpace(expected) &&
-                           !string.IsNullOrWhiteSpace(recognized) &&
                            string.Equals(expected, recognized, StringComparison.OrdinalIgnoreCase);
 
             if (!matched &&
@@ -95,8 +107,6 @@ namespace Common.World.Orb
             LastRecognizedSymbol = recognized;
             onSymbolMatched?.Invoke();
         }
-
-        public void OnDrawingFinished() { }
 
         public void CancelSymbolFlow()
         {
@@ -126,6 +136,7 @@ namespace Common.World.Orb
                 inputManager.ResetToDefaultConsumer();
             inputManager = null;
             activeInteractor = null;
+            pendingSymbolId = null;
         }
 
         private static bool TryExtractNumericId(string value, out int numericId)
