@@ -14,6 +14,7 @@ namespace Player
 
         private Vector2 inputMovement = Vector2.zero;
         private bool isSprintActive = false;
+        private bool inputBlocked;
 
         [SerializeField] private StatsController statsController;
 
@@ -42,8 +43,29 @@ namespace Player
             }
         }
 
+        public void SetInputBlocked(bool blocked)
+        {
+            if (inputBlocked == blocked)
+                return;
+
+            inputBlocked = blocked;
+            if (blocked)
+            {
+                inputMovement = Vector2.zero;
+                isSprintActive = false;
+                controller ??= GetComponent<CharacterController>();
+                controller?.SimpleMove(Vector3.zero);
+            }
+        }
+
         void Update()
         {
+            if (inputBlocked)
+            {
+                controller?.SimpleMove(Vector3.zero);
+                return;
+            }
+
             Vector3 camForward = cameraTransform.forward;
             Vector3 camRight = cameraTransform.right;
             camForward.y = 0f;
@@ -86,12 +108,9 @@ namespace Player
             float runSpeed = statsController != null ? statsController.runSpeed : walkSpeed;
             float currentSpeed = isRunning ? runSpeed : walkSpeed;
 
-            if (isMoving)
-            {
-                Vector3 facingDir = isMovingBackward ? -moveDir : moveDir;
-                Quaternion targetRotation = Quaternion.LookRotation(facingDir, Vector3.up);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-            }
+            Vector3 desiredFacing = camForward.sqrMagnitude > 0.0001f ? camForward : transform.forward;
+            Quaternion targetRotation = Quaternion.LookRotation(desiredFacing, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
 
             controller.SimpleMove(moveDir * currentSpeed);
 

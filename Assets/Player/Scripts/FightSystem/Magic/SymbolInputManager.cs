@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Barracuda;
 using Player.UI;
+using Player.Cameras;
 
 namespace Player.FightSystem.Magic
 {
@@ -13,6 +14,8 @@ namespace Player.FightSystem.Magic
         [SerializeField] private MonoBehaviour defaultCombatConsumerBehaviour;
         [SerializeField, Tooltip("Time window (seconds) to allow chaining symbols before finalizing the sequence.")]
         private float continuationWindow = 0.75f;
+        [SerializeField, Tooltip("Optional camera sensitivity controller to dampen look speed while drawing symbols.")]
+        private CinemachineSensitivityController cameraSensitivityController;
 
         private PlayerControlls controls;
         private SymbolRecognizer symbolRecognizer;
@@ -28,6 +31,8 @@ namespace Player.FightSystem.Magic
         {
             controls = new PlayerControlls();
             symbolRecognizer = new SymbolRecognizer(modelAsset);
+            if (cameraSensitivityController == null)
+                cameraSensitivityController = FindFirstObjectByType<CinemachineSensitivityController>();
 
             if (defaultCombatConsumerBehaviour != null)
             {
@@ -88,11 +93,13 @@ namespace Player.FightSystem.Magic
             if (symbolDrawUI == null)
             {
                 Debug.LogWarning("[SymbolInputManager] SymbolDrawUI is not assigned.", this);
+                ApplyDrawingCameraSensitivity(false);
                 return;
             }
             Debug.Log("Start drawing");
             CancelPendingFinish();
             isDrawing = true;
+            ApplyDrawingCameraSensitivity(true);
             symbolDrawUI.gameObject.SetActive(true);
             symbolDrawUI.ClearTexture();
             Cursor.lockState = CursorLockMode.None;
@@ -104,6 +111,7 @@ namespace Player.FightSystem.Magic
         {
             if (!isDrawing)
             {
+                ApplyDrawingCameraSensitivity(false);
                 if (notifyConsumer)
                     ScheduleConsumerNotification();
                 else
@@ -112,6 +120,7 @@ namespace Player.FightSystem.Magic
             }
 
             isDrawing = false;
+            ApplyDrawingCameraSensitivity(false);
 
             if (symbolDrawUI != null)
             {
@@ -126,6 +135,17 @@ namespace Player.FightSystem.Magic
                 activeConsumer?.OnSymbolSequenceCommitted();
             else
                 CancelPendingFinish();
+        }
+
+        private void ApplyDrawingCameraSensitivity(bool drawing)
+        {
+            if (cameraSensitivityController == null)
+                return;
+
+            if (drawing)
+                cameraSensitivityController.EnableReducedSensitivity();
+            else
+                cameraSensitivityController.DisableReducedSensitivity();
         }
 
         private void OnFireStarted()
