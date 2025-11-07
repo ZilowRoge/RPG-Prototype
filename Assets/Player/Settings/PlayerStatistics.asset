@@ -15,11 +15,15 @@ MonoBehaviour:
   walkSpeed: 3
   runSpeed: 6
   baseHealth: 50
-  baseMana: 100
+  baseMana: 60
   baseStamina: 40
   healthPerVit: 10
   manaPerInt: 8
   staminaPerEnd: 9
+  healthRegenPerSecond: 0.25
+  manaRegenPerSecond: 0.75
+  staminaRegenPerSecond: 1
+  sprintStaminaCostPerSecond: 2
   container:
     stats: []
     pendingAllocations: 0

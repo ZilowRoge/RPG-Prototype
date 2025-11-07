@@ -18,6 +18,8 @@ MonoBehaviour:
   desiredTargetRange: 25
   desiredFovAngle: 120
   preferCenterRay: 1
+  castOnActivation: 1
+  indicatorPrefab: {fileID: 0}
   projectilePrefab: {fileID: 1708353066763615851, guid: 635e72d64793b69429af65b2ca9c8703, type: 3}
   projectileSpeed: 20
   damage: 10

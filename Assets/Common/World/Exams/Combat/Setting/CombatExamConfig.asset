@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fd36b4d1fd3a014ba6ecfb099658951, type: 3}
   m_Name: CombatExamConfig
   m_EditorClassIdentifier: 
-  activationCountdown: 3
+  activationCountdown: 1.5
   restartDelay: 1.5
   enemySpawns:
   - enemyPrefab: {fileID: 3357124388210588224, guid: 93d587ca1e9973a4c95f914a6086a6a7, type: 3}

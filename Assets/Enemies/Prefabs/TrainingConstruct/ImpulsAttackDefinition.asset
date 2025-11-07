@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackId: training_construct_impulse_attack
   displayName: Discharge
-  damage: 6
+  damage: 12
   range: 2
   baseCooldown: 3
   behaviour: {fileID: 11400000, guid: 683c011a5f0213c47935b2d5a308a163, type: 2}

@@ -34,20 +34,20 @@ MonoBehaviour:
     description: 
     objectives:
     - id: q_magic_exam_st1_obj0
-      type: 4
-      targetId: exam_consturct
-      displayName: Stop the constracts by targeting them with a spell.
+      type: 3
+      targetId: pression_exam_passed
+      displayName: Destroy targets using magic
       extraId: 
-      requiredCount: 3
+      requiredCount: 0
       visibleInJournal: 1
   - id: q_magic_exam_st2
     title: Fight Exam
     description: 
     objectives:
     - id: q_magic_exam_st2_obj0
-      type: 4
-      targetId: exam_construct
+      type: 3
+      targetId: fight_exam_passed
       displayName: Stop the constracts by targeting them with a spell.
       extraId: 
-      requiredCount: 5
+      requiredCount: 0
       visibleInJournal: 1
