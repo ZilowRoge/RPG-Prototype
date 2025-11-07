@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 1408888688579125505}
   - component: {fileID: 6423816241170635826}
   - component: {fileID: 6750846732619164360}
-  - component: {fileID: 61517193591979114}
+  - component: {fileID: 8413235220400753477}
   m_Layer: 7
   m_Name: TrainingDummy
   m_TagString: Untagged
@@ -29,7 +29,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7269189676814488268}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -125,7 +125,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetRoot: {fileID: 9088478379662589056}
---- !u!114 &61517193591979114
+--- !u!114 &8413235220400753477
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -134,8 +134,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 7269189676814488268}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 337e56d5dfc371c46aa935c020ecfad9, type: 3}
+  m_Script: {fileID: 11500000, guid: 6c47aa28457ceda4eab549b230befdad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  statistics: {fileID: 0}
-  perkRuntime: {fileID: 0}
+  statsConfig: {fileID: 11400000, guid: f5b71fe102296144e8c2d4690443cee1, type: 2}
+  runtime:
+    currentHealth: 0
+    currentMana: 0
+    currentStamina: 0
+  navMeshKnockbackResumeDelay: 0.2
+  deathDestroyDelay: 5
