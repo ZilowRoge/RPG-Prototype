@@ -13,15 +13,13 @@ MonoBehaviour:
   m_Name: TrainerGreeting
   m_EditorClassIdentifier: 
   id: npc_ma_trainer_greeting
-  text: 'Ah, a new student of the arcane script.
+  text: 'Hello,
 
-    Every symbol is a word of power
-    and every mistake has its price.
-
-    Shall we begin your lesson?'
+    I''m a teacher in this Magic Academy, what does bring you to
+    me?'
   options:
-  - text: "Yes, I\u2019m ready to learn."
-    nextNodeId: 
+  - text: I'm new here, can I learn a symbol from you?
+    nextNodeId: npc_ma_trainer_start_lesson
     conditions:
     - conditionType: 0
       identifier: sym_9_lesson_finished

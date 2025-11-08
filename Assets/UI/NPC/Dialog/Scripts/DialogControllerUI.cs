@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using NPC.Dialog;
 using Player.Progress;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 
 namespace UI.NPC.Dialog
 {
@@ -176,7 +177,7 @@ namespace UI.NPC.Dialog
             {
                 var opt = options[i];
                 var slot = AcquireSlot();
-                var displayText = opt.text ?? string.Empty;
+                var displayText = BuildOptionDisplayText(opt.text, i);
                 var nextId = opt.nextNodeId;
                 var actions = opt.onSelect;
                 var isLocked = IsOptionLocked(opt);
@@ -212,6 +213,24 @@ namespace UI.NPC.Dialog
 
             if (responsesRoot != null)
                 LayoutRebuilder.ForceRebuildLayoutImmediate(responsesRoot.GetComponent<RectTransform>());
+        }
+
+        private string BuildOptionDisplayText(string optionText, int optionIndex)
+        {
+            string prefix = $"{optionIndex + 1}. ";
+            if (string.IsNullOrEmpty(optionText)) return prefix.TrimEnd();
+
+            const string colorTag = "<color";
+            if (optionText.StartsWith(colorTag, StringComparison.OrdinalIgnoreCase))
+            {
+                int closing = optionText.IndexOf('>');
+                if (closing >= 0)
+                {
+                    return optionText.Insert(closing + 1, prefix);
+                }
+            }
+
+            return prefix + optionText;
         }
 
         private bool IsOptionLocked(DialogOption opt)
@@ -326,16 +345,59 @@ namespace UI.NPC.Dialog
 
         private void Update()
         {
-            if (!closeOnEscape) return;
+            var canvasGroup = GetEffectiveCanvasGroup();
             bool isOpen = (dialogRoot != null && dialogRoot.activeInHierarchy) ||
-                          (GetEffectiveCanvasGroup() != null && GetEffectiveCanvasGroup().blocksRaycasts) ||
+                          (canvasGroup != null && canvasGroup.blocksRaycasts) ||
                           currentDialog != null;
             if (!isOpen) return;
-            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+
+            var keyboard = Keyboard.current;
+
+            if (closeOnEscape && keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
             {
                 
                 Close();
+                return;
             }
+
+            if (keyboard == null) return;
+            HandleNumericOptionSelection(keyboard);
+        }
+
+        private void HandleNumericOptionSelection(Keyboard keyboard)
+        {
+            if (active.Count == 0) return;
+            int optionIndex = GetPressedHotkeyIndex(keyboard);
+            if (optionIndex < 0 || optionIndex >= active.Count) return;
+
+            var slot = active[optionIndex];
+            if (slot == null || !slot.IsInteractable) return;
+
+            slot.TriggerSelection();
+        }
+
+        private int GetPressedHotkeyIndex(Keyboard keyboard)
+        {
+            if (keyboard == null) return -1;
+
+            if (WasNumericHotkeyPressed(keyboard.digit1Key, keyboard.numpad1Key)) return 0;
+            if (WasNumericHotkeyPressed(keyboard.digit2Key, keyboard.numpad2Key)) return 1;
+            if (WasNumericHotkeyPressed(keyboard.digit3Key, keyboard.numpad3Key)) return 2;
+            if (WasNumericHotkeyPressed(keyboard.digit4Key, keyboard.numpad4Key)) return 3;
+            if (WasNumericHotkeyPressed(keyboard.digit5Key, keyboard.numpad5Key)) return 4;
+            if (WasNumericHotkeyPressed(keyboard.digit6Key, keyboard.numpad6Key)) return 5;
+            if (WasNumericHotkeyPressed(keyboard.digit7Key, keyboard.numpad7Key)) return 6;
+            if (WasNumericHotkeyPressed(keyboard.digit8Key, keyboard.numpad8Key)) return 7;
+            if (WasNumericHotkeyPressed(keyboard.digit9Key, keyboard.numpad9Key)) return 8;
+
+            return -1;
+        }
+
+        private static bool WasNumericHotkeyPressed(KeyControl primary, KeyControl secondary)
+        {
+            if (primary != null && primary.wasPressedThisFrame) return true;
+            if (secondary != null && secondary.wasPressedThisFrame) return true;
+            return false;
         }
 
         

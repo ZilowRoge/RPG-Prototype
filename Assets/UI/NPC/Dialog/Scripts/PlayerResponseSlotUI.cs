@@ -35,6 +35,8 @@ public class PlayerResponseSlotUI : MonoBehaviour
         if (button != null) button.interactable = value;
     }
 
+    public bool IsInteractable => button == null || button.interactable;
+
     public void SetVisible(bool value)
     {
         gameObject.SetActive(value);
@@ -46,6 +48,12 @@ public class PlayerResponseSlotUI : MonoBehaviour
         if (label != null) label.text = string.Empty;
         if (button != null) button.onClick.RemoveAllListeners();
         gameObject.SetActive(false);
+    }
+
+    public void TriggerSelection()
+    {
+        if (!IsInteractable) return;
+        InvokeSelection();
     }
 
     private void InvokeSelection()
