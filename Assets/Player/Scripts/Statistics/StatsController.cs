@@ -124,6 +124,11 @@ namespace Player.Statistics
             runtime.Refill(maxHealth, maxMana, maxStamina);
         }
 
+        public void RefillMana()
+        {
+            runtime.RestoreManaToMax(maxMana);
+        }
+
         private void OnPerkResourcesUpdated()
         {
             runtime.ClampToMax(maxHealth, maxMana, maxStamina);

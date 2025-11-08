@@ -5,6 +5,7 @@ using System.Linq;
 using Enemies.Controllers;
 using UnityEngine;
 using UnityEngine.Events;
+using PlayerStatsController = Player.Statistics.StatsController;
 namespace Common.World.Exams.Combat
 {
     /// <summary>
@@ -74,6 +75,7 @@ namespace Common.World.Exams.Combat
 
             CurrentParticipant = playerObject;
             HasCompleted = false;
+            RefillParticipantMana();
 
             float countdown = config.ActivationCountdown;
             if (countdown > 0f)
@@ -363,6 +365,22 @@ namespace Common.World.Exams.Combat
             }
 
             spawnedEnemies.Clear();
+        }
+
+        private void RefillParticipantMana()
+        {
+            var stats = FindStatsController(CurrentParticipant);
+            stats?.RefillMana();
+        }
+
+        private static PlayerStatsController FindStatsController(GameObject participant)
+        {
+            if (participant == null)
+                return null;
+
+            return participant.GetComponent<PlayerStatsController>() ??
+                   participant.GetComponentInChildren<PlayerStatsController>() ??
+                   participant.GetComponentInParent<PlayerStatsController>();
         }
 
         private void StopCountdownRoutine()

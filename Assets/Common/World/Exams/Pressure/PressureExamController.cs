@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Common.Progress;
+using Player.Statistics;
 using UI.Player.Exams;
 using UnityEngine;
 using UnityEngine.Events;
@@ -76,6 +77,7 @@ namespace Common.World.Exams.Pressure
             ResetCounters(notifyUi: false);
 
             CurrentParticipant = playerObject;
+            RefillParticipantMana();
 
             SetState(ExamState.Preparing);
             examUI?.HandleExamPreparing(this);
@@ -273,6 +275,22 @@ namespace Common.World.Exams.Pressure
             examUI?.HandleHitCountChanged(currentHits);
             examUI?.HandleMissCountChanged(currentMisses, maxMisses);
             examUI?.HandleWaveAdvanced(0, totalWaves);
+        }
+
+        private void RefillParticipantMana()
+        {
+            var stats = FindStatsController(CurrentParticipant);
+            stats?.RefillMana();
+        }
+
+        private static StatsController FindStatsController(GameObject participant)
+        {
+            if (participant == null)
+                return null;
+
+            return participant.GetComponent<StatsController>() ??
+                   participant.GetComponentInChildren<StatsController>() ??
+                   participant.GetComponentInParent<StatsController>();
         }
 
         private void SetState(ExamState state)

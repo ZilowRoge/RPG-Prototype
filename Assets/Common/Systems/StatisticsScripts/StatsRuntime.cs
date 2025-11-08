@@ -35,6 +35,11 @@ namespace Systems.Statistics
             currentStamina = Mathf.Min(currentStamina, maxStamina);
         }
 
+        public void RestoreManaToMax(float maxMana)
+        {
+            currentMana = Mathf.Max(0f, maxMana);
+        }
+
         public bool UseMana(float amount)
         {
             if (amount <= 0f)
