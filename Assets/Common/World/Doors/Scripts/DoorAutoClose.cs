@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using Player; // For Interactor detection
+using Player.Save;
 
 namespace Common.Systems.SymbolTraining
 {
@@ -13,18 +14,36 @@ namespace Common.Systems.SymbolTraining
         [SerializeField] private float delaySeconds = 0.5f;
         [Tooltip("Close only once. If false, closes every time player enters.")]
         [SerializeField] private bool oneShot = true;
+        [Tooltip("Ignore player triggers for a short time right after a save load to avoid instant closing.")]
+        [SerializeField] private float ignoreSecondsAfterLoad = 0.4f;
 
         private bool triggered;
+        private float allowTriggerTime;
 
         private void Awake()
         {
             var col = GetComponent<Collider>();
             if (col != null && !col.isTrigger)
                 col.isTrigger = true;
+
+            allowTriggerTime = Time.time;
+        }
+
+        private void OnEnable()
+        {
+            Player.Save.SaveState.PlayerLoadedFromSave += OnPlayerLoadedFromSave;
+        }
+
+        private void OnDisable()
+        {
+            Player.Save.SaveState.PlayerLoadedFromSave -= OnPlayerLoadedFromSave;
         }
 
         private void OnTriggerEnter(Collider other)
         {
+            if (Time.time < allowTriggerTime)
+                return;
+
             if (!IsPlayer(other)) return;
             if (oneShot && triggered) return;
             triggered = true;
@@ -49,6 +68,7 @@ namespace Common.Systems.SymbolTraining
                 Debug.LogWarning("[DoorAutoClose] Missing DoorController.", this);
                 return;
             }
+            Debug.Log("[DoorAutoClose] Trying to close the door");
             door.TryClose();
         }
 
@@ -58,6 +78,13 @@ namespace Common.Systems.SymbolTraining
             // Prefer Interactor component, fallback to name check used elsewhere in repo
             if (c.GetComponentInParent<Interactor>() != null) return true;
             return string.Equals(c.gameObject.name, "Player");
+        }
+
+        private void OnPlayerLoadedFromSave()
+        {
+            allowTriggerTime = Time.time + Mathf.Max(0f, ignoreSecondsAfterLoad);
+            triggered = false;
+            StopAllCoroutines();
         }
     }
 }

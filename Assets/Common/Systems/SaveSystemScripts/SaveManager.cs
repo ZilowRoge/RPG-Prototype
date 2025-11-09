@@ -3,8 +3,6 @@ using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using Systems.SaveSystem.SaveData;
-using Systems.Statistics;
-using Systems.Jobs;
 
 namespace Systems.SaveSystem
 {
@@ -16,7 +14,8 @@ namespace Systems.SaveSystem
 
         private string savePath;
         private GameData gameData = new GameData();
-        private List<ISaveable> saveables = new List<ISaveable>();
+        private readonly List<ISaveable> saveables = new List<ISaveable>();
+        private bool hasLoadedFromDisk;
 
         public void Awake()
         {
@@ -32,9 +31,13 @@ namespace Systems.SaveSystem
         }
 
         public void Register(ISaveable saveable) {
-            if (!saveables.Contains(saveable)) {
-                saveables.Add(saveable);
-            }
+            if (saveable == null || saveables.Contains(saveable))
+                return;
+
+            saveables.Add(saveable);
+
+            if (hasLoadedFromDisk && gameData != null)
+                saveable.OnLoad(gameData);
         }
 
         public void Unregister(ISaveable saveable) {
@@ -43,10 +46,13 @@ namespace Systems.SaveSystem
 
         public void SaveGame()
         {
-            foreach(var toSave in saveables)
+            var snapshot = new GameData();
+            foreach (var toSave in saveables)
             {
-                toSave.OnSave(gameData);
+                toSave?.OnSave(snapshot);
             }
+
+            gameData = snapshot;
             string json = JsonUtility.ToJson(gameData, true);
             File.WriteAllText(savePath, json);
         }
@@ -56,13 +62,14 @@ namespace Systems.SaveSystem
             if (!File.Exists(savePath))
                 return;
 
-            foreach(var toLoad in saveables)
-            {
-                toLoad.OnLoad(gameData);
-            }
-
             string json = File.ReadAllText(savePath);
-            gameData = JsonUtility.FromJson<GameData>(json);
+            gameData = JsonUtility.FromJson<GameData>(json) ?? new GameData();
+            hasLoadedFromDisk = true;
+
+            foreach (var toLoad in saveables)
+            {
+                toLoad?.OnLoad(gameData);
+            }
         }
     }
 }

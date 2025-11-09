@@ -1,5 +1,6 @@
 using Common.World.Exams.Combat;
 using Common.World.Exams.Pressure;
+using Player.Save;
 using UnityEngine;
 
 namespace Common.World.Exams
@@ -39,6 +40,7 @@ namespace Common.World.Exams
             if (pressureExam != null)
                 pressureExam.StateChanged += OnPressureExamStateChanged;
 
+            SaveState.PlayerLoadedFromSave += OnSaveLoaded;
             UpdateActiveStations();
         }
 
@@ -51,6 +53,8 @@ namespace Common.World.Exams
         {
             if (pressureExam != null)
                 pressureExam.StateChanged -= OnPressureExamStateChanged;
+
+            SaveState.PlayerLoadedFromSave -= OnSaveLoaded;
         }
 
         private void OnPressureExamStateChanged(PressureExamController.ExamState state)
@@ -87,6 +91,18 @@ namespace Common.World.Exams
         {
             SetActive(pressureExamStationRoot, false);
             SetActive(combatExamStationRoot, true);
+        }
+
+        private void OnSaveLoaded()
+        {
+            ResetExam(pressureExam);
+            ResetExam(combatExam);
+            UpdateActiveStations();
+        }
+
+        private static void ResetExam(IExamResettable exam)
+        {
+            exam?.ResetExamToIdle();
         }
 
         private static void SetActive(GameObject target, bool active)

@@ -13,7 +13,7 @@ namespace Common.World.Exams.Pressure
     /// Coordinates the pressure exam: spawning dummies, tracking misses and signalling results.
     /// </summary>
     [AddComponentMenu("Game/World/Exams/Pressure/Pressure Exam Controller")]
-    public class PressureExamController : MonoBehaviour
+    public class PressureExamController : MonoBehaviour, IExamResettable
     {
         public enum ExamState
         {
@@ -317,6 +317,26 @@ namespace Common.World.Exams.Pressure
             {
                 StopCoroutine(postRoutine);
                 postRoutine = null;
+            }
+        }
+
+        public void ResetExamToIdle()
+        {
+            bool wasRunning = State == ExamState.Preparing || State == ExamState.Running;
+
+            StopExamRoutine();
+            StopPostRoutine();
+            shieldSpawner?.AbortAll();
+            liveDummies.Clear();
+            CurrentParticipant = null;
+
+            HasCompleted = false;
+            SetState(ExamState.Idle);
+            ResetCounters();
+
+            if (wasRunning)
+            {
+                examUI?.HandleExamAborted(this);
             }
         }
     }

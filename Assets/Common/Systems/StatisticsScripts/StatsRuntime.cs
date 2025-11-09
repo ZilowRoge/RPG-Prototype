@@ -28,6 +28,19 @@ namespace Systems.Statistics
             Initialize(maxHealth, maxMana, maxStamina);
         }
 
+        public void OverrideResources(
+            float health,
+            float mana,
+            float stamina,
+            float maxHealth,
+            float maxMana,
+            float maxStamina)
+        {
+            currentHealth = Clamp(health, maxHealth);
+            currentMana = Clamp(mana, maxMana);
+            currentStamina = Clamp(stamina, maxStamina);
+        }
+
         public void ClampToMax(float maxHealth, float maxMana, float maxStamina)
         {
             currentHealth = Mathf.Min(currentHealth, maxHealth);
@@ -101,6 +114,13 @@ namespace Systems.Statistics
                 return;
 
             current = Mathf.Min(max, current + ratePerSecond * deltaTime);
+        }
+
+        private static float Clamp(float value, float max)
+        {
+            if (max <= 0f)
+                return Mathf.Max(0f, value);
+            return Mathf.Clamp(value, 0f, max);
         }
     }
 }

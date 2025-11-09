@@ -41,6 +41,20 @@ namespace Quests
 
         public IReadOnlyList<QuestProgress> ActiveQuests => activeQuests;
 
+        public void OverwriteActiveQuests(IEnumerable<QuestProgress> restored)
+        {
+            activeQuests.Clear();
+            if (restored == null)
+                return;
+
+            foreach (var qp in restored)
+            {
+                var clone = CloneProgress(qp);
+                if (clone != null)
+                    activeQuests.Add(clone);
+            }
+        }
+
         public bool StartQuest(string questId)
         {
             var asset = FindAsset(questId);
@@ -241,6 +255,56 @@ namespace Quests
                 return false;
 
             return string.Equals(expected, candidate, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static QuestProgress CloneProgress(QuestProgress source)
+        {
+            if (source == null || string.IsNullOrEmpty(source.questId))
+                return null;
+
+            var clone = new QuestProgress
+            {
+                questId = source.questId,
+                stageIndex = source.stageIndex,
+                state = source.state,
+                stages = new List<StageProgress>()
+            };
+
+            if (source.stages == null)
+                return clone;
+
+            foreach (var stage in source.stages)
+            {
+                if (stage == null)
+                    continue;
+
+                var stageClone = new StageProgress
+                {
+                    stageId = stage.stageId,
+                    completed = stage.completed,
+                    objectives = new List<ObjectiveProgress>()
+                };
+
+                if (stage.objectives != null)
+                {
+                    foreach (var objective in stage.objectives)
+                    {
+                        if (objective == null)
+                            continue;
+
+                        stageClone.objectives.Add(new ObjectiveProgress
+                        {
+                            objectiveId = objective.objectiveId,
+                            currentCount = objective.currentCount,
+                            completed = objective.completed
+                        });
+                    }
+                }
+
+                clone.stages.Add(stageClone);
+            }
+
+            return clone;
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Common.World.Exams.Combat
     /// Coordinates combat exams that spawn enemy waves after the player activates a switch.
     /// </summary>
     [AddComponentMenu("Game/World/Exams/Combat/Combat Exam Controller")]
-    public class CombatExamController : MonoBehaviour
+    public class CombatExamController : MonoBehaviour, IExamResettable
     {
         public enum ExamState
         {
@@ -52,6 +52,7 @@ namespace Common.World.Exams.Combat
         private Coroutine countdownRoutine;
         private Coroutine idleTransitionRoutine;
         private int totalEnemiesToDefeat;
+
 
         public bool TryBeginExam(GameObject playerObject)
         {
@@ -417,6 +418,17 @@ namespace Common.World.Exams.Combat
 
             State = state;
             StateChanged?.Invoke(State);
+        }
+
+        public void ResetExamToIdle()
+        {
+            StopCountdownRoutine();
+            StopIdleTransitionRoutine();
+            ResetExamState(destroyEnemies: true);
+            CurrentParticipant = null;
+
+            HasCompleted = false;
+            SetState(ExamState.Idle);
         }
     }
 }

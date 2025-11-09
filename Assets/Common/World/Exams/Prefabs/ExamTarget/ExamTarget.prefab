@@ -184,7 +184,7 @@ GameObject:
   - component: {fileID: 3238549774183465350}
   - component: {fileID: 3003684208662263764}
   - component: {fileID: 7846577437814252611}
-  - component: {fileID: 6373381172838834311}
+  - component: {fileID: -8157049674482428524}
   m_Layer: 7
   m_Name: ExamTarget
   m_TagString: Untagged
@@ -261,7 +261,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetRoot: {fileID: 275624097499938791}
---- !u!114 &6373381172838834311
+--- !u!114 &-8157049674482428524
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -270,10 +270,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 4353350134961819920}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 337e56d5dfc371c46aa935c020ecfad9, type: 3}
+  m_Script: {fileID: 11500000, guid: 6c47aa28457ceda4eab549b230befdad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  statistics: {fileID: 11400000, guid: c151422564e63c54497cb2db85cf455a, type: 2}
+  statsConfig: {fileID: 11400000, guid: 515d80196bb24b74f8c04cb605fbcbe7, type: 2}
+  runtime:
+    currentHealth: 0
+    currentMana: 0
+    currentStamina: 0
+  navMeshKnockbackResumeDelay: 0
+  deathDestroyDelay: 0
 --- !u!1 &7648676611016525407
 GameObject:
   m_ObjectHideFlags: 0

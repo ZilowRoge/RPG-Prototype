@@ -39,7 +39,7 @@ namespace Player.FightSystem.Magic
                 defaultCombatConsumer = defaultCombatConsumerBehaviour as ISymbolConsumer;
                 if (defaultCombatConsumer == null)
                 {
-                    Debug.LogError($"[SymbolInputManager] Default combat consumer does not implement ISymbolConsumer: {defaultCombatConsumerBehaviour.GetType().Name}", this);
+                    // Debug.LogError($"[SymbolInputManager] Default combat consumer does not implement ISymbolConsumer: {defaultCombatConsumerBehaviour.GetType().Name}", this);
                 }
             }
 
@@ -92,11 +92,11 @@ namespace Player.FightSystem.Magic
 
             if (symbolDrawUI == null)
             {
-                Debug.LogWarning("[SymbolInputManager] SymbolDrawUI is not assigned.", this);
+                // Debug.LogWarning("[SymbolInputManager] SymbolDrawUI is not assigned.", this);
                 ApplyDrawingCameraSensitivity(false);
                 return;
             }
-            Debug.Log("Start drawing");
+            // Debug.Log("Start drawing")
             CancelPendingFinish();
             isDrawing = true;
             ApplyDrawingCameraSensitivity(true);
@@ -104,7 +104,7 @@ namespace Player.FightSystem.Magic
             symbolDrawUI.ClearTexture();
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
-            Debug.Log("Drawing mode enabled");
+            // Debug.Log("Drawing mode enabled");
         }
 
         private void FinishDrawing(bool notifyConsumer = true)
@@ -153,7 +153,7 @@ namespace Player.FightSystem.Magic
             if (!isDrawing)
                 return;
 
-            Debug.Log("[SymbolInputManager] Fire input started. Canceling continuation window.");
+            // Debug.Log("[SymbolInputManager] Fire input started. Canceling continuation window.");
             CancelPendingFinish();
         }
 
@@ -170,7 +170,7 @@ namespace Player.FightSystem.Magic
 
             if (probability < .8f)
             {
-                Debug.LogWarning("Symbol not recognized.");
+                // Debug.LogWarning("Symbol not recognized.");
                 return;
             }
             activeConsumer?.OnSymbolRecognized(symbolId.ToString());
@@ -192,7 +192,7 @@ namespace Player.FightSystem.Magic
 
         private IEnumerator ContinuationWindowRoutine()
         {
-            Debug.Log($"[SymbolInputManager] Continuation window started ({continuationWindow:F2}s).");
+            // Debug.Log($"[SymbolInputManager] Continuation window started ({continuationWindow:F2}s).");
             float elapsed = 0f;
             while (elapsed < continuationWindow)
             {
@@ -201,7 +201,7 @@ namespace Player.FightSystem.Magic
             }
 
             pendingFinishRoutine = null;
-            Debug.Log("[SymbolInputManager] Continuation window expired. Finalizing symbol sequence.");
+            // Debug.Log("[SymbolInputManager] Continuation window expired. Finalizing symbol sequence.");
             activeConsumer?.OnSymbolSequenceCommitted();
         }
 

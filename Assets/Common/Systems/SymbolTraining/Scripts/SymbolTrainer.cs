@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Player.FightSystem.Magic;
 using Player.Progress;
 using Player.Events;
+using Player.Save;
 using UnityEngine;
 
 namespace Common.Systems.SymbolTraining
@@ -57,6 +58,9 @@ namespace Common.Systems.SymbolTraining
 
         private void OnFlagChanged(string key, bool value)
         {
+            if (Player.Save.SaveState.IsRestoring)
+                return;
+
             if (!value || string.IsNullOrEmpty(key))
                 return;
 

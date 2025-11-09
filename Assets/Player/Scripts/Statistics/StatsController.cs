@@ -20,6 +20,8 @@ namespace Player.Statistics
         [SerializeField, Tooltip("Optional override for the CharacterController used to apply knockback.")]
         private CharacterController characterController;
         private bool loggedMissingEventHub;
+        private bool isDead;
+        public bool IsDead => isDead;
 
         public StatsData Statistics => statistics;
 
@@ -59,6 +61,7 @@ namespace Player.Statistics
             EnsureEventHub();
 
             runtime.Initialize(maxHealth, maxMana, maxStamina);
+            isDead = false;
         }
 
         private void OnEnable()
@@ -79,16 +82,28 @@ namespace Player.Statistics
 
         public bool UseMana(float amount)
         {
+            if (isDead)
+                return false;
+
             return runtime.UseMana(amount);
         }
 
         public void ReceiveDamage(float amount, Transform source = null)
         {
+            if (isDead)
+                return;
+
             runtime.ReceiveDamage(amount);
+
+            if (runtime.CurrentHealth <= 0f)
+                HandleDeath();
         }
 
         public void ApplyKnockback(Vector3 direction, float force)
         {
+            if (isDead)
+                return;
+
             if (force <= 0f)
                 return;
 
@@ -116,6 +131,9 @@ namespace Player.Statistics
 
         public bool TryConsumeStamina(float amount)
         {
+            if (isDead)
+                return false;
+
             return runtime.TryConsumeStamina(amount);
         }
 
@@ -129,13 +147,26 @@ namespace Player.Statistics
             runtime.RestoreManaToMax(maxMana);
         }
 
+        public void OverrideResources(float health, float mana, float stamina)
+        {
+            runtime.OverrideResources(health, mana, stamina, maxHealth, maxMana, maxStamina);
+            if (runtime.CurrentHealth > 0f)
+                isDead = false;
+        }
+
         private void OnPerkResourcesUpdated()
         {
+            if (isDead)
+                return;
+
             runtime.ClampToMax(maxHealth, maxMana, maxStamina);
         }
 
         private void Update()
         {
+            if (isDead)
+                return;
+
             float delta = Time.deltaTime;
             if (delta <= 0f || statistics == null)
                 return;
@@ -175,10 +206,7 @@ namespace Player.Statistics
             playerEvents = GetComponent<PlayerEventHub>() ?? GetComponentInParent<PlayerEventHub>() ?? FindFirstObjectByType<PlayerEventHub>();
 
             if (playerEvents == null && !loggedMissingEventHub)
-            {
-                Debug.LogWarning("[StatsController] PlayerEventHub is not assigned. Perk resource updates will not be received.");
-                loggedMissingEventHub = true;
-            }
+                WarnMissingEventHub();
         }
 
         private IEnumerator ApplyControllerKnockback(Vector3 direction, float force)
@@ -202,6 +230,32 @@ namespace Player.Statistics
             }
 
             knockbackRoutine = null;
+        }
+
+        private void HandleDeath()
+        {
+            if (isDead)
+                return;
+
+            isDead = true;
+
+            if (playerEvents != null)
+            {
+                playerEvents.NotifyPlayerDied();
+            }
+            else
+            {
+                WarnMissingEventHub();
+            }
+        }
+
+        private void WarnMissingEventHub()
+        {
+            if (loggedMissingEventHub)
+                return;
+
+            Debug.LogWarning("[StatsController] PlayerEventHub is not assigned. Perk resource updates and death notifications will not be broadcast.");
+            loggedMissingEventHub = true;
         }
     }
 }

@@ -10,22 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 793d9a932e43ce943be60d6775656cf1, type: 3}
-  m_Name: PressureExamConfig
+  m_Name: PressureExamConfigFast
   m_EditorClassIdentifier: 
   introDelay: 1
   restartDelay: 1.5
   completionHoldDuration: 1
   maxMisses: 3
   waves:
-  - dummyCount: 3
-    spawnInterval: 3
-    dummySpeed: 1
-    delayAfterWave: 2
-  - dummyCount: 5
-    spawnInterval: 2
-    dummySpeed: 2
-    delayAfterWave: 2
-  - dummyCount: 7
-    spawnInterval: 1.5
-    dummySpeed: 4
+  - dummyCount: 1
+    spawnInterval: 0
+    dummySpeed: 5
     delayAfterWave: 0

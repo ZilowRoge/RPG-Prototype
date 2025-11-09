@@ -4,6 +4,7 @@ using Player.Interfaces;
 using Quests;
 using System.Collections.Generic;
 using Systems.Jobs;
+using Systems.SaveSystem.SaveData;
 using Player.Events;
 
 namespace Player.Progress
@@ -31,9 +32,12 @@ namespace Player.Progress
                 return playerEvents;
             }
         }
+
+        public QuestManager QuestManager => questManager;
         
         private void Start() {
-            AddJob("job_wizard");
+            // AddJob("job_wizard");
+            Systems.SaveSystem.SaveManager.Instance.LoadGame();
         }
         
         public bool HasJob(string jobId)
@@ -54,6 +58,35 @@ namespace Player.Progress
         public JobInstance GetJob(string jobId) => jobs.GetJob(jobId);
 
         public IEnumerable<JobInstance> GetAllJobs() => jobs.GetAllJobs();
+
+        public void ApplyJobsFromSnapshot(PlayerStatisticsData data, bool notify = true)
+        {
+            if (data == null)
+                return;
+
+            if (jobDatabase == null)
+            {
+                Debug.LogWarning("[ProgressController] JobDatabase is not assigned. Unable to restore jobs from save.");
+                return;
+            }
+
+            data.ApplyJobsTo(jobs, jobDatabase.GetById, OnAnyJobAdvanced);
+
+            if (!notify)
+                return;
+
+            foreach (var job in jobs.GetAllJobs())
+            {
+                NotifyJobExperienceChanged(job);
+            }
+        }
+
+        public void OverrideAvailableExperience(int amount, bool notify = true)
+        {
+            availableExperience = Mathf.Max(0, amount);
+            if (notify)
+                NotifyAvailableExperienceChanged();
+        }
 
         public void GrantExperience(int amount)
         {
@@ -148,6 +181,48 @@ namespace Player.Progress
         }
 
         public int KnownSymbolCount => symbolProgress != null ? symbolProgress.LearnedSymbolCount : 0;
+
+        public List<int> ExportKnownSymbols()
+        {
+            return symbolProgress != null
+                ? new List<int>(symbolProgress.GetLearnedSymbols())
+                : new List<int>();
+        }
+
+        public void OverwriteKnownSymbols(IEnumerable<int> symbols)
+        {
+            if (symbolProgress == null)
+                return;
+
+            symbolProgress.OverwriteLearnedSymbols(symbols);
+            EvaluateQuests();
+        }
+
+        public IEnumerable<KeyValuePair<string, bool>> ExportFlags()
+        {
+            foreach (var entry in flags)
+                yield return entry;
+        }
+
+        public void OverwriteFlags(IEnumerable<KeyValuePair<string, bool>> entries, bool notify = true)
+        {
+            flags.Clear();
+            if (entries == null)
+                return;
+
+            foreach (var entry in entries)
+            {
+                if (string.IsNullOrEmpty(entry.Key))
+                    continue;
+
+                flags[entry.Key] = entry.Value;
+                if (notify)
+                    NotifyFlagChanged(entry.Key, entry.Value);
+            }
+
+            if (notify)
+                EvaluateQuests();
+        }
 
         public bool GetFlag(string key)
         {

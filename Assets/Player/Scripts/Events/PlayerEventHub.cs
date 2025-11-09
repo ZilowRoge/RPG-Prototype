@@ -16,6 +16,7 @@ namespace Player.Events
         public event Action<string, bool> FlagChanged;
 
         public event Action PerkResourcesUpdated;
+        public event Action PlayerDied;
         public event Action<PerkIntervalTriggerEffect> PerkIntervalPrimed;
         public event Action<PerkIntervalTriggerEffect, PerkEffectBase> PerkIntervalTriggered;
 
@@ -36,5 +37,8 @@ namespace Player.Events
 
         public void NotifyPerkIntervalTriggered(PerkIntervalTriggerEffect effect, PerkEffectBase reward) =>
             PerkIntervalTriggered?.Invoke(effect, reward);
+
+        public void NotifyPlayerDied() =>
+            PlayerDied?.Invoke();
     }
 }
