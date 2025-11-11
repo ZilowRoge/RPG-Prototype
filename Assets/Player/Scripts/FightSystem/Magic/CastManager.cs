@@ -6,6 +6,7 @@ using Player.Statistics;
 using Spells;
 using Player.Targeting;
 using Systems.Perks;
+using Systems.Debugging;
 
 namespace Player.FightSystem.Magic
 {
@@ -16,6 +17,7 @@ namespace Player.FightSystem.Magic
         [SerializeField] private Transform target;
         [SerializeField] private TargetSelector targetSelector;
         [SerializeField] private StatsController statsController;
+        [SerializeField] private ComponentLogger logger = new ComponentLogger();
 
         private readonly List<int> currentSymbols = new();
         private Spell preparedSpell = null;
@@ -25,13 +27,14 @@ namespace Player.FightSystem.Magic
 
         private void Awake()
         {
+            InitializeLogger();
             if (skillDatabase != null)
             {
                 spellService = new SpellCastingService(skillDatabase);
             }
             else
             {
-                Debug.LogWarning("[CastManager] SkillDatabase is not assigned.", this);
+                logger.LogWarning(ComponentLogger.LogFlag.Events, "SkillDatabase is not assigned.");
             }
 
             if (statsController == null)
@@ -39,7 +42,7 @@ namespace Player.FightSystem.Magic
                 statsController = GetComponent<StatsController>();
                 if (statsController == null)
                 {
-                    Debug.LogWarning("[CastManager] StatsController is missing.", this);
+                    logger.LogWarning(ComponentLogger.LogFlag.Events, "StatsController is missing.");
                 }
             }
 
@@ -57,11 +60,11 @@ namespace Player.FightSystem.Magic
             if (int.TryParse(symbolId, out int id))
             {
                 currentSymbols.Add(id);
-                Debug.Log($"[CastManager] Added symbol: {id}");
+                logger.Log(ComponentLogger.LogFlag.Events, "Added symbol: {0}", id);
             }
             else
             {
-                Debug.LogWarning($"Invalid symbolId: {symbolId}");
+                logger.LogWarning(ComponentLogger.LogFlag.Events, "Invalid symbolId: {0}", symbolId);
             }
         }
 
@@ -69,13 +72,14 @@ namespace Player.FightSystem.Magic
         {
             if (currentSymbols.Count == 0)
             {
-                Debug.Log("[CastManager] No symbols drawn.");
+                logger.Log(ComponentLogger.LogFlag.Events, "No symbols drawn.");
                 return;
             }
 
             if (spellService == null)
             {
-                Debug.LogWarning("[CastManager] Spell service is not initialized.", this);
+                logger.LogWarning(ComponentLogger.LogFlag.Events,
+                    "Spell service is not initialized.");
                 currentSymbols.Clear();
                 preparedSpell = null;
                 return;
@@ -93,24 +97,30 @@ namespace Player.FightSystem.Magic
             {
                 if (spell.CastOnActivation)
                 {
-                    Debug.Log($"[CastManager] Spell '{spell.name}' casts on activation. Executing immediately.");
+                    logger.Log(ComponentLogger.LogFlag.Events,
+                        "Spell '{0}' casts on activation. Executing immediately.",
+                        spell.name);
                     ExecuteSpellCast(spell, casterData);
                     preparedSpell = null;
                 }
                 else
                 {
                     preparedSpell = spell;
-                    Debug.Log($"[CastManager] Prepared spell: {preparedSpell.name}");
+                    logger.Log(ComponentLogger.LogFlag.Events,
+                        "Prepared spell: {0}",
+                        preparedSpell.name);
                 }
             }
             else if (result == CastResult.InvalidSymbol)
             {
-                Debug.Log("[CastManager] Unknown spell.");
+                logger.Log(ComponentLogger.LogFlag.Events, "Unknown spell.");
                 preparedSpell = null;
             }
             else
             {
-                Debug.LogWarning($"[CastManager] Unable to prepare spell ({result}).");
+                logger.LogWarning(ComponentLogger.LogFlag.Events,
+                    "Unable to prepare spell ({0}).",
+                    result);
                 preparedSpell = null;
             }
 
@@ -158,7 +168,8 @@ namespace Player.FightSystem.Magic
                 statsController = GetComponent<StatsController>();
                 if (statsController == null)
                 {
-                    Debug.LogWarning("[CastManager] StatsController is missing.", this);
+                    logger.LogWarning(ComponentLogger.LogFlag.Events,
+                        "StatsController is missing.");
                     casterData = null;
                     return false;
                 }
@@ -166,7 +177,8 @@ namespace Player.FightSystem.Magic
 
             if (castOrigin == null)
             {
-                Debug.LogWarning("[CastManager] Cast origin is not assigned.", this);
+                logger.LogWarning(ComponentLogger.LogFlag.Events,
+                    "Cast origin is not assigned.");
                 casterData = null;
                 return false;
             }
@@ -186,7 +198,9 @@ namespace Player.FightSystem.Magic
                     effectiveTarget = targetSelector.CurrentTarget;
                 }
             }
-            Debug.Log($"[CastManager] Target selected: {effectiveTarget}.", this);
+            logger.Log(ComponentLogger.LogFlag.Events,
+                "Target selected: {0}.",
+                effectiveTarget ? effectiveTarget.name : "null");
             casterData = new CasterData(statsController, castOrigin, effectiveTarget, perkRuntime);
             return true;
         }
@@ -198,7 +212,8 @@ namespace Player.FightSystem.Magic
 
             if (spellService == null)
             {
-                Debug.LogWarning("[CastManager] Spell service is not initialized.", this);
+                logger.LogWarning(ComponentLogger.LogFlag.Events,
+                    "Spell service is not initialized.");
                 return;
             }
 
@@ -209,7 +224,9 @@ namespace Player.FightSystem.Magic
             var result = spellService.Cast(spell, casterData);
             if (result == CastResult.Success)
             {
-                Debug.Log($"Casting {spell.name}!");
+                logger.Log(ComponentLogger.LogFlag.Events,
+                    "Casting {0}!",
+                    spell.name);
 
                 if (triggeredRewards != null)
                 {
@@ -218,15 +235,31 @@ namespace Player.FightSystem.Magic
                         var reward = pair.reward;
                         if (reward != null)
                         {
-                            Debug.Log($"[CastManager] Perk triggered: {reward.GetEffectString()}");
+                            logger.Log(ComponentLogger.LogFlag.Events,
+                                "Perk triggered: {0}",
+                                reward.GetEffectString());
                         }
                     }
                 }
             }
             else
             {
-                Debug.LogWarning($"[CastManager] Spell cast failed: {result}");
+                logger.LogWarning(ComponentLogger.LogFlag.Events,
+                    "Spell cast failed: {0}",
+                    result);
             }
+        }
+
+        private void OnValidate()
+        {
+            InitializeLogger();
+        }
+
+        private void InitializeLogger()
+        {
+            if (logger == null)
+                logger = new ComponentLogger();
+            logger.BindContext(this);
         }
     }
 }

@@ -16,14 +16,14 @@ namespace Enemies.Controllers
         {
             if (attack == null)
             {
-                EnemyDebug.LogWarning("[AttackController] TryUseAttack called with null attack.", this);
+                Debug.LogWarning("[AttackController] TryUseAttack called with null attack.", this);
                 return false;
             }
 
             float currentTime = Time.time;
             if (!runtimeState.IsReady(attack, currentTime))
             {
-                EnemyDebug.Log($"[AttackController] Attack '{attack.name}' not ready at {currentTime}.", this);
+                Debug.Log($"[AttackController] Attack '{attack.name}' not ready at {currentTime}.", this);
                 return false;
             }
 
@@ -33,7 +33,7 @@ namespace Enemies.Controllers
                 attack,
                 Time.deltaTime);
 
-            EnemyDebug.Log($"[AttackController] Executing '{attack.name}' on {(target != null ? target.name : "null")} (cooldown modifier {cooldownModifier}).", this);
+            Debug.Log($"[AttackController] Executing '{attack.name}' on {(target != null ? target.name : "null")} (cooldown modifier {cooldownModifier}).", this);
             attack.Execute(in context);
             runtimeState.StartCooldown(attack, currentTime, cooldownModifier);
             return true;

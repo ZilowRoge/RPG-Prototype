@@ -42,7 +42,7 @@ namespace Enemies.Combat
         {
             if (behaviour == null)
             {
-                EnemyDebug.LogWarning($"[AttackDefinition] Missing behaviour on {name}");
+                Debug.LogWarning($"[AttackDefinition] Missing behaviour on {name}");
                 return;
             }
 

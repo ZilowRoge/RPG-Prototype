@@ -23,7 +23,7 @@ namespace Enemies.TrainingConstruct
 
             if (triggerCollider == null)
             {
-                EnemyDebug.LogError("[ChargeHitbox] Charge hitbox requires a collider.", this);
+                Debug.LogError("[ChargeHitbox] Charge hitbox requires a collider.", this);
                 return;
             }
 
@@ -61,7 +61,7 @@ namespace Enemies.TrainingConstruct
             if (other.transform == transform.root)
                 return;
 
-            EnemyDebug.Log("[ChargeHitbox] hit player", this);
+            Debug.Log($"[ChargeHitbox] Hit {other.name}", this);
             hasHit = true;
             Hit?.Invoke(other);
         }

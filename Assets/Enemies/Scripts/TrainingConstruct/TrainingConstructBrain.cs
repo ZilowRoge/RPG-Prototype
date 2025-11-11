@@ -2,6 +2,7 @@ using System.Collections;
 using Enemies.Combat;
 using Enemies.Controllers;
 using Enemies.Config;
+using Systems.Debugging;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -32,6 +33,7 @@ namespace Enemies.TrainingConstruct
         [SerializeField] private AttackController attackController;
         [SerializeField] private NavMeshAgent navMeshAgent;
         [SerializeField] private ChargeHitbox chargeHitbox;
+        [SerializeField] private ComponentLogger logger = new ComponentLogger();
         [Header("Damage Awareness")]
         [SerializeField, Tooltip("When true, any incoming damage will force the construct to detect and chase the attacker.")]
         private bool aggroOnDamage = true;
@@ -66,6 +68,7 @@ namespace Enemies.TrainingConstruct
 
         private void Awake()
         {
+            InitializeLogger();
             if (navMeshAgent == null)
                 navMeshAgent = GetComponent<NavMeshAgent>();
 
@@ -75,11 +78,11 @@ namespace Enemies.TrainingConstruct
             if (chargeHitbox == null)
                 chargeHitbox = GetComponentInChildren<ChargeHitbox>(true);
             if (chargeHitbox == null)
-                EnemyDebug.LogWarning("[TrainingConstructBrain] ChargeHitbox is not assigned.", this);
+                logger.LogWarning(ComponentLogger.LogFlag.Events, "ChargeHitbox is not assigned.");
 
             statsController = GetComponent<StatsController>();
             if (statsController == null)
-                EnemyDebug.LogWarning("[TrainingConstructBrain] StatsController is not assigned.", this);
+                logger.LogWarning(ComponentLogger.LogFlag.Events, "StatsController is not assigned.");
             damageAggroDuration = Mathf.Max(0f, damageAggroDuration);
 
             if (playerTarget == null)
@@ -198,7 +201,7 @@ namespace Enemies.TrainingConstruct
             SetAgentStopped(false);
 
             float distance = Vector3.Distance(transform.position, playerTarget.position);
-            EnemyDebug.Log($"[TrainingConstructBrain] Distance to player: {distance:F2}", this);
+                logger.Log(ComponentLogger.LogFlag.Events, "Distance to player: {0:F2}", distance);
             Debug.DrawLine(transform.position, playerTarget.position, Color.green);
             if (distance > preferredMaxDistance)
             {
@@ -235,14 +238,22 @@ namespace Enemies.TrainingConstruct
                     continue;
 
                 bool withinRange = rule.IsDistanceSatisfied(distance);
-                EnemyDebug.Log($"[TrainingConstructBrain] Checking attack '{attack.name}': distance {distance:F2}, required {rule.MinDistance}-{rule.MaxDistance}, in range = {withinRange}", this);
+                logger.Log(ComponentLogger.LogFlag.Events,
+                    "Checking attack '{0}': distance {1:F2}, required {2}-{3}, in range = {4}",
+                    attack.name,
+                    distance,
+                    rule.MinDistance,
+                    rule.MaxDistance,
+                    withinRange);
 
                 if (!withinRange)
                     continue;
 
                 if (!IsAttackReady(attack))
                 {
-                    EnemyDebug.Log($"[TrainingConstructBrain] Attack '{attack.name}' still on cooldown.", this);
+                    logger.Log(ComponentLogger.LogFlag.Events,
+                        "Attack '{0}' still on cooldown.",
+                        attack.name);
                     continue;
                 }
 
@@ -299,7 +310,7 @@ namespace Enemies.TrainingConstruct
 
             ExitState(currentState);
             currentState = newState;
-            EnemyDebug.Log($"[TrainingConstructBrain] Switching state to {currentState}", this);
+            logger.Log(ComponentLogger.LogFlag.StateChange, "Switching state to {0}", currentState);
             EnterState(newState);
         }
 
@@ -476,7 +487,8 @@ namespace Enemies.TrainingConstruct
             }
             else
             {
-                EnemyDebug.LogWarning("[TrainingConstructBrain] Charge hitbox is not assigned; charge will rely on physics overlap.", this);
+                logger.LogWarning(ComponentLogger.LogFlag.Events,
+                    "Charge hitbox is not assigned; charge will rely on physics overlap.");
             }
 
             if (agentInitiallyEnabled)
@@ -595,11 +607,15 @@ namespace Enemies.TrainingConstruct
                 if (targetHint.GetComponent<Player.Statistics.StatsController>() != null)
                 {
                     float hitDistance = Vector3.Distance(transform.position, targetHint.position);
-                    EnemyDebug.Log($"[TrainingConstructBrain] Charge hit player at distance {hitDistance:F2}", this);
+                    logger.Log(ComponentLogger.LogFlag.Events,
+                        "Charge hit player at distance {0:F2}",
+                        hitDistance);
                 }
                 else
                 {
-                    EnemyDebug.Log($"[TrainingConstructBrain] Charge hit {targetHint.name}", this);
+                    logger.Log(ComponentLogger.LogFlag.Events,
+                        "Charge hit {0}",
+                        targetHint.name);
                 }
                 return true;
             }
@@ -618,11 +634,15 @@ namespace Enemies.TrainingConstruct
             if (NavMesh.SamplePosition(transform.position, out var hit, 1.5f, navMeshAgent.areaMask))
             {
                 navMeshAgent.Warp(hit.position);
-                EnemyDebug.Log($"[TrainingConstructBrain] {context}: warped agent onto NavMesh.", this);
+                logger.Log(ComponentLogger.LogFlag.Events,
+                    "{0}: warped agent onto NavMesh.",
+                    context);
                 return true;
             }
 
-            EnemyDebug.LogWarning($"[TrainingConstructBrain] {context}: failed to find NavMesh.", this);
+            logger.LogWarning(ComponentLogger.LogFlag.Events,
+                "{0}: failed to find NavMesh.",
+                context);
             return false;
         }
 
@@ -633,7 +653,9 @@ namespace Enemies.TrainingConstruct
 
             if (!navMeshAgent.SetDestination(destination))
             {
-                EnemyDebug.LogWarning($"[TrainingConstructBrain] {debugContext}: SetDestination failed.", this);
+                logger.LogWarning(ComponentLogger.LogFlag.Events,
+                    "{0}: SetDestination failed.",
+                    debugContext);
             }
         }
 
@@ -644,7 +666,9 @@ namespace Enemies.TrainingConstruct
 
             if (!navMeshAgent.isOnNavMesh)
             {
-                EnemyDebug.LogWarning($"[TrainingConstructBrain] Tried to set isStopped={stop} while agent off NavMesh.", this);
+                logger.LogWarning(ComponentLogger.LogFlag.Events,
+                    "Tried to set isStopped={0} while agent off NavMesh.",
+                    stop);
                 return;
             }
 
@@ -686,9 +710,19 @@ namespace Enemies.TrainingConstruct
             if (currentState == ConstructState.Idle || currentState == ConstructState.Detect)
                 SwitchState(ConstructState.Detect);
         }
+        private void OnValidate()
+        {
+            InitializeLogger();
+        }
+
+        private void InitializeLogger()
+        {
+            if (logger == null)
+                logger = new ComponentLogger();
+            logger.BindContext(this);
+        }
     }
 }
-
 
 
 

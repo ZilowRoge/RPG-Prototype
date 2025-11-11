@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Enemies.Config;
 using Player.Interfaces;
+using Systems.Debugging;
 using Systems.Statistics;
 using UnityEngine;
 using UnityEngine.AI;
@@ -17,6 +18,7 @@ namespace Enemies.Controllers
         private float navMeshKnockbackResumeDelay = 0.2f;
         [SerializeField, Tooltip("Delay before destroying the enemy GameObject after death.")]
         private float deathDestroyDelay = 5f;
+        [SerializeField] private ComponentLogger logger = new ComponentLogger();
 
         public StatsConfig Config => statsConfig;
 
@@ -35,9 +37,10 @@ namespace Enemies.Controllers
 
         private void Awake()
         {
+            InitializeLogger();
             if (statsConfig == null)
             {
-                EnemyDebug.LogWarning($"[StatsController] StatsConfig missing on {name}");
+                logger.LogWarning(ComponentLogger.LogFlag.Events, "StatsConfig missing on {0}", name);
                 return;
             }
 
@@ -71,7 +74,11 @@ namespace Enemies.Controllers
             if (isDead)
                 return;
 
-            EnemyDebug.Log($"[StatsController] {name} received damage {amount} from {(source != null ? source.name : "unknown")}.", this);
+            logger.Log(ComponentLogger.LogFlag.Events,
+                "{0} received damage {1} from {2}.",
+                name,
+                amount,
+                source != null ? source.name : "unknown");
             runtime.ReceiveDamage(amount);
             Damaged?.Invoke(this, amount, source);
             if (runtime.CurrentHealth <= 0f)
@@ -89,7 +96,11 @@ namespace Enemies.Controllers
             direction.y = 0f;
             direction = direction == Vector3.zero ? transform.forward : direction.normalized;
 
-            EnemyDebug.Log($"[StatsController] Applying knockback force {force} in direction {direction} to {name}.", this);
+            logger.Log(ComponentLogger.LogFlag.Events,
+                "Applying knockback force {0} in direction {1} to {2}.",
+                force,
+                direction,
+                name);
 
             if (TryApplyNavMeshKnockback(direction, force))
                 return;
@@ -166,21 +177,27 @@ namespace Enemies.Controllers
 
             if (!agent.isOnNavMesh)
             {
-                EnemyDebug.LogWarning($"[StatsController] NavMeshAgent not on NavMesh during knockback for {name}.", this);
+                logger.LogWarning(ComponentLogger.LogFlag.Events,
+                    "NavMeshAgent not on NavMesh during knockback for {0}.",
+                    name);
                 navMeshKnockbackRoutine = null;
                 yield break;
             }
 
             agent.isStopped = true;
             agent.Move(direction * force);
-            EnemyDebug.Log($"[StatsController] NavMeshAgent knocked back for {name}.", this);
+            logger.Log(ComponentLogger.LogFlag.Events,
+                "NavMeshAgent knocked back for {0}.",
+                name);
 
             float delay = Mathf.Max(0f, navMeshKnockbackResumeDelay);
             if (delay > 0f)
                 yield return new WaitForSeconds(delay);
 
             agent.isStopped = false;
-            EnemyDebug.Log($"[StatsController] NavMeshAgent resume for {name}.", this);
+            logger.Log(ComponentLogger.LogFlag.Events,
+                "NavMeshAgent resume for {0}.",
+                name);
             navMeshKnockbackRoutine = null;
         }
 
@@ -192,7 +209,7 @@ namespace Enemies.Controllers
                 return;
 
             isDead = true;
-            EnemyDebug.Log($"[StatsController] {name} died.", this);
+            logger.Log(ComponentLogger.LogFlag.Events, "{0} died.", name);
 
             var agent = GetComponent<NavMeshAgent>();
             if (agent != null)
@@ -238,6 +255,18 @@ namespace Enemies.Controllers
 
             float destroyDelay = Mathf.Max(0.1f, deathDestroyDelay);
             Destroy(gameObject, destroyDelay);
+        }
+
+        private void OnValidate()
+        {
+            InitializeLogger();
+        }
+
+        private void InitializeLogger()
+        {
+            if (logger == null)
+                logger = new ComponentLogger();
+            logger.BindContext(this);
         }
     }
 }

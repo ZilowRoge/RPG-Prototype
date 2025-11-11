@@ -50,19 +50,9 @@ namespace Common.Systems.SymbolTraining
             var states = data.doorStates;
             int index = FindEntryIndex(states, doorId);
             if (index < 0)
-            {
-                states.Add(new SerializedDoorState
-                {
-                    doorId = doorId,
-                    isOpen = door.IsOpen
-                });
-                Debug.Log($"[DoorSaveState] Added new state for '{doorId}' -> {(door.IsOpen ? "open" : "closed")}.", this);
-            }
+                states.Add(new SerializedDoorState { doorId = doorId, isOpen = door.IsOpen });
             else
-            {
                 states[index].isOpen = door.IsOpen;
-                Debug.Log($"[DoorSaveState] Updated state for '{doorId}' -> {(door.IsOpen ? "open" : "closed")}.", this);
-            }
         }
 
         public void OnLoad(GameData data)
@@ -73,13 +63,9 @@ namespace Common.Systems.SymbolTraining
             var states = data.doorStates;
             int index = FindEntryIndex(states, doorId);
             if (index < 0)
-            {
-                Debug.Log($"[DoorSaveState] No saved state for '{doorId}'. Keeping current: {(door.IsOpen ? "open" : "closed")}.", this);
                 return;
-            }
 
             bool desiredState = states[index]?.isOpen ?? false;
-            Debug.Log($"[DoorSaveState] Restoring '{doorId}' -> {(desiredState ? "open" : "closed")}.", this);
             door.RestoreState(desiredState);
         }
 
@@ -91,16 +77,10 @@ namespace Common.Systems.SymbolTraining
                 return false;
 
             if (door == null)
-            {
-                Debug.LogWarning($"[DoorSaveState] Missing DoorController on {name}.", this);
                 return false;
-            }
 
             if (string.IsNullOrEmpty(doorId))
-            {
-                Debug.LogWarning($"[DoorSaveState] Door id is empty on {name}.", this);
                 return false;
-            }
 
             if (data.doorStates == null)
                 data.doorStates = new System.Collections.Generic.List<SerializedDoorState>();

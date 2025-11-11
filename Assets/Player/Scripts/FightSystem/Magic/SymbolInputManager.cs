@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using Unity.Barracuda;
 using Player.UI;
 using Player.Cameras;
+using Systems.Debugging;
 
 namespace Player.FightSystem.Magic
 {
@@ -16,6 +17,7 @@ namespace Player.FightSystem.Magic
         private float continuationWindow = 0.75f;
         [SerializeField, Tooltip("Optional camera sensitivity controller to dampen look speed while drawing symbols.")]
         private CinemachineSensitivityController cameraSensitivityController;
+        [SerializeField] private ComponentLogger logger = new ComponentLogger();
 
         private PlayerControlls controls;
         private SymbolRecognizer symbolRecognizer;
@@ -29,6 +31,7 @@ namespace Player.FightSystem.Magic
 
         private void Awake()
         {
+            InitializeLogger();
             controls = new PlayerControlls();
             symbolRecognizer = new SymbolRecognizer(modelAsset);
             if (cameraSensitivityController == null)
@@ -39,7 +42,9 @@ namespace Player.FightSystem.Magic
                 defaultCombatConsumer = defaultCombatConsumerBehaviour as ISymbolConsumer;
                 if (defaultCombatConsumer == null)
                 {
-                    // Debug.LogError($"[SymbolInputManager] Default combat consumer does not implement ISymbolConsumer: {defaultCombatConsumerBehaviour.GetType().Name}", this);
+                    logger.LogWarning(ComponentLogger.LogFlag.Events,
+                        "Default combat consumer does not implement ISymbolConsumer: {0}",
+                        defaultCombatConsumerBehaviour.GetType().Name);
                 }
             }
 
@@ -92,11 +97,10 @@ namespace Player.FightSystem.Magic
 
             if (symbolDrawUI == null)
             {
-                // Debug.LogWarning("[SymbolInputManager] SymbolDrawUI is not assigned.", this);
+                logger.LogWarning(ComponentLogger.LogFlag.Events, "SymbolDrawUI is not assigned.");
                 ApplyDrawingCameraSensitivity(false);
                 return;
             }
-            // Debug.Log("Start drawing")
             CancelPendingFinish();
             isDrawing = true;
             ApplyDrawingCameraSensitivity(true);
@@ -104,7 +108,6 @@ namespace Player.FightSystem.Magic
             symbolDrawUI.ClearTexture();
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
-            // Debug.Log("Drawing mode enabled");
         }
 
         private void FinishDrawing(bool notifyConsumer = true)
@@ -153,7 +156,6 @@ namespace Player.FightSystem.Magic
             if (!isDrawing)
                 return;
 
-            // Debug.Log("[SymbolInputManager] Fire input started. Canceling continuation window.");
             CancelPendingFinish();
         }
 
@@ -170,7 +172,7 @@ namespace Player.FightSystem.Magic
 
             if (probability < .8f)
             {
-                // Debug.LogWarning("Symbol not recognized.");
+                logger.LogWarning(ComponentLogger.LogFlag.Events, "Symbol not recognized.");
                 return;
             }
             activeConsumer?.OnSymbolRecognized(symbolId.ToString());
@@ -192,7 +194,9 @@ namespace Player.FightSystem.Magic
 
         private IEnumerator ContinuationWindowRoutine()
         {
-            // Debug.Log($"[SymbolInputManager] Continuation window started ({continuationWindow:F2}s).");
+            logger.Log(ComponentLogger.LogFlag.Events,
+                "Continuation window started ({0:F2}s).",
+                continuationWindow);
             float elapsed = 0f;
             while (elapsed < continuationWindow)
             {
@@ -201,7 +205,8 @@ namespace Player.FightSystem.Magic
             }
 
             pendingFinishRoutine = null;
-            // Debug.Log("[SymbolInputManager] Continuation window expired. Finalizing symbol sequence.");
+            logger.Log(ComponentLogger.LogFlag.Events,
+                "Continuation window expired. Finalizing symbol sequence.");
             activeConsumer?.OnSymbolSequenceCommitted();
         }
 
@@ -212,6 +217,17 @@ namespace Player.FightSystem.Magic
                 StopCoroutine(pendingFinishRoutine);
                 pendingFinishRoutine = null;
             }
+        }
+        private void OnValidate()
+        {
+            InitializeLogger();
+        }
+
+        private void InitializeLogger()
+        {
+            if (logger == null)
+                logger = new ComponentLogger();
+            logger.BindContext(this);
         }
     }
 }

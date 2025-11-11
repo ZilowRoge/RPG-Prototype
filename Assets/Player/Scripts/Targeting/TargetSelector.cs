@@ -1,5 +1,6 @@
 using UnityEngine;
 using Player.Interfaces;
+using Systems.Debugging;
 
 namespace Player.Targeting
 {
@@ -34,6 +35,7 @@ namespace Player.Targeting
 
         [Header("References")] 
         [SerializeField] private Camera viewCamera;
+        [SerializeField] private ComponentLogger logger = new ComponentLogger();
 
         private float nextUpdateTime;
         private readonly Collider[] overlapBuffer = new Collider[64];
@@ -42,16 +44,22 @@ namespace Player.Targeting
 
         private void Awake()
         {
+            InitializeLogger();
             if (viewCamera == null)
                 viewCamera = Camera.main;
             if (selfRoot == null)
                 selfRoot = transform.root;
-            Debug.Log($"[TargetSelector] Awake. Camera={(viewCamera != null ? viewCamera.name : "null")}, Self={(selfRoot != null ? selfRoot.name : "null")}");
         }
 
         private void OnEnable()
         {
+            InitializeLogger();
             nextUpdateTime = 0f;
+        }
+
+        private void OnValidate()
+        {
+            InitializeLogger();
         }
 
         private void Update()
@@ -68,8 +76,6 @@ namespace Player.Targeting
             {
                 if (TryPickByRay(viewCamera, out target, maxDistance, rayRadius))
                 {
-                    if (prev != target)
-                        Debug.Log($"[TargetSelector] Target set (Ray): {(target != null ? target.name : "null")} ");
                     CurrentTarget = target;
                     return;
                 }
@@ -77,14 +83,10 @@ namespace Player.Targeting
 
             if (TryPickByFov(out target, maxDistance, fovAngle))
             {
-                if (prev != target)
-                    Debug.Log($"[TargetSelector] Target set (FOV): {(target != null ? target.name : "null")} ");
                 CurrentTarget = target;
                 return;
             }
 
-            if (prev != null)
-                Debug.Log("[TargetSelector] Target cleared");
             CurrentTarget = null;
         }
 
@@ -115,7 +117,6 @@ namespace Player.Targeting
                 }
                 else
                 {
-                    Debug.Log($"[TargetSelector] Ray hit {hit.collider.name} but not a valid target");
                 }
             }
             return false;
@@ -125,7 +126,6 @@ namespace Player.Targeting
         {
             target = null;
             int count = Physics.OverlapSphereNonAlloc(transform.position, range, overlapBuffer, targetMask, QueryTriggerInteraction.Ignore);
-            if (debugVerbose) Debug.Log($"[TargetSelector] Overlap count={count}, range={range}");
             if (count == 0) return false;
 
             Transform best = null;
@@ -149,10 +149,10 @@ namespace Player.Targeting
                 if (preferScreenCenter && viewCamera != null)
                 {
                     var vp = viewCamera.WorldToViewportPoint(center);
-                    if (vp.z <= 0f) { if (debugVerbose) Debug.Log($"[TargetSelector] Reject {col.name}: behind camera"); continue; }
+                    if (vp.z <= 0f) continue;
                     float dx = vp.x - 0.5f, dy = vp.y - 0.5f;
                     float screenDist = Mathf.Sqrt(dx * dx + dy * dy);
-                    if (screenDist > maxViewportRadius) { if (debugVerbose) Debug.Log($"[TargetSelector] Reject {col.name}: too far from center ({screenDist:F2} > {maxViewportRadius})"); continue; }
+                    if (screenDist > maxViewportRadius) continue;
 
                     var dot = Mathf.Max(0f, Vector3.Dot(fwd, dir));
                     bool occluded = false;
@@ -169,27 +169,23 @@ namespace Player.Targeting
                     }
 
                     score = -screenWeight * screenDist - distWeight * (dist / range) + dotWeight * dot - (occluded ? occlusionPenalty : 0f);
-                    if (debugVerbose)
-                        Debug.Log($"[TargetSelector] Cand {candidate.name}: screen={screenDist:F2}, dist={dist:F1}, dot={dot:F2}, occ={(occluded?1:0)}, score={score:F2}");
                 }
                 else
                 {
                     var dot = Vector3.Dot(fwd, dir);
                     var angle = Mathf.Acos(Mathf.Clamp(dot, -1f, 1f)) * Mathf.Rad2Deg;
-                    if (angle > fov * 0.5f) { if (debugVerbose) Debug.Log($"[TargetSelector] Reject {col.name}: out of FOV ({angle:F1} deg)"); continue; }
+                    if (angle > fov * 0.5f) continue;
                     if (Physics.Raycast(origin, dir, out var hit, dist, occluderMask, QueryTriggerInteraction.Ignore))
                     {
                         if (IsSelf(hit.collider.transform))
                         {
                             var stepOrigin = hit.point + dir * 0.01f;
                             if (Physics.Raycast(stepOrigin, dir, out var hit2, dist - hit.distance - 0.01f, occluderMask, QueryTriggerInteraction.Ignore))
-                                if (GetTargetTransform(hit2.collider) != candidate) { if (debugVerbose) Debug.Log($"[TargetSelector] Reject {col.name}: occluded"); continue; }
+                                if (GetTargetTransform(hit2.collider) != candidate) continue;
                         }
-                        else if (GetTargetTransform(hit.collider) != candidate) { if (debugVerbose) Debug.Log($"[TargetSelector] Reject {col.name}: occluded"); continue; }
+                        else if (GetTargetTransform(hit.collider) != candidate) continue;
                     }
                     score = dot * 2f - (dist / range);
-                    if (debugVerbose)
-                        Debug.Log($"[TargetSelector] Cand {candidate.name}: dist={dist:F1}, dot={dot:F2}, score={score:F2}");
                 }
                 if (score > bestScore)
                 {
@@ -229,14 +225,12 @@ namespace Player.Targeting
                         if (curScore >= bestScore - hysteresisThreshold)
                         {
                             target = cur;
-                            if (debugDraw || debugVerbose) Debug.Log("[TargetSelector] Hysteresis kept current target");
                             return true;
                         }
                     }
                 }
 
                 target = best;
-                Debug.Log($"[TargetSelector] FOV best: {best.name}");
                 return true;
             }
             return false;
@@ -300,7 +294,6 @@ namespace Player.Targeting
         public void ClearTarget()
         {
             CurrentTarget = null;
-            Debug.Log("[TargetSelector] Target cleared by request");
         }
         public Transform FindBestTarget(float range, float fov, bool preferCenter)
         {
@@ -317,6 +310,13 @@ namespace Player.Targeting
         private bool IsSelf(Transform t)
         {
             return selfRoot != null && t != null && t.IsChildOf(selfRoot);
+        }
+
+        private void InitializeLogger()
+        {
+            if (logger == null)
+                logger = new ComponentLogger();
+            logger.BindContext(this);
         }
 
     }
