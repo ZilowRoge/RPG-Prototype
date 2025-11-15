@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Inventory;
+using UnityEngine.EventSystems;
 using InventoryData = global::Inventory.Inventory;
 
 namespace UI.Player.Inventory
@@ -17,8 +18,12 @@ namespace UI.Player.Inventory
         [SerializeField] private GameObject slotPrefab;
         [SerializeField] private Transform slotsRoot;
         [SerializeField] private List<InventorySlotUI> slots = new();
+        [Header("Drag Visuals")]
+        [SerializeField] private InventoryDragVisual dragVisual;
 
         public IReadOnlyList<InventorySlotUI> SlotViews => slots;
+        private int dragSourceIndex = -1;
+        private bool isDragging;
 
         private void Awake()
         {
@@ -33,6 +38,8 @@ namespace UI.Player.Inventory
             if (inventory == null || slotPrefab == null || slotsRoot == null)
             {
                 ClearSlots();
+                dragSourceIndex = -1;
+                isDragging = false;
                 return;
             }
 
@@ -45,7 +52,7 @@ namespace UI.Player.Inventory
                 if (slotView == null)
                     continue;
 
-                slotView.Configure(i);
+                slotView.Configure(i, HandleSlotClick, HandleSlotDoubleClick, HandleBeginDrag, HandleDrop, HandleEndDrag, HandleDrag);
 
                 var data = slotData[i];
                 var icon = (!data.IsEmpty) ? data.ItemInstance.Definition?.Icon : null;
@@ -79,6 +86,7 @@ namespace UI.Player.Inventory
                     Debug.LogError("Slot prefab does not contain InventorySlotUI component.", this);
                     break;
                 }
+                newSlot.Configure(slots.Count, HandleSlotClick, HandleSlotDoubleClick, HandleBeginDrag, HandleDrop, HandleEndDrag, HandleDrag);
                 slots.Add(newSlot);
             }
 
@@ -111,6 +119,102 @@ namespace UI.Player.Inventory
             }
 
             slots.Clear();
+            ResetDragState();
+        }
+
+        internal void HandleSlotClick(InventorySlotUI slotView)
+        {
+            // Optional: could use clicks for context menus. Currently left empty.
+        }
+
+        private void HandleSlotDoubleClick(InventorySlotUI slotView)
+        {
+            if (inventoryController == null || slotView == null)
+                return;
+
+            var inventory = inventoryController.Inventory;
+            if (inventory == null)
+                return;
+
+            int slotIndex = slotView.SlotId;
+            if (slotIndex < 0 || slotIndex >= inventory.SlotCount)
+                return;
+
+            if (inventoryController.TryUseItem(slotIndex))
+                Refresh();
+        }
+
+        private void HandleBeginDrag(InventorySlotUI slotView, PointerEventData eventData)
+        {
+            if (inventoryController == null || slotView == null)
+                return;
+
+            var inventory = inventoryController.Inventory;
+            if (inventory == null)
+                return;
+
+            int index = slotView.SlotId;
+            if (index < 0 || index >= inventory.SlotCount)
+                return;
+
+            var slotData = inventory.Slots[index];
+            if (slotData.IsEmpty)
+                return;
+
+            dragSourceIndex = index;
+            isDragging = true;
+            var icon = slotData.ItemInstance.Definition?.Icon;
+            dragVisual?.Show(icon);
+            dragVisual?.UpdatePosition(eventData);
+        }
+
+        private void HandleDrop(InventorySlotUI targetSlot)
+        {
+            if (!isDragging || inventoryController == null || targetSlot == null)
+            {
+                ResetDragState();
+                return;
+            }
+
+            var inventory = inventoryController.Inventory;
+            if (inventory == null)
+            {
+                ResetDragState();
+                return;
+            }
+
+            int targetIndex = targetSlot.SlotId;
+            if (dragSourceIndex < 0 || targetIndex < 0 || dragSourceIndex == targetIndex)
+            {
+                ResetDragState();
+                return;
+            }
+
+            bool moved = inventoryController.TryMoveItem(dragSourceIndex, targetIndex);
+            ResetDragState();
+
+            if (moved)
+                Refresh();
+        }
+
+        private void HandleEndDrag()
+        {
+            ResetDragState();
+        }
+
+        private void HandleDrag(PointerEventData eventData)
+        {
+            if (!isDragging)
+                return;
+
+            dragVisual?.UpdatePosition(eventData);
+        }
+
+        private void ResetDragState()
+        {
+            dragSourceIndex = -1;
+            isDragging = false;
+            dragVisual?.Hide();
         }
 
     }

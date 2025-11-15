@@ -14,6 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemId: item_novice_robe
   itemName: Novice Robe
+  itemType: 1
   description: A robe received after joining magic academy
-  icon: {fileID: -1804255110, guid: 39651849fc372e3418c89bc752978239, type: 3}
+  icon: {fileID: -1032499366, guid: 39651849fc372e3418c89bc752978239, type: 3}
   maxStack: 1
+  typeDatas:
+  - {fileID: 11400000, guid: 2ea546065d4ec1040a69143c42d7d574, type: 2}

@@ -11,5 +11,6 @@ namespace Inventory
         bool TryAddItem(ItemDefinition definition, int amount);
         bool TryRemoveItem(ItemDefinition definition, int amount);
         bool TryMoveItem(int sourceIndex, int targetIndex);
+        bool TryUseItem(int slotIndex);
     }
 }

@@ -12,8 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2356f5a15271fbb43aa3de34bc9e4a8f, type: 3}
   m_Name: SmallHealthPotion
   m_EditorClassIdentifier: 
-  itemId: item_000
-  itemName: New Item
-  description: Item description
-  icon: {fileID: 0}
-  maxStack: 1
+  itemId: item_small_health_potion
+  itemName: Small health potion
+  itemType: 0
+  description: Heals a small amount of health
+  icon: {fileID: -1943081411, guid: 39651849fc372e3418c89bc752978239, type: 3}
+  maxStack: 20
+  typeDatas:
+  - {fileID: 11400000, guid: 49977648298318c4181167fa68297890, type: 2}

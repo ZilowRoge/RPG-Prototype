@@ -187,5 +187,24 @@ namespace Inventory
             source.SetItem(temp);
             return true;
         }
+
+        public bool TryUseItem(int slotIndex)
+        {
+            if (slotIndex < 0 || slotIndex >= slots.Count)
+            {
+                return false;
+            }
+
+            var slot = slots[slotIndex];
+            if (slot.IsEmpty)
+            {
+                return false;
+            }
+
+            var definition = slot.ItemInstance.Definition;
+            var itemName = definition != null ? definition.Name : slot.ItemInstance.InstanceId;
+            Debug.Log($"Used item '{itemName}' from slot {slotIndex}.");
+            return true;
+        }
     }
 }

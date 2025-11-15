@@ -29,6 +29,8 @@ namespace Inventory
 
         public bool TryMoveItem(int sourceIndex, int targetIndex) => inventory != null && inventory.TryMoveItem(sourceIndex, targetIndex);
 
+        public bool TryUseItem(int slotIndex) => inventory != null && inventory.TryUseItem(slotIndex);
+
         private void Awake()
         {
             if (initializeOnAwake)
