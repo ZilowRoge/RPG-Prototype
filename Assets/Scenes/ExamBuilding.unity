@@ -3827,7 +3827,7 @@ GameObject:
   - component: {fileID: 368068830}
   - component: {fileID: 368068832}
   m_Layer: 5
-  m_Name: Equioment
+  m_Name: Equipment
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3905,6 +3905,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   equipmentController: {fileID: 1419299033}
+  inventoryController: {fileID: 0}
+  linkedInventoryPanel: {fileID: 0}
   slotViews:
   - {fileID: 9067994042579308344}
   - {fileID: 487218416}
@@ -16976,6 +16978,7 @@ GameObject:
   - component: {fileID: 1419299030}
   - component: {fileID: 1419299032}
   - component: {fileID: 1419299033}
+  - component: {fileID: 1419299034}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -17345,6 +17348,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inventory:
     slots: []
+  equipmentController: {fileID: 1419299033}
   debugItems:
   - {fileID: 11400000, guid: fdbde0548e70f70459c2de1d2c8bfe5a, type: 2}
   - {fileID: 11400000, guid: 1fb70fa6050f5704db2a92929785d511, type: 2}
@@ -17405,6 +17409,18 @@ MonoBehaviour:
       definition: {fileID: 0}
       stackCount: 0
       instanceId: 
+--- !u!114 &1419299034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1419299008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe70f385d8aef2f4aac2fbfaeb06ea63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1424702910 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 335868235042536714, guid: 9dca39cc59bc3a040b208d5b2908be15, type: 3}

@@ -80,6 +80,56 @@ namespace Inventory
             return remaining <= 0;
         }
 
+        public bool TryAddItemInstance(ItemInstance instance)
+        {
+            if (instance == null || instance.Definition == null)
+            {
+                return false;
+            }
+
+            var definition = instance.Definition;
+
+            if (definition.MaxStack > 1 && instance.StackCount > 0)
+            {
+                foreach (var slot in slots)
+                {
+                    if (slot.IsEmpty || slot.ItemInstance.Definition != definition)
+                    {
+                        continue;
+                    }
+
+                    var slotInstance = slot.ItemInstance;
+                    var freeSpace = definition.MaxStack - slotInstance.StackCount;
+                    if (freeSpace <= 0)
+                    {
+                        continue;
+                    }
+
+                    var transfer = Mathf.Min(instance.StackCount, freeSpace);
+                    slotInstance.SetStackCount(slotInstance.StackCount + transfer);
+                    instance.SetStackCount(instance.StackCount - transfer);
+
+                    if (instance.StackCount <= 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            foreach (var slot in slots)
+            {
+                if (!slot.IsEmpty)
+                {
+                    continue;
+                }
+
+                slot.SetItem(instance);
+                return true;
+            }
+
+            return false;
+        }
+
         public bool TryRemoveItem(ItemDefinition definition, int amount)
         {
             if (definition == null || amount <= 0)
@@ -188,23 +238,5 @@ namespace Inventory
             return true;
         }
 
-        public bool TryUseItem(int slotIndex)
-        {
-            if (slotIndex < 0 || slotIndex >= slots.Count)
-            {
-                return false;
-            }
-
-            var slot = slots[slotIndex];
-            if (slot.IsEmpty)
-            {
-                return false;
-            }
-
-            var definition = slot.ItemInstance.Definition;
-            var itemName = definition != null ? definition.Name : slot.ItemInstance.InstanceId;
-            Debug.Log($"Used item '{itemName}' from slot {slotIndex}.");
-            return true;
-        }
     }
 }

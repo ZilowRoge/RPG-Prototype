@@ -20,6 +20,7 @@ namespace UI.Player.Inventory
         [SerializeField] private List<InventorySlotUI> slots = new();
         [Header("Drag Visuals")]
         [SerializeField] private InventoryDragVisual dragVisual;
+        private System.Action refreshCallback;
 
         public IReadOnlyList<InventorySlotUI> SlotViews => slots;
         private int dragSourceIndex = -1;
@@ -141,7 +142,7 @@ namespace UI.Player.Inventory
                 return;
 
             if (inventoryController.TryUseItem(slotIndex))
-                Refresh();
+                RequestRefresh();
         }
 
         private void HandleBeginDrag(InventorySlotUI slotView, PointerEventData eventData)
@@ -168,9 +169,41 @@ namespace UI.Player.Inventory
             dragVisual?.UpdatePosition(eventData);
         }
 
-        private void HandleDrop(InventorySlotUI targetSlot)
+        private void HandleDrop(InventorySlotUI targetSlot, PointerEventData eventData)
         {
-            if (!isDragging || inventoryController == null || targetSlot == null)
+            if (inventoryController == null || targetSlot == null)
+            {
+                ResetDragState();
+                return;
+            }
+
+            var pointer = eventData?.pointerDrag;
+            if (pointer == null)
+            {
+                ResetDragState();
+                return;
+            }
+
+            var inventorySource = pointer.GetComponent<InventorySlotUI>();
+            if (inventorySource != null)
+            {
+                HandleInventoryDrop(targetSlot, inventorySource);
+                return;
+            }
+
+            var equipmentSource = pointer.GetComponent<EquipmentSlotUI>();
+            if (equipmentSource != null)
+            {
+                HandleEquipmentItemDrop(equipmentSource, targetSlot);
+                return;
+            }
+
+            ResetDragState();
+        }
+
+        private void HandleInventoryDrop(InventorySlotUI targetSlot, InventorySlotUI sourceSlot)
+        {
+            if (!isDragging)
             {
                 ResetDragState();
                 return;
@@ -184,17 +217,29 @@ namespace UI.Player.Inventory
             }
 
             int targetIndex = targetSlot.SlotId;
-            if (dragSourceIndex < 0 || targetIndex < 0 || dragSourceIndex == targetIndex)
+            int sourceIndex = sourceSlot.SlotId;
+            if (sourceIndex < 0 || targetIndex < 0 || sourceIndex == targetIndex)
             {
                 ResetDragState();
                 return;
             }
 
-            bool moved = inventoryController.TryMoveItem(dragSourceIndex, targetIndex);
+            bool moved = inventoryController.TryMoveItem(sourceIndex, targetIndex);
             ResetDragState();
 
             if (moved)
-                Refresh();
+                RequestRefresh();
+        }
+
+        private void HandleEquipmentItemDrop(EquipmentSlotUI equipmentSlot, InventorySlotUI targetSlot)
+        {
+            if (inventoryController == null || equipmentSlot == null || targetSlot == null)
+                return;
+
+            if (inventoryController.TryUnequipItem(equipmentSlot.Slot, targetSlot.SlotId))
+            {
+                RequestRefresh();
+            }
         }
 
         private void HandleEndDrag()
@@ -217,5 +262,42 @@ namespace UI.Player.Inventory
             dragVisual?.Hide();
         }
 
+        public void SetRefreshCallback(System.Action callback)
+        {
+            refreshCallback = callback;
+        }
+
+        public void BeginExternalDrag(Sprite icon, PointerEventData eventData)
+        {
+            if (icon == null)
+            {
+                dragVisual?.Hide();
+                return;
+            }
+
+            dragVisual?.Show(icon);
+            dragVisual?.UpdatePosition(eventData);
+        }
+
+        public void UpdateExternalDrag(PointerEventData eventData)
+        {
+            if (eventData == null)
+                return;
+
+            dragVisual?.UpdatePosition(eventData);
+        }
+
+        public void EndExternalDrag()
+        {
+            dragVisual?.Hide();
+        }
+
+        private void RequestRefresh()
+        {
+            if (refreshCallback != null)
+                refreshCallback.Invoke();
+            else
+                Refresh();
+        }
     }
 }

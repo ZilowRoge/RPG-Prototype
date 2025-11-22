@@ -20,6 +20,16 @@ namespace UI.Player.Inventory
             if (equipmentPanel == null)
                 equipmentPanel = GetComponentInChildren<EquipmentPanelUI>(true);
 
+            if (inventoryPanel != null)
+            {
+                inventoryPanel.SetRefreshCallback(HandlePanelsRefreshRequest);
+            }
+
+            if (equipmentPanel != null)
+            {
+                equipmentPanel.SetRefreshCallback(HandlePanelsRefreshRequest);
+            }
+
             dependenciesInitialized = true;
         }
 
@@ -33,6 +43,11 @@ namespace UI.Player.Inventory
         {
             EnsureDependencies();
             base.OnShow();
+            HandlePanelsRefreshRequest();
+        }
+
+        private void HandlePanelsRefreshRequest()
+        {
             if (inventoryPanel != null)
             {
                 inventoryPanel.Refresh();

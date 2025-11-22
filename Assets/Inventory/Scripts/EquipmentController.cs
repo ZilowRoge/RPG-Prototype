@@ -12,16 +12,24 @@ namespace Inventory
     {
         [SerializeField] private List<EquipmentSlotEntry> equipmentSlots = new();
 
+        private IItemUseContext itemUseContext;
+
         public IReadOnlyList<EquipmentSlotEntry> Slots => equipmentSlots;
+
+        private void Reset()
+        {
+        }
 
         private void Awake()
         {
+            CacheItemUseContext();
             EnsureSlotSetup();
         }
 
 #if UNITY_EDITOR
         private void OnValidate()
         {
+            CacheItemUseContext();
             EnsureSlotSetup();
         }
 #endif
@@ -78,8 +86,15 @@ namespace Inventory
                 return true;
             }
 
+            if (currentItem != null && !currentItem.IsEmpty)
+            {
+                itemUseContext?.HandleItemUnequipped(slot, currentItem);
+            }
+
             entry.SetItem(instance);
             replacedItem = currentItem;
+
+            itemUseContext?.HandleItemEquipped(slot, instance);
 
             return true;
         }
@@ -95,6 +110,7 @@ namespace Inventory
 
             removedItem = entry.ItemInstance;
             entry.Clear();
+            itemUseContext?.HandleItemUnequipped(slot, removedItem);
             return true;
         }
 
@@ -203,6 +219,19 @@ namespace Inventory
             }
 
             equipmentSlots.Sort((a, b) => a.Slot.CompareTo(b.Slot));
+        }
+
+        private void CacheItemUseContext()
+        {
+            itemUseContext = ResolveItemUseContext();
+        }
+
+        private IItemUseContext ResolveItemUseContext()
+        {
+            var context = GetComponent<IItemUseContext>();
+            if (context == null)
+                Debug.LogWarning("EquipmentController could not find IItemUseContext on the same GameObject.", this);
+            return context;
         }
     }
 

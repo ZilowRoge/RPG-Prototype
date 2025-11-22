@@ -10,12 +10,16 @@ namespace Inventory
     [DisallowMultipleComponent]
     public class InventoryController : MonoBehaviour, IInventoryOwner
     {
+        [Header("References")]
         [SerializeField] private Inventory inventory = new();
+        [SerializeField] private EquipmentController equipmentController;
         [Header("Debug")]
         [SerializeField] private List<ItemDefinition> debugItems = new();
         [SerializeField] private bool initializeOnAwake = true;
         [Tooltip("Optional override. Use a positive value to force a specific slot count when initializing.")]
         [SerializeField] private int initialSlotCount = -1;
+
+        private IItemUseContext itemUseContext;
 
         public Inventory Inventory
         {
@@ -29,15 +33,104 @@ namespace Inventory
 
         public bool TryMoveItem(int sourceIndex, int targetIndex) => inventory != null && inventory.TryMoveItem(sourceIndex, targetIndex);
 
-        public bool TryUseItem(int slotIndex) => inventory != null && inventory.TryUseItem(slotIndex);
+        public bool TryUseItem(int slotIndex)
+        {
+            return TryUseItem(slotIndex, null);
+        }
+
+        public bool TryUseItem(int slotIndex, EquipmentSlot? preferredEquipmentSlot)
+        {
+            if (inventory == null)
+            {
+                Debug.LogWarning("[InventoryController] No inventory assigned.");
+                return false;
+            }
+
+            var context = GetOrResolveItemUseContext();
+            if (context == null)
+            {
+                Debug.LogWarning("[InventoryController] Missing IItemUseContext reference.", this);
+                return false;
+            }
+
+            if (slotIndex < 0 || slotIndex >= inventory.SlotCount)
+            {
+                Debug.LogWarning($"[InventoryController] Slot index {slotIndex} out of range.");
+                return false;
+            }
+
+            Debug.Log($"[InventoryController] Requesting use of slot {slotIndex}.");
+            var request = new ItemUseRequest
+            {
+                InventoryData = inventory,
+                SlotIndex = slotIndex,
+                EquipmentController = equipmentController,
+                PreferredEquipmentSlot = preferredEquipmentSlot
+            };
+
+            var success = context.TryUseItem(request);
+            if (!success)
+            {
+                Debug.LogWarning($"[InventoryController] Item use request for slot {slotIndex} failed.");
+            }
+
+            return success;
+        }
+
+        public bool TryUnequipItem(EquipmentSlot slot)
+        {
+            return TryUnequipItem(slot, -1);
+        }
+
+        public bool TryUnequipItem(EquipmentSlot slot, int targetInventoryIndex)
+        {
+            if (inventory == null || equipmentController == null)
+            {
+                Debug.LogWarning("[InventoryController] Missing inventory or equipment controller reference.", this);
+                return false;
+            }
+
+            if (!equipmentController.TryUnequip(slot, out var removedItem) || removedItem == null)
+            {
+                Debug.LogWarning($"[InventoryController] Failed to unequip slot {slot}.", this);
+                return false;
+            }
+
+            if (targetInventoryIndex >= 0 && targetInventoryIndex < inventory.SlotCount)
+            {
+                var targetSlot = inventory.Slots[targetInventoryIndex];
+                if (targetSlot.IsEmpty)
+                {
+                    targetSlot.SetItem(removedItem);
+                    return true;
+                }
+
+                Debug.LogWarning("[InventoryController] Target slot occupied, cannot unequip.");
+            }
+            else if (inventory.TryAddItemInstance(removedItem))
+            {
+                return true;
+            }
+
+            Debug.LogWarning("[InventoryController] Inventory full, re-equipping item.");
+            equipmentController.TryEquipItem(slot, removedItem, out _);
+            return false;
+        }
 
         private void Awake()
         {
+            CacheDependencies();
+
             if (initializeOnAwake)
             {
                 Initialize();
                 SpawnDebugItems();
             }
+        }
+
+        private void Reset()
+        {
+            equipmentController = GetComponent<EquipmentController>();
         }
 
         public void Initialize(int slotCount = -1)
@@ -58,6 +151,30 @@ namespace Inventory
 
                 TryAddItem(item);
             }
+        }
+
+        private void CacheDependencies()
+        {
+            if (equipmentController == null)
+                equipmentController = GetComponent<EquipmentController>();
+
+            itemUseContext = ResolveItemUseContext();
+        }
+
+        private IItemUseContext ResolveItemUseContext()
+        {
+            var context = GetComponent<IItemUseContext>();
+            if (context == null)
+                Debug.LogWarning("InventoryController could not find IItemUseContext on the same GameObject.", this);
+            return context;
+        }
+
+        private IItemUseContext GetOrResolveItemUseContext()
+        {
+            if (itemUseContext == null)
+                itemUseContext = ResolveItemUseContext();
+
+            return itemUseContext;
         }
     }
 }

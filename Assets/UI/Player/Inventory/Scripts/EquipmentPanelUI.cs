@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Inventory;
 using Items;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace UI.Player.Inventory
 {
@@ -12,11 +13,32 @@ namespace UI.Player.Inventory
     {
         [Header("Equipment Source")]
         [SerializeField] private EquipmentController equipmentController;
+        [SerializeField] private InventoryController inventoryController;
+        [SerializeField] private InventoryPanelUI linkedInventoryPanel;
 
         [Header("UI")]
         [SerializeField] private List<EquipmentSlotUI> slotViews = new();
 
         private readonly Dictionary<EquipmentSlot, EquipmentSlotUI> slotLookup = new();
+        private System.Action refreshCallback;
+        private bool isEquipmentDragging;
+
+        private void Awake()
+        {
+            if (inventoryController == null && equipmentController != null)
+            {
+                inventoryController = equipmentController.GetComponent<InventoryController>();
+            }
+
+            if (linkedInventoryPanel == null)
+            {
+                var window = GetComponentInParent<PlayerInventoryWindow>();
+                if (window != null)
+                {
+                    linkedInventoryPanel = window.GetComponentInChildren<InventoryPanelUI>(true);
+                }
+            }
+        }
 
         public void Refresh()
         {
@@ -91,7 +113,7 @@ namespace UI.Player.Inventory
 
                 if (slotLookup.TryGetValue(entry.Slot, out var existing) && existing != null)
                 {
-                    existing.Configure(entry.Slot);
+                    existing.Configure(entry.Slot, HandleSlotClick, HandleSlotDoubleClick, HandleBeginDrag, HandleSlotDrop, HandleEndDrag, HandleDrag);
                     continue;
                 }
 
@@ -134,6 +156,92 @@ namespace UI.Player.Inventory
 
             slotViews.Clear();
             slotLookup.Clear();
+        }
+
+        private void HandleSlotClick(EquipmentSlotUI slotView)
+        {
+            // Reserved for future context actions.
+        }
+
+        private void HandleSlotDoubleClick(EquipmentSlotUI slotView)
+        {
+            if (slotView == null || inventoryController == null)
+            {
+                Debug.LogWarning("EquipmentPanelUI missing references for unequip.", this);
+                return;
+            }
+
+            if (inventoryController.TryUnequipItem(slotView.Slot))
+            {
+                RequestRefresh();
+            }
+            else
+            {
+                Debug.LogWarning($"Failed to unequip slot {slotView.Slot}.", this);
+            }
+        }
+
+        private void HandleSlotDrop(EquipmentSlotUI slotView, PointerEventData eventData)
+        {
+            if (slotView == null || inventoryController == null || eventData == null)
+                return;
+
+            var inventorySlot = eventData.pointerDrag?.GetComponent<InventorySlotUI>();
+            if (inventorySlot == null)
+                return;
+
+            if (inventoryController.TryUseItem(inventorySlot.SlotId, slotView.Slot))
+            {
+                RequestRefresh();
+            }
+        }
+
+        private void HandleBeginDrag(EquipmentSlotUI slotView, PointerEventData eventData)
+        {
+            if (slotView == null || equipmentController == null || linkedInventoryPanel == null)
+                return;
+
+            var item = equipmentController.GetItem(slotView.Slot);
+            if (item == null || item.IsEmpty)
+                return;
+
+            isEquipmentDragging = true;
+            linkedInventoryPanel.BeginExternalDrag(item.Definition?.Icon, eventData);
+        }
+
+        private void HandleDrag(PointerEventData eventData)
+        {
+            if (!isEquipmentDragging)
+                return;
+
+            linkedInventoryPanel?.UpdateExternalDrag(eventData);
+        }
+
+        private void HandleEndDrag()
+        {
+            if (!isEquipmentDragging)
+                return;
+
+            isEquipmentDragging = false;
+            linkedInventoryPanel?.EndExternalDrag();
+        }
+
+        public void SetRefreshCallback(System.Action callback)
+        {
+            refreshCallback = callback;
+        }
+
+        private void RequestRefresh()
+        {
+            if (refreshCallback != null)
+            {
+                refreshCallback.Invoke();
+            }
+            else
+            {
+                Refresh();
+                linkedInventoryPanel?.Refresh();
+            }
         }
     }
 }

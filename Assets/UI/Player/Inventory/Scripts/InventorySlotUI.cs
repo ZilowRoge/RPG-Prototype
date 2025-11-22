@@ -15,7 +15,7 @@ namespace UI.Player.Inventory
         private Action<InventorySlotUI> onClicked;
         private Action<InventorySlotUI> onDoubleClicked;
         private Action<InventorySlotUI, PointerEventData> onBeginDrag;
-        private Action<InventorySlotUI> onDrop;
+        private Action<InventorySlotUI, PointerEventData> onDrop;
         private Action onEndDrag;
         private Action<PointerEventData> onDrag;
 
@@ -26,7 +26,7 @@ namespace UI.Player.Inventory
             Action<InventorySlotUI> clickHandler,
             Action<InventorySlotUI> doubleClickHandler,
             Action<InventorySlotUI, PointerEventData> beginDragHandler,
-            Action<InventorySlotUI> dropHandler,
+            Action<InventorySlotUI, PointerEventData> dropHandler,
             Action endDragHandler,
             Action<PointerEventData> dragHandler)
         {
@@ -97,7 +97,7 @@ namespace UI.Player.Inventory
 
         public void OnDrop(PointerEventData eventData)
         {
-            onDrop?.Invoke(this);
+            onDrop?.Invoke(this, eventData);
         }
     }
 }
