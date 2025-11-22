@@ -7,6 +7,7 @@ namespace UI.Player.Inventory
     public class PlayerInventoryWindow : PlayerWindowBase
     {
         [SerializeField] private InventoryPanelUI inventoryPanel;
+        [SerializeField] private EquipmentPanelUI equipmentPanel;
         private bool dependenciesInitialized;
 
         private void EnsureDependencies()
@@ -16,6 +17,8 @@ namespace UI.Player.Inventory
 
             if (inventoryPanel == null)
                 inventoryPanel = GetComponentInChildren<InventoryPanelUI>(true);
+            if (equipmentPanel == null)
+                equipmentPanel = GetComponentInChildren<EquipmentPanelUI>(true);
 
             dependenciesInitialized = true;
         }
@@ -33,6 +36,11 @@ namespace UI.Player.Inventory
             if (inventoryPanel != null)
             {
                 inventoryPanel.Refresh();
+            }
+
+            if (equipmentPanel != null)
+            {
+                equipmentPanel.Refresh();
             }
         }
     }
