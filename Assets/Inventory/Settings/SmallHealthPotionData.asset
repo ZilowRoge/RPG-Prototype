@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: SmallHealthPotionData
   m_EditorClassIdentifier: 
   effectType: 0
-  effectValue: 10
-  effectDuration: 0
+  effectValue: 20
+  effectDuration: 5

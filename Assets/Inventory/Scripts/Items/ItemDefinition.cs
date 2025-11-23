@@ -50,5 +50,19 @@ namespace Items
             block = GetStatBlock<T>();
             return block != null;
         }
+
+        public IEnumerable<ItemTypeData> GetAllStatBlocks()
+        {
+            if (typeDatas == null)
+                yield break;
+
+            foreach (var data in typeDatas)
+            {
+                if (data == null)
+                    continue;
+
+                yield return data;
+            }
+        }
     }
 }

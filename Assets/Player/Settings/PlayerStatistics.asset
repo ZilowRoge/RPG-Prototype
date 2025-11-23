@@ -20,7 +20,7 @@ MonoBehaviour:
   healthPerVit: 10
   manaPerInt: 8
   staminaPerEnd: 9
-  healthRegenPerSecond: 0.25
+  healthRegenPerSecond: 0
   manaRegenPerSecond: 0.75
   staminaRegenPerSecond: 1
   sprintStaminaCostPerSecond: 2

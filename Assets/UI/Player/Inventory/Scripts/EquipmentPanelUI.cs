@@ -18,6 +18,8 @@ namespace UI.Player.Inventory
 
         [Header("UI")]
         [SerializeField] private List<EquipmentSlotUI> slotViews = new();
+        [Header("Tooltip")]
+        [SerializeField] private ItemTooltipUI tooltip;
 
         private readonly Dictionary<EquipmentSlot, EquipmentSlotUI> slotLookup = new();
         private System.Action refreshCallback;
@@ -38,6 +40,16 @@ namespace UI.Player.Inventory
                     linkedInventoryPanel = window.GetComponentInChildren<InventoryPanelUI>(true);
                 }
             }
+
+            if (tooltip == null && linkedInventoryPanel != null)
+            {
+                tooltip = linkedInventoryPanel.GetComponentInChildren<ItemTooltipUI>(true);
+            }
+        }
+
+        private void OnDisable()
+        {
+            tooltip?.Hide();
         }
 
         public void Refresh()
@@ -48,6 +60,7 @@ namespace UI.Player.Inventory
                 return;
             }
 
+            tooltip?.Hide();
             EnsureSlotViews();
             if (equipmentController.Slots == null)
                 return;
@@ -113,7 +126,7 @@ namespace UI.Player.Inventory
 
                 if (slotLookup.TryGetValue(entry.Slot, out var existing) && existing != null)
                 {
-                    existing.Configure(entry.Slot, HandleSlotClick, HandleSlotDoubleClick, HandleBeginDrag, HandleSlotDrop, HandleEndDrag, HandleDrag);
+                    existing.Configure(entry.Slot, HandleSlotClick, HandleSlotDoubleClick, HandleBeginDrag, HandleSlotDrop, HandleEndDrag, HandleDrag, HandlePointerEnter, HandlePointerExit);
                     continue;
                 }
 
@@ -156,6 +169,7 @@ namespace UI.Player.Inventory
 
             slotViews.Clear();
             slotLookup.Clear();
+            tooltip?.Hide();
         }
 
         private void HandleSlotClick(EquipmentSlotUI slotView)
@@ -205,6 +219,7 @@ namespace UI.Player.Inventory
             if (item == null || item.IsEmpty)
                 return;
 
+            tooltip?.Hide();
             isEquipmentDragging = true;
             linkedInventoryPanel.BeginExternalDrag(item.Definition?.Icon, eventData);
         }
@@ -224,6 +239,28 @@ namespace UI.Player.Inventory
 
             isEquipmentDragging = false;
             linkedInventoryPanel?.EndExternalDrag();
+            tooltip?.Hide();
+        }
+
+        private void HandlePointerEnter(EquipmentSlotUI slotView, PointerEventData eventData)
+        {
+            if (tooltip == null || equipmentController == null || slotView == null)
+                return;
+
+            var item = equipmentController.GetItem(slotView.Slot);
+            if (item == null || item.IsEmpty)
+            {
+                tooltip.Hide();
+                return;
+            }
+
+            var position = eventData != null ? eventData.position : (Vector2)Input.mousePosition;
+            tooltip.Show(item, position);
+        }
+
+        private void HandlePointerExit(EquipmentSlotUI slotView, PointerEventData eventData)
+        {
+            tooltip?.Hide();
         }
 
         public void SetRefreshCallback(System.Action callback)

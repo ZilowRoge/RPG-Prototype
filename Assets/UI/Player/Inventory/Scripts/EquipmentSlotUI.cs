@@ -9,7 +9,7 @@ namespace UI.Player.Inventory
     /// <summary>
     /// Visual representation of a single equipment slot.
     /// </summary>
-    public class EquipmentSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
+    public class EquipmentSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler, IPointerEnterHandler, IPointerExitHandler
     {
         [SerializeField] private Image iconImage;
         [SerializeField] private CanvasGroup iconCanvasGroup;
@@ -20,6 +20,8 @@ namespace UI.Player.Inventory
         private Action<PointerEventData> onDrag;
         private Action onEndDrag;
         private Action<EquipmentSlotUI, PointerEventData> onDrop;
+        private Action<EquipmentSlotUI, PointerEventData> onPointerEnter;
+        private Action<EquipmentSlotUI, PointerEventData> onPointerExit;
 
         public EquipmentSlot Slot => slot;
 
@@ -30,7 +32,9 @@ namespace UI.Player.Inventory
             Action<EquipmentSlotUI, PointerEventData> beginDragHandler,
             Action<EquipmentSlotUI, PointerEventData> dropHandler,
             Action endDragHandler,
-            Action<PointerEventData> dragHandler)
+            Action<PointerEventData> dragHandler,
+            Action<EquipmentSlotUI, PointerEventData> pointerEnterHandler,
+            Action<EquipmentSlotUI, PointerEventData> pointerExitHandler)
         {
             slot = slotId;
             onClicked = clickHandler;
@@ -39,6 +43,8 @@ namespace UI.Player.Inventory
             onDrop = dropHandler;
             onEndDrag = endDragHandler;
             onDrag = dragHandler;
+            onPointerEnter = pointerEnterHandler;
+            onPointerExit = pointerExitHandler;
         }
 
         public void SetIcon(Sprite icon)
@@ -82,6 +88,16 @@ namespace UI.Player.Inventory
         public void OnDrop(PointerEventData eventData)
         {
             onDrop?.Invoke(this, eventData);
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            onPointerEnter?.Invoke(this, eventData);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            onPointerExit?.Invoke(this, eventData);
         }
     }
 }

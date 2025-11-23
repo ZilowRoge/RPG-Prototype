@@ -18,6 +18,8 @@ namespace UI.Player.Inventory
         private Action<InventorySlotUI, PointerEventData> onDrop;
         private Action onEndDrag;
         private Action<PointerEventData> onDrag;
+        private Action<InventorySlotUI, PointerEventData> onPointerEnter;
+        private Action<InventorySlotUI, PointerEventData> onPointerExit;
 
         public int SlotId => slotId;
 
@@ -28,7 +30,9 @@ namespace UI.Player.Inventory
             Action<InventorySlotUI, PointerEventData> beginDragHandler,
             Action<InventorySlotUI, PointerEventData> dropHandler,
             Action endDragHandler,
-            Action<PointerEventData> dragHandler)
+            Action<PointerEventData> dragHandler,
+            Action<InventorySlotUI, PointerEventData> pointerEnterHandler,
+            Action<InventorySlotUI, PointerEventData> pointerExitHandler)
         {
             slotId = id;
             onClicked = clickHandler;
@@ -37,6 +41,8 @@ namespace UI.Player.Inventory
             onDrop = dropHandler;
             onEndDrag = endDragHandler;
             onDrag = dragHandler;
+            onPointerEnter = pointerEnterHandler;
+            onPointerExit = pointerExitHandler;
         }
 
         public void SetIcon(Sprite icon)
@@ -63,12 +69,12 @@ namespace UI.Player.Inventory
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            // Placeholder for hover functionality (tooltip, highlight, etc.).
+            onPointerEnter?.Invoke(this, eventData);
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            // Placeholder for hover exit handling.
+            onPointerExit?.Invoke(this, eventData);
         }
 
         public void OnPointerClick(PointerEventData eventData)

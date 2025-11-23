@@ -19,4 +19,4 @@ MonoBehaviour:
   icon: {fileID: -1943081411, guid: 39651849fc372e3418c89bc752978239, type: 3}
   maxStack: 20
   typeDatas:
-  - {fileID: 11400000, guid: 49977648298318c4181167fa68297890, type: 2}
+  - {fileID: 11400000, guid: d7ea1b418cb2ea44b9a0d440418b9e1b, type: 2}

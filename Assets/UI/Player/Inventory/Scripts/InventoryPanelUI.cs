@@ -1,6 +1,7 @@
 using System.Collections.Generic;
-using UnityEngine;
 using Inventory;
+using Items;
+using UnityEngine;
 using UnityEngine.EventSystems;
 using InventoryData = global::Inventory.Inventory;
 
@@ -20,6 +21,8 @@ namespace UI.Player.Inventory
         [SerializeField] private List<InventorySlotUI> slots = new();
         [Header("Drag Visuals")]
         [SerializeField] private InventoryDragVisual dragVisual;
+        [Header("Tooltip")]
+        [SerializeField] private ItemTooltipUI tooltip;
         private System.Action refreshCallback;
 
         public IReadOnlyList<InventorySlotUI> SlotViews => slots;
@@ -31,9 +34,15 @@ namespace UI.Player.Inventory
             EnsureSlotsRoot();
         }
 
+        private void OnDisable()
+        {
+            tooltip?.Hide();
+        }
+
         public void Refresh()
         {
             EnsureSlotsRoot();
+            tooltip?.Hide();
             var inventory = inventoryController != null ? inventoryController.Inventory : null;
 
             if (inventory == null || slotPrefab == null || slotsRoot == null)
@@ -53,7 +62,7 @@ namespace UI.Player.Inventory
                 if (slotView == null)
                     continue;
 
-                slotView.Configure(i, HandleSlotClick, HandleSlotDoubleClick, HandleBeginDrag, HandleDrop, HandleEndDrag, HandleDrag);
+                slotView.Configure(i, HandleSlotClick, HandleSlotDoubleClick, HandleBeginDrag, HandleDrop, HandleEndDrag, HandleDrag, HandlePointerEnter, HandlePointerExit);
 
                 var data = slotData[i];
                 var icon = (!data.IsEmpty) ? data.ItemInstance.Definition?.Icon : null;
@@ -87,7 +96,7 @@ namespace UI.Player.Inventory
                     Debug.LogError("Slot prefab does not contain InventorySlotUI component.", this);
                     break;
                 }
-                newSlot.Configure(slots.Count, HandleSlotClick, HandleSlotDoubleClick, HandleBeginDrag, HandleDrop, HandleEndDrag, HandleDrag);
+                newSlot.Configure(slots.Count, HandleSlotClick, HandleSlotDoubleClick, HandleBeginDrag, HandleDrop, HandleEndDrag, HandleDrag, HandlePointerEnter, HandlePointerExit);
                 slots.Add(newSlot);
             }
 
@@ -145,6 +154,28 @@ namespace UI.Player.Inventory
                 RequestRefresh();
         }
 
+        private void HandlePointerEnter(InventorySlotUI slotView, PointerEventData eventData)
+        {
+            if (tooltip == null || inventoryController == null || slotView == null)
+                return;
+
+            var inventory = inventoryController.Inventory;
+            var item = GetItemFromSlot(inventory, slotView.SlotId);
+            if (item == null)
+            {
+                tooltip.Hide();
+                return;
+            }
+
+            var position = eventData != null ? eventData.position : (Vector2)Input.mousePosition;
+            tooltip.Show(item, position);
+        }
+
+        private void HandlePointerExit(InventorySlotUI slotView, PointerEventData eventData)
+        {
+            tooltip?.Hide();
+        }
+
         private void HandleBeginDrag(InventorySlotUI slotView, PointerEventData eventData)
         {
             if (inventoryController == null || slotView == null)
@@ -162,6 +193,7 @@ namespace UI.Player.Inventory
             if (slotData.IsEmpty)
                 return;
 
+            tooltip?.Hide();
             dragSourceIndex = index;
             isDragging = true;
             var icon = slotData.ItemInstance.Definition?.Icon;
@@ -260,6 +292,7 @@ namespace UI.Player.Inventory
             dragSourceIndex = -1;
             isDragging = false;
             dragVisual?.Hide();
+            tooltip?.Hide();
         }
 
         public void SetRefreshCallback(System.Action callback)
@@ -290,6 +323,15 @@ namespace UI.Player.Inventory
         public void EndExternalDrag()
         {
             dragVisual?.Hide();
+        }
+
+        private static ItemInstance GetItemFromSlot(InventoryData inventory, int slotIndex)
+        {
+            if (inventory == null || slotIndex < 0 || slotIndex >= inventory.SlotCount)
+                return null;
+
+            var slot = inventory.Slots[slotIndex];
+            return slot != null && !slot.IsEmpty ? slot.ItemInstance : null;
         }
 
         private void RequestRefresh()
