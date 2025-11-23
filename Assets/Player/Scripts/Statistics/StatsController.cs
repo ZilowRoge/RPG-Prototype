@@ -99,6 +99,30 @@ namespace Player.Statistics
                 HandleDeath();
         }
 
+        public float RestoreHealth(float amount)
+        {
+            if (isDead)
+                return 0f;
+
+            return runtime.RestoreHealth(amount, maxHealth);
+        }
+
+        public float RestoreMana(float amount)
+        {
+            if (isDead)
+                return 0f;
+
+            return runtime.RestoreMana(amount, maxMana);
+        }
+
+        public float RestoreStamina(float amount)
+        {
+            if (isDead)
+                return 0f;
+
+            return runtime.RestoreStamina(amount, maxStamina);
+        }
+
         public void ApplyKnockback(Vector3 direction, float force)
         {
             if (isDead)

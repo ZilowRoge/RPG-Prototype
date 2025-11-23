@@ -8,20 +8,20 @@ namespace Player.Statistics
     /// </summary>
     public readonly struct BuffRequest
     {
-        public BuffRequest(string key, string displayName, float duration, BuffCallbacks callbacks)
+        public BuffRequest(BuffKey key, string displayName, float duration, BuffCallbacks callbacks)
         {
-            Key = string.IsNullOrWhiteSpace(key) ? "buff" : key;
-            DisplayName = string.IsNullOrWhiteSpace(displayName) ? Key : displayName;
+            Key = key;
+            DisplayName = string.IsNullOrWhiteSpace(displayName) ? key.ToString() : displayName;
             Duration = Mathf.Max(0f, duration);
             Callbacks = callbacks;
         }
 
-        public string Key { get; }
+        public BuffKey Key { get; }
         public string DisplayName { get; }
         public float Duration { get; }
         public BuffCallbacks Callbacks { get; }
 
-        public bool IsValid => Duration >= 0f && Callbacks.HasCallbacks;
+        public bool IsValid => Key != BuffKey.None && Duration >= 0f && Callbacks.HasCallbacks;
     }
 
     public readonly struct BuffCallbacks

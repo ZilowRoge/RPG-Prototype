@@ -67,6 +67,8 @@ namespace Player.Statistics
 
             AssignDependencies();
 
+            CancelExistingBuffs(request.Key);
+
             var context = new BuffContext(this, statsController);
             var buff = new ActiveBuff(nextBuffId++, request, context);
             buff.Routine = StartCoroutine(RunBuff(buff));
@@ -106,6 +108,25 @@ namespace Player.Statistics
             buff.Elapsed = buff.Duration;
         }
 
+        private void CancelExistingBuffs(BuffKey key)
+        {
+            if (key == BuffKey.None)
+                return;
+
+            for (int i = activeBuffs.Count - 1; i >= 0; i--)
+            {
+                var existing = activeBuffs[i];
+                if (existing.Request.Key != key)
+                    continue;
+
+                if (existing.Routine != null)
+                    StopCoroutine(existing.Routine);
+
+                existing.Request.Callbacks.OnCancelled?.Invoke(existing.Context);
+                activeBuffs.RemoveAt(i);
+            }
+        }
+
         private void AssignDependencies()
         {
             if (statsController == null)
@@ -115,7 +136,7 @@ namespace Player.Statistics
         [Serializable]
         public readonly struct BuffInfo
         {
-            public BuffInfo(int id, string key, string displayName, float duration, float elapsed)
+            public BuffInfo(int id, BuffKey key, string displayName, float duration, float elapsed)
             {
                 Id = id;
                 Key = key;
@@ -125,7 +146,7 @@ namespace Player.Statistics
             }
 
             public int Id { get; }
-            public string Key { get; }
+            public BuffKey Key { get; }
             public string DisplayName { get; }
             public float Duration { get; }
             public float Elapsed { get; }

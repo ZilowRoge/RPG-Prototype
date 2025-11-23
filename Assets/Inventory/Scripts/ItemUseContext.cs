@@ -1,4 +1,6 @@
+using System;
 using Items;
+using Player.Statistics;
 using UnityEngine;
 
 namespace Inventory
@@ -9,6 +11,15 @@ namespace Inventory
     public class ItemUseContext : MonoBehaviour, IItemUseContext
     {
         private const string LogPrefix = "[ItemUseContext]";
+
+        [Header("Dependencies")]
+        [SerializeField] private StatsController statsController;
+        [SerializeField] private BuffController buffController;
+
+        private void Awake()
+        {
+            CacheDependencies();
+        }
 
         public bool TryUseItem(ItemUseRequest request)
         {
@@ -46,7 +57,7 @@ namespace Inventory
             switch (definition.Type)
             {
                 case ItemType.Consumable:
-                    return HandleConsumableUse(slot, definition.Name, slotIndex);
+                    return HandleConsumableUse(slot, definition, slotIndex);
                 case ItemType.Equipment:
                     return HandleEquipmentUse(request, slot);
                 default:
@@ -65,19 +76,23 @@ namespace Inventory
             // Placeholder for stat/buff removal.
         }
 
-        private static bool HandleConsumableUse(Slot slot, string itemName, int slotIndex)
+        private bool HandleConsumableUse(Slot slot, ItemDefinition definition, int slotIndex)
         {
             var instance = slot.ItemInstance;
             if (instance == null)
                 return false;
 
-            instance.SetStackCount(instance.StackCount - 1);
-            if (instance.StackCount <= 0)
+            if (!definition.TryGetStatBlock<ConsumableItemData>(out var consumableData) || !consumableData.HasEffect)
             {
-                slot.Clear();
+                Debug.LogWarning($"{LogPrefix} Consumable '{definition.Name}' has no effect data.");
+                return false;
             }
 
-            Debug.Log($"{LogPrefix} Consumed '{itemName}' from slot {slotIndex}. Remaining stack: {instance.StackCount}.");
+            if (!TryApplyConsumableEffect(consumableData, definition.Name))
+                return false;
+
+            ConsumeInstance(slot, instance);
+            Debug.Log($"{LogPrefix} Consumed '{definition.Name}' from slot {slotIndex}. Remaining stack: {instance.StackCount}.");
             return true;
         }
 
@@ -133,6 +148,84 @@ namespace Inventory
                 return weapon.Slot;
 
             return null;
+        }
+
+        private void CacheDependencies()
+        {
+            if (statsController == null)
+                statsController = GetComponent<StatsController>() ?? GetComponentInParent<StatsController>();
+
+            if (buffController == null)
+                buffController = GetComponent<BuffController>() ?? GetComponentInParent<BuffController>();
+
+        }
+
+        private static void ConsumeInstance(Slot slot, ItemInstance instance)
+        {
+            instance.SetStackCount(instance.StackCount - 1);
+            if (instance.StackCount <= 0)
+            {
+                slot.Clear();
+            }
+        }
+
+        private bool TryApplyConsumableEffect(ConsumableItemData data, string displayName)
+        {
+            return data.EffectType switch
+            {
+                ConsumableEffectType.Health => ApplyOverTimeEffect(data, displayName, BuffKey.ConsumableHealth, (stats, amount) => stats.RestoreHealth(amount)),
+                ConsumableEffectType.Mana => ApplyOverTimeEffect(data, displayName, BuffKey.ConsumableMana, (stats, amount) => stats.RestoreMana(amount)),
+                ConsumableEffectType.Stamina => ApplyOverTimeEffect(data, displayName, BuffKey.ConsumableStamina, (stats, amount) => stats.RestoreStamina(amount)),
+                _ => LogUnsupported(data.EffectType)
+            };
+        }
+
+        private bool ApplyOverTimeEffect(
+            ConsumableItemData data,
+            string displayName,
+            BuffKey buffKey,
+            Action<StatsController, float> applyAmount)
+        {
+            if (statsController == null)
+            {
+                Debug.LogWarning($"{LogPrefix} StatsController missing; cannot apply consumable.");
+                return false;
+            }
+
+            float amount = Mathf.Max(0f, data.EffectValue);
+            float duration = Mathf.Max(0f, data.EffectDuration);
+
+            if (buffController == null)
+            {
+                Debug.LogWarning($"{LogPrefix} BuffController missing; cannot apply over-time consumable.");
+                return false;
+            }
+
+            if (duration <= Mathf.Epsilon)
+            {
+                Debug.LogWarning($"{LogPrefix} Duration is zero for over-time consumable {data.EffectType}; skipping.");
+                return false;
+            }
+
+            float ratePerSecond = amount / Mathf.Max(0.0001f, duration);
+            var request = BuffRequestBuilder
+                .Create(buffKey, duration)
+                .WithDisplayName(displayName)
+                .OnTick((context, delta) =>
+                {
+                    var stats = context.Stats;
+                    if (stats != null)
+                        applyAmount?.Invoke(stats, ratePerSecond * delta);
+                })
+                .Build();
+
+            return buffController.ApplyBuff(request);
+        }
+
+        private bool LogUnsupported(ConsumableEffectType type)
+        {
+            Debug.LogWarning($"{LogPrefix} Consumable effect type {type} is not supported yet.");
+            return false;
         }
     }
 }

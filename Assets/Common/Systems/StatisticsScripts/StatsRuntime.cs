@@ -75,6 +75,36 @@ namespace Systems.Statistics
             currentHealth = Mathf.Max(0f, currentHealth - amount);
         }
 
+        public float RestoreHealth(float amount, float maxHealth)
+        {
+            if (amount <= 0f)
+                return 0f;
+
+            float previous = currentHealth;
+            currentHealth = Clamp(currentHealth + amount, maxHealth);
+            return currentHealth - previous;
+        }
+
+        public float RestoreMana(float amount, float maxMana)
+        {
+            if (amount <= 0f)
+                return 0f;
+
+            float previous = currentMana;
+            currentMana = Clamp(currentMana + amount, maxMana);
+            return currentMana - previous;
+        }
+
+        public float RestoreStamina(float amount, float maxStamina)
+        {
+            if (amount <= 0f)
+                return 0f;
+
+            float previous = currentStamina;
+            currentStamina = Clamp(currentStamina + amount, maxStamina);
+            return currentStamina - previous;
+        }
+
         public bool TryConsumeStamina(float amount)
         {
             if (amount <= 0f)
