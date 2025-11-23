@@ -61,7 +61,7 @@ namespace UI.Player.Inventory
 
             if (statsLabel != null)
             {
-                var text = BuildStatsText(definition);
+                var text = BuildStatsText(item);
                 bool hasText = !string.IsNullOrWhiteSpace(text);
                 statsLabel.gameObject.SetActive(hasText);
                 if (hasText)
@@ -86,26 +86,58 @@ namespace UI.Player.Inventory
             }
         }
 
-        private string BuildStatsText(ItemDefinition definition)
+        private string BuildStatsText(ItemInstance item)
         {
-            if (definition == null)
-                return string.Empty;
-
+            var definition = item != null ? item.Definition : null;
             var lines = new List<string>();
 
-            foreach (var block in definition.GetAllStatBlocks())
+            if (definition != null)
             {
-                if (block == null)
-                    continue;
-
-                var text = block.GetString();
-                if (!string.IsNullOrWhiteSpace(text))
+                foreach (var block in definition.GetAllStatBlocks())
                 {
-                    lines.Add(text);
+                    if (block == null)
+                        continue;
+
+                    var text = block.GetString();
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        lines.Add(text);
+                    }
+                }
+            }
+
+            if (item != null && item.Modifiers != null)
+            {
+                foreach (var mod in item.Modifiers)
+                {
+                    var text = FormatModifier(mod);
+                    if (!string.IsNullOrWhiteSpace(text))
+                        lines.Add(text);
                 }
             }
 
             return lines.Count == 0 ? string.Empty : string.Join("\n", lines);
+        }
+
+        private string FormatModifier(ItemStatModifier modifier)
+        {
+            var statName = modifier.Stat.ToString();
+            switch (modifier.Mode)
+            {
+                case ModifierMode.Add:
+                    if (Mathf.Approximately(modifier.Value, 0f))
+                        return string.Empty;
+                    return $"{statName}: {(modifier.Value >= 0f ? "+" : string.Empty)}{modifier.Value:0.#}";
+                case ModifierMode.Multiply:
+                    var pct = (modifier.Value - 1f) * 100f;
+                    if (Mathf.Approximately(pct, 0f))
+                        return string.Empty;
+                    return $"{statName}: {(pct >= 0f ? "+" : string.Empty)}{pct:0.#}%";
+                case ModifierMode.Override:
+                    return $"{statName}: {modifier.Value:0.#}";
+                default:
+                    return string.Empty;
+            }
         }
 
         private void UpdatePosition(Vector2 screenPosition)

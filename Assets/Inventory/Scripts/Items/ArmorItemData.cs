@@ -15,7 +15,8 @@ namespace Items
 
         public override string GetString()
         {
-            return $"Slot: {slot}, Armor: {armorValue:0.#}";
+            return $"Slot: {slot}\n" + 
+                    "Armor: {armorValue:0.#}";
         }
     }
 }

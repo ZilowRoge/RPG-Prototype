@@ -8,17 +8,18 @@ namespace Items
         [SerializeField] private EquipmentSlot slot = EquipmentSlot.Weapon;
 
         [Min(0f)]
-        [SerializeField] private float baseDamage = 10f;
+        [SerializeField] private float minDamage = 10f;
         [Min(0f)]
         [SerializeField] private float maxDamage = 5f;
 
         public EquipmentSlot Slot => slot;
-        public float BaseDamage => baseDamage;
+        public float MinDamage => minDamage;
         public float MaxDamage => maxDamage;
 
         public override string GetString()
         {
-            return $"Slot: {slot}, Damage: {baseDamage:0.#}-{maxDamage:0.#}";
+            return $"Slot: {slot}\n" + 
+                    "Damage: {minDamage} - {maxDamage}";
         }
     }
 }
