@@ -10,6 +10,7 @@ namespace Items
         HealthRegen = 1,
         Armor = 2,
         Damage = 3,
-        MoveSpeed = 4
+        MoveSpeed = 4,
+        StaminaRegen = 5
     }
 }

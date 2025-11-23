@@ -5,6 +5,8 @@ using Systems.Statistics;
 using Player.Perks;
 using Systems.Perks;
 using Player.Events;
+using Inventory;
+using Items;
 
 namespace Player.Statistics
 {
@@ -13,6 +15,7 @@ namespace Player.Statistics
         [SerializeField] private StatsData statistics;
         [SerializeField] private PlayerPerkRuntime perkRuntime;
         [SerializeField] private PlayerEventHub playerEvents;
+        [SerializeField] private EquipmentController equipmentController;
         [SerializeField] private StatsRuntime runtime = new();
         [Header("Knockback")]
         [SerializeField, Tooltip("Duration in seconds over which knockback displacement is applied.")]
@@ -21,6 +24,7 @@ namespace Player.Statistics
         private CharacterController characterController;
         private bool loggedMissingEventHub;
         private bool isDead;
+        private readonly System.Collections.Generic.Dictionary<ItemStatType, StatAccumulator> equipmentModifiers = new();
         public bool IsDead => isDead;
 
         public StatsData Statistics => statistics;
@@ -43,6 +47,9 @@ namespace Player.Statistics
 
         public float walkSpeed => statistics.walkSpeed;
         public float runSpeed => statistics.runSpeed;
+        public float DamageMin => statistics != null ? ApplyEquipmentStat(ItemStatType.Damage, statistics.baseDamageMin) : 0f;
+        public float DamageMax => statistics != null ? ApplyEquipmentStat(ItemStatType.Damage, statistics.baseDamageMax) : 0f;
+        public float Armor => statistics != null ? ApplyEquipmentStat(ItemStatType.Armor, statistics.baseArmor) : 0f;
 
         public float CurrentHealth => runtime.CurrentHealth;
         public float CurrentMana => runtime.CurrentMana;
@@ -54,6 +61,9 @@ namespace Player.Statistics
         {
             if (perkRuntime == null)
                 perkRuntime = GetComponent<PlayerPerkRuntime>() ?? GetComponentInParent<PlayerPerkRuntime>();
+
+            if (equipmentController == null)
+                equipmentController = GetComponent<EquipmentController>() ?? GetComponentInParent<EquipmentController>();
 
             if (characterController == null)
                 characterController = GetComponent<CharacterController>();
@@ -195,14 +205,16 @@ namespace Player.Statistics
             if (delta <= 0f || statistics == null)
                 return;
 
+            RebuildEquipmentBonuses();
+
             runtime.Regenerate(
                 delta,
                 maxHealth,
-                statistics.healthRegenPerSecond,
+                GetHealthRegenRate(),
                 maxMana,
                 GetManaRegenRate(),
                 maxStamina,
-                statistics.staminaRegenPerSecond);
+                GetStaminaRegenRate());
         }
 
         private int GetTotalStat(EStatistics stat)
@@ -216,7 +228,59 @@ namespace Player.Statistics
         {
             float baseRate = statistics.manaRegenPerSecond;
             float percentBonus = perkRuntime != null ? perkRuntime.GetPercentBonus(EEffectType.ManaRegeneration) : 0f;
-            return baseRate * (1f + percentBonus);
+            var equipmentAdjusted = ApplyEquipmentStat(ItemStatType.ManaRegen, baseRate);
+            return equipmentAdjusted * (1f + percentBonus);
+        }
+
+        private float GetHealthRegenRate()
+        {
+            float baseRate = statistics.healthRegenPerSecond;
+            return ApplyEquipmentStat(ItemStatType.HealthRegen, baseRate);
+        }
+
+        private float GetStaminaRegenRate()
+        {
+            float baseRate = statistics.staminaRegenPerSecond;
+            return ApplyEquipmentStat(ItemStatType.StaminaRegen, baseRate);
+        }
+
+        private float ApplyEquipmentStat(ItemStatType statType, float baseValue)
+        {
+            if (!equipmentModifiers.TryGetValue(statType, out var accumulator) || accumulator == null)
+                return baseValue;
+
+            return accumulator.Apply(baseValue);
+        }
+
+        private void RebuildEquipmentBonuses()
+        {
+            equipmentModifiers.Clear();
+
+            var slots = equipmentController != null ? equipmentController.Slots : null;
+            if (slots == null)
+                return;
+
+            foreach (var entry in slots)
+            {
+                if (entry == null || entry.IsEmpty)
+                    continue;
+
+                var item = entry.ItemInstance;
+                var mods = item?.Modifiers;
+                if (mods == null)
+                    continue;
+
+                foreach (var mod in mods)
+                {
+                    if (!equipmentModifiers.TryGetValue(mod.Stat, out var accumulator) || accumulator == null)
+                    {
+                        accumulator = new StatAccumulator();
+                        equipmentModifiers[mod.Stat] = accumulator;
+                    }
+
+                    accumulator.Add(mod);
+                }
+            }
         }
 
         private void EnsureEventHub()
@@ -280,6 +344,36 @@ namespace Player.Statistics
 
             Debug.LogWarning("[StatsController] PlayerEventHub is not assigned. Perk resource updates and death notifications will not be broadcast.");
             loggedMissingEventHub = true;
+        }
+
+        private sealed class StatAccumulator
+        {
+            public float Add;
+            public float Multiply = 1f;
+            public float? Override;
+
+            public void Add(ItemStatModifier modifier)
+            {
+                switch (modifier.Mode)
+                {
+                    case ModifierMode.Add:
+                        Add += modifier.Value;
+                        break;
+                    case ModifierMode.Multiply:
+                        Multiply *= modifier.Value;
+                        break;
+                    case ModifierMode.Override:
+                        Override = modifier.Value;
+                        break;
+                }
+            }
+
+            public float Apply(float baseValue)
+            {
+                var value = Override ?? baseValue;
+                value = value * Multiply + Add;
+                return value;
+            }
         }
     }
 }

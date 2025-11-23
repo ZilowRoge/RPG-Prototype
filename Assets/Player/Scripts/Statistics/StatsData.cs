@@ -9,6 +9,11 @@ namespace Player.Statistics
         public float walkSpeed = 3.0f;
         public float runSpeed = 6.0f;
 
+        [Header("Combat")]
+        public float baseDamageMin = 10f;
+        public float baseDamageMax = 15f;
+        public float baseArmor = 0f;
+
         public float baseHealth = 50f;
         public float baseMana = 50f;
         public float baseStamina = 50f;
