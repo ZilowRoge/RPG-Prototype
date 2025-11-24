@@ -6,6 +6,8 @@ using Player.Statistics;
 using Quests;
 using Systems.SaveSystem;
 using Systems.SaveSystem.SaveData;
+using Inventory;
+using Items;
 
 namespace Player.Save
 {
@@ -19,10 +21,18 @@ namespace Player.Save
         [SerializeField] private ProgressController progressController;
         [SerializeField] private StatsController statsController;
         [SerializeField] private QuestManager questManager;
+        [SerializeField] private InventoryController inventoryController;
+        [SerializeField] private EquipmentController equipmentController;
+        [Header("Items")]
+        [Tooltip("List of all item definitions used to resolve saved itemIds.")]
+        [SerializeField] private List<ItemDefinition> itemDefinitions = new();
+
+        private readonly Dictionary<string, ItemDefinition> definitionLookup = new();
 
         private void Awake()
         {
             CacheReferences();
+            BuildItemLookup();
         }
 
         private void OnEnable()
@@ -44,9 +54,11 @@ namespace Player.Save
 
             data.playerData ??= new PlayerStatisticsData();
             data.progressData ??= new PlayerProgressData();
+            data.inventoryData ??= new PlayerInventoryData();
 
             WriteStats(data.playerData);
             WriteProgress(data.progressData);
+            WriteInventory(data.inventoryData);
         }
 
         public void OnLoad(GameData data)
@@ -55,6 +67,8 @@ namespace Player.Save
                 return;
 
             IsRestoring = true;
+            BuildItemLookup();
+            ReadInventory(data.inventoryData);
             ReadStats(data.playerData);
             ReadProgress(data.progressData);
             IsRestoring = false;
@@ -71,6 +85,12 @@ namespace Player.Save
 
             if (questManager == null)
                 questManager = progressController?.QuestManager ?? FindFirstObjectByType<QuestManager>();
+
+            if (inventoryController == null)
+                inventoryController = GetComponentInParent<InventoryController>() ?? FindFirstObjectByType<InventoryController>();
+
+            if (equipmentController == null)
+                equipmentController = GetComponentInParent<EquipmentController>() ?? FindFirstObjectByType<EquipmentController>();
         }
 
         private void WriteStats(PlayerStatisticsData snapshot)
@@ -207,6 +227,231 @@ namespace Player.Save
             }
 
             PlayerLoadedFromSave?.Invoke();
+        }
+
+        private void WriteInventory(PlayerInventoryData snapshot)
+        {
+            if (snapshot == null)
+                return;
+
+            snapshot.inventorySlots ??= new List<SerializedInventorySlot>();
+            snapshot.equipmentSlots ??= new List<SerializedEquipmentSlot>();
+            snapshot.inventorySlots.Clear();
+            snapshot.equipmentSlots.Clear();
+
+            var inventory = inventoryController != null ? inventoryController.Inventory : null;
+            if (inventory != null)
+            {
+                snapshot.inventorySlotCount = inventory.SlotCount;
+
+                for (int i = 0; i < inventory.SlotCount; i++)
+                {
+                    var slot = inventory.Slots[i];
+                    if (slot == null || slot.IsEmpty)
+                        continue;
+
+                    var serializedItem = SerializeItem(slot.ItemInstance);
+                    if (serializedItem == null)
+                        continue;
+
+                    snapshot.inventorySlots.Add(new SerializedInventorySlot
+                    {
+                        slotId = i,
+                        item = serializedItem
+                    });
+                }
+            }
+
+            if (equipmentController != null && equipmentController.Slots != null)
+            {
+                foreach (var entry in equipmentController.Slots)
+                {
+                    if (entry == null || entry.IsEmpty)
+                        continue;
+
+                    var serializedItem = SerializeItem(entry.ItemInstance);
+                    if (serializedItem == null)
+                        continue;
+
+                    snapshot.equipmentSlots.Add(new SerializedEquipmentSlot
+                    {
+                        slot = entry.Slot.ToString(),
+                        item = serializedItem
+                    });
+                }
+            }
+        }
+
+        private void ReadInventory(PlayerInventoryData snapshot)
+        {
+            if (snapshot == null)
+                return;
+
+            RestoreInventory(snapshot);
+            RestoreEquipment(snapshot);
+        }
+
+        private void RestoreInventory(PlayerInventoryData snapshot)
+        {
+            if (inventoryController == null)
+                return;
+
+            var inventory = inventoryController.Inventory;
+            if (inventory == null)
+                return;
+
+            var targetCount = snapshot.inventorySlotCount > 0 ? snapshot.inventorySlotCount : inventory.SlotCount;
+            inventory.InitializeSlots(targetCount);
+
+            var slots = inventory.Slots;
+            if (slots == null)
+                return;
+
+            var savedSlots = snapshot.inventorySlots ?? new List<SerializedInventorySlot>();
+            foreach (var saved in savedSlots)
+            {
+                if (saved == null || saved.slotId < 0 || saved.slotId >= slots.Count)
+                    continue;
+
+                var item = DeserializeItem(saved.item);
+                if (item == null)
+                    continue;
+
+                slots[saved.slotId].SetItem(item);
+            }
+        }
+
+        private void RestoreEquipment(PlayerInventoryData snapshot)
+        {
+            if (equipmentController == null || equipmentController.Slots == null)
+                return;
+
+            var savedEquip = snapshot.equipmentSlots ?? new List<SerializedEquipmentSlot>();
+            if (savedEquip.Count == 0)
+                return;
+
+            foreach (var entry in equipmentController.Slots)
+            {
+                entry?.Clear();
+            }
+
+            foreach (var saved in savedEquip)
+            {
+                if (saved == null || string.IsNullOrWhiteSpace(saved.slot))
+                    continue;
+
+                if (!Enum.TryParse(saved.slot, out EquipmentSlot slot))
+                    continue;
+
+                var item = DeserializeItem(saved.item);
+                if (item == null)
+                    continue;
+
+                var entry = GetEquipmentEntry(slot);
+                if (entry != null)
+                    entry.SetItem(item);
+            }
+        }
+
+        private EquipmentSlotEntry GetEquipmentEntry(EquipmentSlot slot)
+        {
+            if (equipmentController?.Slots == null)
+                return null;
+
+            foreach (var entry in equipmentController.Slots)
+            {
+                if (entry != null && entry.Slot == slot)
+                    return entry;
+            }
+
+            return null;
+        }
+
+        private SerializedItemInstance SerializeItem(ItemInstance instance)
+        {
+            if (instance == null || instance.Definition == null)
+                return null;
+
+            var serialized = new SerializedItemInstance
+            {
+                itemId = instance.Definition.Id,
+                stackCount = instance.StackCount,
+                instanceId = instance.InstanceId
+            };
+
+            if (instance.Modifiers != null)
+            {
+                foreach (var mod in instance.Modifiers)
+                {
+                    serialized.modifiers.Add(new SerializedItemModifier
+                    {
+                        stat = mod.Stat.ToString(),
+                        mode = mod.Mode.ToString(),
+                        value = mod.Value
+                    });
+                }
+            }
+
+            return serialized;
+        }
+
+        private ItemInstance DeserializeItem(SerializedItemInstance serialized)
+        {
+            if (serialized == null || string.IsNullOrWhiteSpace(serialized.itemId))
+                return null;
+
+            var definition = ResolveDefinition(serialized.itemId);
+            if (definition == null)
+                return null;
+
+            var mods = DeserializeModifiers(serialized.modifiers);
+            return new ItemInstance(definition, serialized.stackCount, serialized.instanceId, mods);
+        }
+
+        private IEnumerable<ItemStatModifier> DeserializeModifiers(List<SerializedItemModifier> serialized)
+        {
+            if (serialized == null)
+                yield break;
+
+            foreach (var mod in serialized)
+            {
+                if (mod == null || string.IsNullOrWhiteSpace(mod.stat) || string.IsNullOrWhiteSpace(mod.mode))
+                    continue;
+
+                if (!Enum.TryParse(mod.stat, out ItemStatType statType))
+                    continue;
+
+                if (!Enum.TryParse(mod.mode, out ModifierMode mode))
+                    continue;
+
+                yield return new ItemStatModifier(statType, mode, mod.value);
+            }
+        }
+
+        private void BuildItemLookup()
+        {
+            definitionLookup.Clear();
+
+            if (itemDefinitions != null)
+            {
+                foreach (var def in itemDefinitions)
+                {
+                    if (def == null || string.IsNullOrWhiteSpace(def.Id))
+                        continue;
+                    definitionLookup[def.Id] = def;
+                }
+            }
+        }
+
+        private ItemDefinition ResolveDefinition(string itemId)
+        {
+            if (string.IsNullOrWhiteSpace(itemId))
+                return null;
+
+            if (definitionLookup.TryGetValue(itemId, out var found) && found != null)
+                return found;
+
+            return null;
         }
 
         private void ApplySavedTransform(PlayerProgressData snapshot)

@@ -348,7 +348,7 @@ namespace Player.Statistics
 
         private sealed class StatAccumulator
         {
-            public float Add;
+            public float AddValue;
             public float Multiply = 1f;
             public float? Override;
 
@@ -357,7 +357,7 @@ namespace Player.Statistics
                 switch (modifier.Mode)
                 {
                     case ModifierMode.Add:
-                        Add += modifier.Value;
+                        AddValue += modifier.Value;
                         break;
                     case ModifierMode.Multiply:
                         Multiply *= modifier.Value;
@@ -371,7 +371,7 @@ namespace Player.Statistics
             public float Apply(float baseValue)
             {
                 var value = Override ?? baseValue;
-                value = value * Multiply + Add;
+                value = value * Multiply + AddValue;
                 return value;
             }
         }
