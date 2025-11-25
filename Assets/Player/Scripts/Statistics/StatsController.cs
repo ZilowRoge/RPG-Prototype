@@ -360,7 +360,7 @@ namespace Player.Statistics
                         AddValue += modifier.Value;
                         break;
                     case ModifierMode.Multiply:
-                        Multiply *= modifier.Value;
+                        Multiply *= 1f + modifier.Value;
                         break;
                     case ModifierMode.Override:
                         Override = modifier.Value;

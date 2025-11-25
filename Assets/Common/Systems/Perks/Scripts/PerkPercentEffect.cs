@@ -33,7 +33,8 @@ namespace Systems.Perks
 
         private static string FormatPercentValue(float raw)
         {
-            float abs = Mathf.Abs(raw);
+            float percent = raw * 100f;
+            float abs = Mathf.Abs(percent);
             string formatted = abs.ToString("0.##", CultureInfo.InvariantCulture);
             return raw < 0f ? $"-{formatted}" : formatted;
         }

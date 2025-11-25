@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: SpellPower10Percent
   m_EditorClassIdentifier: 
   effectType: 3
-  value: 10
+  value: 0.1

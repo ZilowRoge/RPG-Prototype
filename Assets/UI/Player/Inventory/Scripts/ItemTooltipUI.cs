@@ -129,7 +129,7 @@ namespace UI.Player.Inventory
                         return string.Empty;
                     return $"{statName}: {(modifier.Value >= 0f ? "+" : string.Empty)}{modifier.Value:0.#}";
                 case ModifierMode.Multiply:
-                    var pct = (modifier.Value - 1f) * 100f;
+                    var pct = modifier.Value * 100f;
                     if (Mathf.Approximately(pct, 0f))
                         return string.Empty;
                     return $"{statName}: {(pct >= 0f ? "+" : string.Empty)}{pct:0.#}%";

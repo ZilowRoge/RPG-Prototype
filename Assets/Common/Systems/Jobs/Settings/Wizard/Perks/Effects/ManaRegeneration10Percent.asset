@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: ManaRegeneration10Percent
   m_EditorClassIdentifier: 
   effectType: 0
-  value: 10
+  value: 0.1

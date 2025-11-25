@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: SpellPower5Percent
   m_EditorClassIdentifier: 
   key: 3
-  value: 5
+  value: 0.05

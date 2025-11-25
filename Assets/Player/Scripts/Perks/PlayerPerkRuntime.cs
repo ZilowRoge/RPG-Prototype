@@ -173,7 +173,7 @@ namespace Player.Perks
                     var percentType = percent.effectType;
                     if (!percentBonuses.ContainsKey(percentType))
                         percentBonuses.Add(percentType, 0f);
-                    percentBonuses[percentType] += percent.value * 0.01f;
+                    percentBonuses[percentType] += percent.value;
                     break;
 
                 case PerkFlatEffect flat:
@@ -226,7 +226,7 @@ namespace Player.Perks
             switch (reward)
             {
                 case PerkPercentEffect percent when percent.effectType == EEffectType.SpellPower:
-                    castSpellPowerBonus += percent.value * 0.01f;
+                    castSpellPowerBonus += percent.value;
                     break;
             }
         }
