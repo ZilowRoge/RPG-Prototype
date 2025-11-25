@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Player.Progress;
+using Inventory;
+using Items;
 
 namespace Quests
 {
@@ -35,11 +37,22 @@ namespace Quests
     public class QuestManager : MonoBehaviour
     {
         [SerializeField] QuestDatabase database;
+        [SerializeField] InventoryController playerInventory;
         [SerializeField] List<QuestProgress> activeQuests = new();
 
         public QuestDatabase Database => database;
 
         public IReadOnlyList<QuestProgress> ActiveQuests => activeQuests;
+
+        private void Awake()
+        {
+            CacheDependencies();
+        }
+
+        private void OnValidate()
+        {
+            CacheDependencies();
+        }
 
         public void OverwriteActiveQuests(IEnumerable<QuestProgress> restored)
         {
@@ -228,8 +241,7 @@ namespace Quests
             {
                 qp.state = QuestState.Completed;
                 GameEvents.EmitQuestCompleted(qp.questId);
-                if (asset.rewardXp > 0 && progress != null)
-                    progress.GrantExperience(asset.rewardXp);
+                GrantRewards(asset, progress);
             }
         }
 
@@ -305,6 +317,63 @@ namespace Quests
             }
 
             return clone;
+        }
+
+        void GrantRewards(QuestAsset asset, ProgressController progress)
+        {
+            if (asset == null)
+                return;
+
+            if (asset.rewardXp > 0 && progress != null)
+                progress.GrantExperience(asset.rewardXp);
+
+            if (asset.itemRewards == null || asset.itemRewards.Count == 0)
+                return;
+
+            var inventory = ResolveInventory(progress);
+            if (inventory == null)
+            {
+                Debug.LogWarning("[QuestManager] Cannot grant item rewards because no InventoryController is assigned.", this);
+                return;
+            }
+
+            for (int i = 0; i < asset.itemRewards.Count; i++)
+            {
+                var source = asset.itemRewards[i];
+                if (source == null || source.Definition == null)
+                    continue;
+
+                int amount = Mathf.Max(1, source.StackCount);
+                var copy = new ItemInstance(source.Definition, amount, null, source.Modifiers);
+
+                bool added = inventory.TryAddItemInstance(copy);
+                if (!added)
+                    Debug.LogWarning($"[QuestManager] Failed to add quest reward item '{source.Definition.Name}' x{amount} to inventory.", this);
+            }
+        }
+
+        InventoryController ResolveInventory(ProgressController progress)
+        {
+            if (playerInventory != null)
+                return playerInventory;
+
+            if (progress != null)
+            {
+                var ownedInventory = progress.GetComponent<InventoryController>() ?? progress.GetComponentInParent<InventoryController>();
+                if (ownedInventory != null)
+                {
+                    playerInventory = ownedInventory;
+                    return playerInventory;
+                }
+            }
+
+            return null;
+        }
+
+        void CacheDependencies()
+        {
+            if (playerInventory == null)
+                playerInventory = GetComponent<InventoryController>() ?? GetComponentInParent<InventoryController>();
         }
     }
 }

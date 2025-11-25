@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Items;
 using UnityEngine;
 
 namespace Quests
@@ -41,9 +42,10 @@ namespace Quests
         public string questId = "q_id";
         public string title = "Quest Title";
         [TextArea(2, 6)] public string shortDescription = "";
-        [Header("Rewards (simple)")]
+        [Header("Rewards")]
         public int rewardXp = 0;
         public string rewardNote = "";
+        public List<ItemInstance> itemRewards = new();
         [Header("Flow")]
         public List<StageDef> stages = new();
     }

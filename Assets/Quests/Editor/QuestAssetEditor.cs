@@ -20,8 +20,9 @@ namespace Quests.Editor
             EditorGUILayout.Space(6);
 
             // Rewards
-            EditorGUILayout.LabelField("Rewards (simple)", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Rewards", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("rewardXp"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("itemRewards"), true);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("rewardNote"));
             EditorGUILayout.Space(6);
 

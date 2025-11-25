@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using Quests;
 using UI.Player.Common;
+using Items;
 
 namespace UI.Player.Quests
 {
@@ -135,6 +136,17 @@ namespace UI.Player.Quests
                 if (asset.rewardXp > 0)
                 {
                     AddRewardEntry($"{asset.rewardXp} XP");
+                }
+
+                if (asset.itemRewards != null)
+                {
+                    for (int i = 0; i < asset.itemRewards.Count; i++)
+                    {
+                        var reward = asset.itemRewards[i];
+                        string label = BuildItemRewardLabel(reward);
+                        if (!string.IsNullOrEmpty(label))
+                            AddRewardEntry(label);
+                    }
                 }
 
                 if (!string.IsNullOrEmpty(asset.rewardNote))
@@ -301,6 +313,23 @@ namespace UI.Player.Quests
                 rewardsHeaderText.gameObject.SetActive(visible);
             if (rewardsContent != null)
                 rewardsContent.gameObject.SetActive(visible);
+        }
+
+        private static string BuildItemRewardLabel(ItemInstance instance)
+        {
+            var definition = instance != null ? instance.Definition : null;
+
+            if (definition == null)
+                return string.Empty;
+
+            var itemName = definition.Name;
+            if (string.IsNullOrEmpty(itemName))
+                itemName = definition.Id;
+            if (string.IsNullOrEmpty(itemName))
+                itemName = definition.name;
+
+            int amount = instance != null ? Mathf.Max(1, instance.StackCount) : 1;
+            return amount > 1 ? $"{amount}x {itemName}" : itemName;
         }
 
         private readonly struct ObjectiveViewModel
