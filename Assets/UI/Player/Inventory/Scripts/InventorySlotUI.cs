@@ -12,6 +12,7 @@ namespace UI.Player.Inventory
         [SerializeField] private CanvasGroup iconCanvasGroup;
         [SerializeField] private int slotId;
         [SerializeField] private TMP_Text stackLabel;
+        [SerializeField] private InventoryPanelUI ownerPanel;
         private Action<InventorySlotUI> onClicked;
         private Action<InventorySlotUI> onDoubleClicked;
         private Action<InventorySlotUI, PointerEventData> onBeginDrag;
@@ -22,6 +23,12 @@ namespace UI.Player.Inventory
         private Action<InventorySlotUI, PointerEventData> onPointerExit;
 
         public int SlotId => slotId;
+        public InventoryPanelUI OwnerPanel => ownerPanel;
+
+        public void SetOwner(InventoryPanelUI owner)
+        {
+            ownerPanel = owner;
+        }
 
         public void Configure(
             int id,
@@ -35,6 +42,7 @@ namespace UI.Player.Inventory
             Action<InventorySlotUI, PointerEventData> pointerExitHandler)
         {
             slotId = id;
+            ownerPanel = ownerPanel == null ? GetComponentInParent<InventoryPanelUI>() : ownerPanel;
             onClicked = clickHandler;
             onDoubleClicked = doubleClickHandler;
             onBeginDrag = beginDragHandler;

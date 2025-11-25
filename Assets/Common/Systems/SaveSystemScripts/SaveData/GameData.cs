@@ -8,5 +8,6 @@ namespace Systems.SaveSystem.SaveData {
         public PlayerProgressData progressData = new PlayerProgressData();
         public List<SerializedDoorState> doorStates = new List<SerializedDoorState>();
         public PlayerInventoryData inventoryData = new PlayerInventoryData();
+        public List<ContainerInventoryData> containerInventories = new List<ContainerInventoryData>();
     }
 }

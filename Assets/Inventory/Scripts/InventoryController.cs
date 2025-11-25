@@ -1,6 +1,8 @@
-using Items;
-using UnityEngine;
 using System.Collections.Generic;
+using Items;
+using Player.Save;
+using UnityEngine;
+using System.Linq;
 
 namespace Inventory
 {
@@ -29,9 +31,19 @@ namespace Inventory
 
         public bool TryAddItem(ItemDefinition definition, int amount = 1) => inventory != null && inventory.TryAddItem(definition, amount);
 
+        public bool TryAddItemInstance(ItemInstance instance) => inventory != null && inventory.TryAddItemInstance(instance);
+
         public bool TryRemoveItem(ItemDefinition definition, int amount) => inventory != null && inventory.TryRemoveItem(definition, amount);
 
         public bool TryMoveItem(int sourceIndex, int targetIndex) => inventory != null && inventory.TryMoveItem(sourceIndex, targetIndex);
+
+        public bool TryTransferItemTo(InventoryController target, int sourceIndex, int targetIndex = -1)
+        {
+            if (inventory == null || target == null || target.Inventory == null)
+                return false;
+
+            return inventory.TryTransferItem(sourceIndex, target.Inventory, targetIndex);
+        }
 
         public bool TryUseItem(int slotIndex)
         {
@@ -141,8 +153,21 @@ namespace Inventory
 
         private void SpawnDebugItems()
         {
+            if (SaveState.IsRestoring)
+                return;
+
             if (inventory == null || debugItems == null || debugItems.Count == 0)
                 return;
+
+            // Skip spawning if inventory already has items (e.g., loaded from save).
+            if (inventory.Slots != null)
+            {
+                foreach (var slot in inventory.Slots)
+                {
+                    if (slot != null && !slot.IsEmpty)
+                        return;
+                }
+            }
 
             foreach (var item in debugItems)
             {

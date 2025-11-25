@@ -24,7 +24,9 @@ namespace Player.Save
         [SerializeField] private InventoryController inventoryController;
         [SerializeField] private EquipmentController equipmentController;
         [Header("Items")]
-        [Tooltip("List of all item definitions used to resolve saved itemIds.")]
+        [Tooltip("Database of item definitions used to resolve saved itemIds.")]
+        [SerializeField] private ItemDefinitionDatabase itemDatabase;
+        [Tooltip("Fallback list of item definitions used to resolve saved itemIds.")]
         [SerializeField] private List<ItemDefinition> itemDefinitions = new();
 
         private readonly Dictionary<string, ItemDefinition> definitionLookup = new();
@@ -402,7 +404,10 @@ namespace Player.Save
 
             var definition = ResolveDefinition(serialized.itemId);
             if (definition == null)
+            {
+                Debug.LogWarning($"[SaveState] Missing ItemDefinition for id '{serialized.itemId}'. Item skipped.");
                 return null;
+            }
 
             var mods = DeserializeModifiers(serialized.modifiers);
             return new ItemInstance(definition, serialized.stackCount, serialized.instanceId, mods);
@@ -432,14 +437,26 @@ namespace Player.Save
         {
             definitionLookup.Clear();
 
+            foreach (var def in EnumerateDefinitions())
+            {
+                if (def == null || string.IsNullOrWhiteSpace(def.Id))
+                    continue;
+                definitionLookup[def.Id] = def;
+            }
+        }
+
+        private IEnumerable<ItemDefinition> EnumerateDefinitions()
+        {
+            if (itemDatabase != null)
+            {
+                foreach (var def in itemDatabase.Definitions)
+                    yield return def;
+            }
+
             if (itemDefinitions != null)
             {
                 foreach (var def in itemDefinitions)
-                {
-                    if (def == null || string.IsNullOrWhiteSpace(def.Id))
-                        continue;
-                    definitionLookup[def.Id] = def;
-                }
+                    yield return def;
             }
         }
 

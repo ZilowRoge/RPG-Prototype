@@ -16,6 +16,7 @@ namespace Systems.SaveSystem
         private GameData gameData = new GameData();
         private readonly List<ISaveable> saveables = new List<ISaveable>();
         private bool hasLoadedFromDisk;
+        [SerializeField] private bool loadOnAwake = true;
 
         public void Awake()
         {
@@ -28,6 +29,9 @@ namespace Systems.SaveSystem
             }
 
             savePath = Path.Combine(Application.persistentDataPath, "savegame.json");
+
+            if (loadOnAwake)
+                LoadGame();
         }
 
         public void Register(ISaveable saveable) {
@@ -60,7 +64,10 @@ namespace Systems.SaveSystem
         public void LoadGame()
         {
             if (!File.Exists(savePath))
+            {
+                Debug.LogWarning($"[SaveManager] Save file not found at {savePath}. Skipping load.");
                 return;
+            }
 
             string json = File.ReadAllText(savePath);
             gameData = JsonUtility.FromJson<GameData>(json) ?? new GameData();
@@ -70,6 +77,8 @@ namespace Systems.SaveSystem
             {
                 toLoad?.OnLoad(gameData);
             }
+
+            Debug.Log($"[SaveManager] Game loaded from {savePath}.");
         }
     }
 }

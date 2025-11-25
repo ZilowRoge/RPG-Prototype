@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Inventory;
 using Items;
@@ -24,6 +25,8 @@ namespace UI.Player.Inventory
         [Header("Tooltip")]
         [SerializeField] private ItemTooltipUI tooltip;
         private System.Action refreshCallback;
+        private Func<int, bool> customDoubleClickHandler;
+        private Func<InventorySlotUI, InventorySlotUI, bool> externalDropHandler;
 
         public IReadOnlyList<InventorySlotUI> SlotViews => slots;
         private int dragSourceIndex = -1;
@@ -62,6 +65,7 @@ namespace UI.Player.Inventory
                 if (slotView == null)
                     continue;
 
+                slotView.SetOwner(this);
                 slotView.Configure(i, HandleSlotClick, HandleSlotDoubleClick, HandleBeginDrag, HandleDrop, HandleEndDrag, HandleDrag, HandlePointerEnter, HandlePointerExit);
 
                 var data = slotData[i];
@@ -96,6 +100,7 @@ namespace UI.Player.Inventory
                     Debug.LogError("Slot prefab does not contain InventorySlotUI component.", this);
                     break;
                 }
+                newSlot.SetOwner(this);
                 newSlot.Configure(slots.Count, HandleSlotClick, HandleSlotDoubleClick, HandleBeginDrag, HandleDrop, HandleEndDrag, HandleDrag, HandlePointerEnter, HandlePointerExit);
                 slots.Add(newSlot);
             }
@@ -148,6 +153,9 @@ namespace UI.Player.Inventory
 
             int slotIndex = slotView.SlotId;
             if (slotIndex < 0 || slotIndex >= inventory.SlotCount)
+                return;
+
+            if (customDoubleClickHandler != null && customDoubleClickHandler.Invoke(slotIndex))
                 return;
 
             if (inventoryController.TryUseItem(slotIndex))
@@ -219,6 +227,30 @@ namespace UI.Player.Inventory
             var inventorySource = pointer.GetComponent<InventorySlotUI>();
             if (inventorySource != null)
             {
+                var sourcePanel = inventorySource.OwnerPanel;
+                bool isExternalSource = sourcePanel != null && sourcePanel != this;
+                if (!isExternalSource && sourcePanel != null && inventoryController != null)
+                {
+                    // If panels differ in controller, treat as external even if OwnerPanel is not set or equal.
+                    var sourceController = sourcePanel.GetInventoryController();
+                    if (sourceController != null && sourceController != inventoryController)
+                        isExternalSource = true;
+                }
+
+                if (isExternalSource)
+                {
+                    bool handled = externalDropHandler != null && externalDropHandler.Invoke(targetSlot, inventorySource);
+                    ResetDragState();
+                    if (handled)
+                        return;
+                }
+
+                if (sourcePanel != null && sourcePanel != this)
+                {
+                    ResetDragState();
+                    return;
+                }
+
                 HandleInventoryDrop(targetSlot, inventorySource);
                 return;
             }
@@ -298,6 +330,23 @@ namespace UI.Player.Inventory
         public void SetRefreshCallback(System.Action callback)
         {
             refreshCallback = callback;
+        }
+
+        public void SetInventoryController(InventoryController controller)
+        {
+            inventoryController = controller;
+        }
+
+        public InventoryController GetInventoryController() => inventoryController;
+
+        public void SetDoubleClickHandler(Func<int, bool> handler)
+        {
+            customDoubleClickHandler = handler;
+        }
+
+        public void SetExternalDropHandler(Func<InventorySlotUI, InventorySlotUI, bool> handler)
+        {
+            externalDropHandler = handler;
         }
 
         public void BeginExternalDrag(Sprite icon, PointerEventData eventData)
