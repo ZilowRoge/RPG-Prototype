@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.IO;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Barracuda;
@@ -11,6 +13,8 @@ namespace Player.FightSystem.Magic
     public class SymbolInputManager : MonoBehaviour
     {
         [SerializeField] private SymbolDrawUI symbolDrawUI;
+        [SerializeField, Tooltip("Save symbol input textures for dataset building.")]
+        private bool saveSymbolTextures;
         [SerializeField] private NNModel modelAsset;
         [SerializeField] private MonoBehaviour defaultCombatConsumerBehaviour;
         [SerializeField, Tooltip("Time window (seconds) to allow chaining symbols before finalizing the sequence.")]
@@ -25,6 +29,7 @@ namespace Player.FightSystem.Magic
         private ISymbolConsumer defaultCombatConsumer;
         private bool isDrawing;
         private Coroutine pendingFinishRoutine;
+        private const float RecognitionThreshold = 0.8f;
 
         public ISymbolConsumer ActiveConsumer => activeConsumer;
         public ISymbolConsumer DefaultCombatConsumer => defaultCombatConsumer;
@@ -167,16 +172,33 @@ namespace Player.FightSystem.Magic
             if (symbolDrawUI == null || symbolRecognizer == null)
                 return;
 
-            (int symbolId, float probability) = symbolRecognizer.GetSymbol(symbolDrawUI.GetNormalizedTexture64());
+            Texture2D normalizedTexture = symbolDrawUI.GetNormalizedTexture64();
+            (int symbolId, float probability) = symbolRecognizer.GetSymbol(normalizedTexture);
+            if (saveSymbolTextures)
+                SaveInputTexture(normalizedTexture, symbolId, probability);
             symbolDrawUI.ClearTexture();
 
-            if (probability < .8f)
+            if (probability < RecognitionThreshold)
             {
                 logger.LogWarning(ComponentLogger.LogFlag.Events, "Symbol not recognized.");
                 return;
             }
             activeConsumer?.OnSymbolRecognized(symbolId.ToString());
             ScheduleConsumerNotification();
+        }
+
+        private void SaveInputTexture(Texture2D input, int predictedClass, float probability)
+        {
+            if (input == null)
+                return;
+
+            string labelFolder = probability >= RecognitionThreshold ? predictedClass.ToString() : "unrecognized";
+            string root = Path.Combine(Application.persistentDataPath, "SymbolSamples", labelFolder);
+            Directory.CreateDirectory(root);
+
+            string fileName = $"sym_{DateTime.UtcNow:yyyyMMdd_HHmmssfff}_{Guid.NewGuid():N}.png";
+            string fullPath = Path.Combine(root, fileName);
+            File.WriteAllBytes(fullPath, input.EncodeToPNG());
         }
 
         private void ScheduleConsumerNotification()
