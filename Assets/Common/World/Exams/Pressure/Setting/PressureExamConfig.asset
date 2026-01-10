@@ -22,10 +22,10 @@ MonoBehaviour:
     dummySpeed: 1
     delayAfterWave: 2
   - dummyCount: 5
-    spawnInterval: 2
+    spawnInterval: 2.5
     dummySpeed: 2
     delayAfterWave: 2
   - dummyCount: 7
-    spawnInterval: 1.5
-    dummySpeed: 4
+    spawnInterval: 2
+    dummySpeed: 3
     delayAfterWave: 0

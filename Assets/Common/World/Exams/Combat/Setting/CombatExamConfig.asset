@@ -24,9 +24,3 @@ MonoBehaviour:
   - enemyPrefab: {fileID: 3357124388210588224, guid: 93d587ca1e9973a4c95f914a6086a6a7, type: 3}
     positionOffset: {x: 0, y: 0, z: 0}
     rotationOffset: {x: 0, y: 0, z: 0}
-  - enemyPrefab: {fileID: 3357124388210588224, guid: 93d587ca1e9973a4c95f914a6086a6a7, type: 3}
-    positionOffset: {x: 0, y: 0, z: 0}
-    rotationOffset: {x: 0, y: 0, z: 0}
-  - enemyPrefab: {fileID: 3357124388210588224, guid: 93d587ca1e9973a4c95f914a6086a6a7, type: 3}
-    positionOffset: {x: 0, y: 0, z: 0}
-    rotationOffset: {x: 0, y: 0, z: 0}
