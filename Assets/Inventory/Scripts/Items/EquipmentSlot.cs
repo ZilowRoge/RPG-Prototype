@@ -9,6 +9,9 @@ namespace Items
         Hands,
         Weapon,
         OffHand,
-        Accessory
+        Accessory,
+        Consumable1,
+        Consumable2,
+        Consumable3
     }
 }

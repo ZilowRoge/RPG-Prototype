@@ -40,6 +40,24 @@ namespace Inventory
             return entry?.ItemInstance;
         }
 
+        public bool ClearSlot(EquipmentSlot slot)
+        {
+            var entry = GetEntry(slot);
+            if (entry == null)
+            {
+                return false;
+            }
+
+            bool hadItem = !entry.IsEmpty;
+            if (hadItem)
+            {
+                itemUseContext?.HandleItemUnequipped(slot, entry.ItemInstance);
+            }
+
+            entry.Clear();
+            return hadItem;
+        }
+
         public bool TryEquipItem(ItemInstance instance, out ItemInstance replacedItem)
         {
             replacedItem = null;
@@ -166,6 +184,11 @@ namespace Inventory
                 return false;
             }
 
+            if (instance.Definition.Type == ItemType.Consumable)
+            {
+                return IsConsumableSlot(slot);
+            }
+
             var armorData = instance.Definition.GetStatBlock<ArmorItemData>();
             if (armorData != null)
             {
@@ -179,6 +202,13 @@ namespace Inventory
             }
 
             return false;
+        }
+
+        internal static bool IsConsumableSlot(EquipmentSlot slot)
+        {
+            return slot == EquipmentSlot.Consumable1 ||
+                   slot == EquipmentSlot.Consumable2 ||
+                   slot == EquipmentSlot.Consumable3;
         }
 
         private void EnsureSlotSetup()

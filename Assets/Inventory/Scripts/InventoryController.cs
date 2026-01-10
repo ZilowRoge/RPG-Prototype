@@ -50,6 +50,30 @@ namespace Inventory
             return TryUseItem(slotIndex, null);
         }
 
+        public bool TryUseEquippedConsumable(EquipmentSlot slot)
+        {
+            if (equipmentController == null)
+            {
+                Debug.LogWarning("[InventoryController] Missing equipment controller reference.", this);
+                return false;
+            }
+
+            var context = GetOrResolveItemUseContext();
+            if (context == null)
+            {
+                Debug.LogWarning("[InventoryController] Missing IItemUseContext reference.", this);
+                return false;
+            }
+
+            if (!EquipmentController.IsConsumableSlot(slot))
+            {
+                Debug.LogWarning($"[InventoryController] Slot {slot} is not a consumable slot.");
+                return false;
+            }
+
+            return context.TryUseEquippedConsumable(equipmentController, slot);
+        }
+
         public bool TryUseItem(int slotIndex, EquipmentSlot? preferredEquipmentSlot)
         {
             if (inventory == null)

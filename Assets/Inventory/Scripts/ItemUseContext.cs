@@ -53,11 +53,28 @@ namespace Inventory
                 return false;
             }
 
+            if (definition.Type == ItemType.Consumable)
+            {
+                if (request.PreferredEquipmentSlot.HasValue)
+                {
+                    var targetSlot = request.PreferredEquipmentSlot.Value;
+                    if (!EquipmentController.IsConsumableSlot(targetSlot))
+                    {
+                        Debug.LogWarning($"{LogPrefix} Slot {targetSlot} does not accept consumables.");
+                        return false;
+                    }
+
+                    Debug.Log($"{LogPrefix} Assigning consumable '{definition.Name}' to slot {targetSlot}.");
+                    return HandleEquipmentUse(request, slot);
+                }
+
+                Debug.Log($"{LogPrefix} Trying to consume '{definition.Name}' from slot {slotIndex}.");
+                return HandleConsumableUse(slot, definition, slotIndex);
+            }
+
             Debug.Log($"{LogPrefix} Trying to use '{definition.Name}' of type {definition.Type} from slot {slotIndex}.");
             switch (definition.Type)
             {
-                case ItemType.Consumable:
-                    return HandleConsumableUse(slot, definition, slotIndex);
                 case ItemType.Equipment:
                     return HandleEquipmentUse(request, slot);
                 default:
@@ -76,6 +93,42 @@ namespace Inventory
             // Placeholder for stat/buff removal.
         }
 
+        public bool TryUseEquippedConsumable(EquipmentController equipmentController, EquipmentSlot slot)
+        {
+            if (equipmentController == null)
+            {
+                Debug.LogWarning($"{LogPrefix} No EquipmentController provided for consuming equipped item.");
+                return false;
+            }
+
+            if (!EquipmentController.IsConsumableSlot(slot))
+            {
+                Debug.LogWarning($"{LogPrefix} Slot {slot} is not a consumable slot.");
+                return false;
+            }
+
+            var instance = equipmentController.GetItem(slot);
+            var definition = instance?.Definition;
+            if (instance == null || definition == null || definition.Type != ItemType.Consumable)
+            {
+                Debug.LogWarning($"{LogPrefix} No consumable in equipment slot {slot}.");
+                return false;
+            }
+
+            if (!definition.TryGetStatBlock<ConsumableItemData>(out var consumableData) || !consumableData.HasEffect)
+            {
+                Debug.LogWarning($"{LogPrefix} Consumable '{definition.Name}' has no effect data.");
+                return false;
+            }
+
+            if (!TryApplyConsumableEffect(consumableData, definition.Name))
+                return false;
+
+            ConsumeInstance(instance, () => equipmentController.ClearSlot(slot));
+            Debug.Log($"{LogPrefix} Consumed '{definition.Name}' from equipment slot {slot}. Remaining stack: {instance.StackCount}.");
+            return true;
+        }
+
         private bool HandleConsumableUse(Slot slot, ItemDefinition definition, int slotIndex)
         {
             var instance = slot.ItemInstance;
@@ -91,7 +144,7 @@ namespace Inventory
             if (!TryApplyConsumableEffect(consumableData, definition.Name))
                 return false;
 
-            ConsumeInstance(slot, instance);
+            ConsumeInstance(instance, slot.Clear);
             Debug.Log($"{LogPrefix} Consumed '{definition.Name}' from slot {slotIndex}. Remaining stack: {instance.StackCount}.");
             return true;
         }
@@ -160,12 +213,12 @@ namespace Inventory
 
         }
 
-        private static void ConsumeInstance(Slot slot, ItemInstance instance)
+        private static void ConsumeInstance(ItemInstance instance, Action clearSlot)
         {
             instance.SetStackCount(instance.StackCount - 1);
             if (instance.StackCount <= 0)
             {
-                slot.Clear();
+                clearSlot?.Invoke();
             }
         }
 

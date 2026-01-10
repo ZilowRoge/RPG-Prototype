@@ -1,5 +1,6 @@
 using System;
 using Items;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -14,6 +15,7 @@ namespace UI.Player.Inventory
         [SerializeField] private Image iconImage;
         [SerializeField] private CanvasGroup iconCanvasGroup;
         [SerializeField] private EquipmentSlot slot;
+        [SerializeField] private TMP_Text stackLabel;
         private Action<EquipmentSlotUI> onClicked;
         private Action<EquipmentSlotUI> onDoubleClicked;
         private Action<EquipmentSlotUI, PointerEventData> onBeginDrag;
@@ -58,6 +60,19 @@ namespace UI.Player.Inventory
             if (iconCanvasGroup != null)
             {
                 iconCanvasGroup.alpha = icon != null ? 1f : 0f;
+            }
+        }
+
+        public void SetStackCount(int count)
+        {
+            if (stackLabel == null)
+                return;
+
+            bool showCount = count > 1;
+            stackLabel.gameObject.SetActive(showCount);
+            if (showCount)
+            {
+                stackLabel.text = count.ToString();
             }
         }
 

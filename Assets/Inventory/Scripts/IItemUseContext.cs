@@ -9,6 +9,8 @@ namespace Inventory
     {
         bool TryUseItem(ItemUseRequest request);
 
+        bool TryUseEquippedConsumable(EquipmentController equipmentController, EquipmentSlot slot);
+
         void HandleItemEquipped(EquipmentSlot slot, ItemInstance item);
 
         void HandleItemUnequipped(EquipmentSlot slot, ItemInstance item);

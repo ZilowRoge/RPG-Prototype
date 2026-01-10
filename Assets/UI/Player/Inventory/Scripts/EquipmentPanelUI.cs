@@ -75,6 +75,8 @@ namespace UI.Player.Inventory
 
                 var icon = entry.IsEmpty ? null : entry.ItemInstance?.Definition?.Icon;
                 slotUI.SetIcon(icon);
+                var stackCount = entry.IsEmpty ? 0 : entry.ItemInstance?.StackCount ?? 0;
+                slotUI.SetStackCount(stackCount);
             }
         }
 
@@ -182,6 +184,21 @@ namespace UI.Player.Inventory
             if (slotView == null || inventoryController == null)
             {
                 Debug.LogWarning("EquipmentPanelUI missing references for unequip.", this);
+                return;
+            }
+
+            var item = equipmentController != null ? equipmentController.GetItem(slotView.Slot) : null;
+            if (item != null && !item.IsEmpty && item.Definition != null && item.Definition.Type == ItemType.Consumable)
+            {
+                if (inventoryController.TryUseEquippedConsumable(slotView.Slot))
+                {
+                    RequestRefresh();
+                }
+                else
+                {
+                    Debug.LogWarning($"Failed to consume item from slot {slotView.Slot}.", this);
+                }
+
                 return;
             }
 
