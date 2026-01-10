@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using Systems.SaveSystem;
 using Systems.SaveSystem.SaveData;
 using UnityEngine;
@@ -47,7 +48,12 @@ namespace Common.Systems.SymbolTraining
             if (!Validate(data))
                 return;
 
-            var states = data.doorStates;
+            var sceneState = data.GetOrCreateSceneState(ResolveSceneId());
+            if (sceneState == null)
+                return;
+
+            sceneState.doorStates ??= new List<SerializedDoorState>();
+            var states = sceneState.doorStates;
             int index = FindEntryIndex(states, doorId);
             if (index < 0)
                 states.Add(new SerializedDoorState { doorId = doorId, isOpen = door.IsOpen });
@@ -60,7 +66,8 @@ namespace Common.Systems.SymbolTraining
             if (!Validate(data))
                 return;
 
-            var states = data.doorStates;
+            var sceneState = data.FindSceneState(ResolveSceneId());
+            var states = sceneState?.doorStates;
             int index = FindEntryIndex(states, doorId);
             if (index < 0)
                 return;
@@ -82,10 +89,13 @@ namespace Common.Systems.SymbolTraining
             if (string.IsNullOrEmpty(doorId))
                 return false;
 
-            if (data.doorStates == null)
-                data.doorStates = new System.Collections.Generic.List<SerializedDoorState>();
-
             return true;
+        }
+
+        private string ResolveSceneId()
+        {
+            var scene = gameObject.scene;
+            return scene.IsValid() ? scene.name : "Scene";
         }
 
         private void CacheDoorReference()

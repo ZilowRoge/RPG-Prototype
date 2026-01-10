@@ -84,8 +84,12 @@ namespace Common.World.Loot
             if (data == null || string.IsNullOrWhiteSpace(containerId) || inventoryController == null || inventoryController.Inventory == null)
                 return;
 
-            data.containerInventories ??= new List<ContainerInventoryData>();
-            data.containerInventories.RemoveAll(c => c != null && c.containerId == containerId);
+            var sceneState = data.GetOrCreateSceneState(ResolveSceneId());
+            if (sceneState == null)
+                return;
+
+            sceneState.containerInventories ??= new List<ContainerInventoryData>();
+            sceneState.containerInventories.RemoveAll(c => c != null && c.containerId == containerId);
 
             var snapshot = new ContainerInventoryData
             {
@@ -110,7 +114,7 @@ namespace Common.World.Loot
                 });
             }
 
-            data.containerInventories.Add(snapshot);
+            sceneState.containerInventories.Add(snapshot);
         }
 
         public void OnLoad(GameData data)
@@ -118,42 +122,8 @@ namespace Common.World.Loot
             if (data == null || string.IsNullOrWhiteSpace(containerId) || inventoryController == null || inventoryController.Inventory == null)
                 return;
 
-            var list = data.containerInventories;
-            if (list == null || list.Count == 0)
-                return;
-
-            ContainerInventoryData snapshot = null;
-            for (int i = 0; i < list.Count; i++)
-            {
-                var entry = list[i];
-                if (entry != null && entry.containerId == containerId)
-                {
-                    snapshot = entry;
-                    break;
-                }
-            }
-
-            if (snapshot == null)
-                return;
-
-            int targetCount = snapshot.slotCount > 0 ? snapshot.slotCount : inventoryController.Inventory.SlotCount;
-            inventoryController.Initialize(targetCount);
-
-            var slots = inventoryController.Inventory.Slots;
-            if (slots == null)
-                return;
-
-            foreach (var saved in snapshot.slots)
-            {
-                if (saved == null || saved.slotId < 0 || saved.slotId >= slots.Count)
-                    continue;
-
-                var item = DeserializeItem(saved.item);
-                if (item == null)
-                    continue;
-
-                slots[saved.slotId].SetItem(item);
-            }
+            var sceneState = data.FindSceneState(ResolveSceneId());
+            TryRestoreFromList(sceneState?.containerInventories);
         }
 
         private InventoryController ResolvePlayerInventory(GameObject player)
@@ -170,6 +140,53 @@ namespace Common.World.Loot
                 return containerWindowOverride;
 
             return FindFirstObjectByType<LootContainerWindow>(FindObjectsInactive.Include);
+        }
+
+        private string ResolveSceneId()
+        {
+            var scene = gameObject.scene;
+            return scene.IsValid() ? scene.name : "Scene";
+        }
+
+        private bool TryRestoreFromList(List<ContainerInventoryData> list)
+        {
+            if (list == null || list.Count == 0)
+                return false;
+
+            ContainerInventoryData snapshot = null;
+            for (int i = 0; i < list.Count; i++)
+            {
+                var entry = list[i];
+                if (entry != null && entry.containerId == containerId)
+                {
+                    snapshot = entry;
+                    break;
+                }
+            }
+
+            if (snapshot == null)
+                return false;
+
+            int targetCount = snapshot.slotCount > 0 ? snapshot.slotCount : inventoryController.Inventory.SlotCount;
+            inventoryController.Initialize(targetCount);
+
+            var slots = inventoryController.Inventory.Slots;
+            if (slots == null)
+                return true;
+
+            foreach (var saved in snapshot.slots)
+            {
+                if (saved == null || saved.slotId < 0 || saved.slotId >= slots.Count)
+                    continue;
+
+                var item = DeserializeItem(saved.item);
+                if (item == null)
+                    continue;
+
+                slots[saved.slotId].SetItem(item);
+            }
+
+            return true;
         }
 
         private void SeedInventory()

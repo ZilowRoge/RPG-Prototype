@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Systems.SaveSystem.SaveData;
 
 namespace Systems.SaveSystem
@@ -50,15 +51,39 @@ namespace Systems.SaveSystem
 
         public void SaveGame()
         {
-            var snapshot = new GameData();
+            CaptureAllState();
+            string json = JsonUtility.ToJson(gameData, true);
+            File.WriteAllText(savePath, json);
+        }
+
+        public void CaptureState()
+        {
+            CaptureSceneState(SceneManager.GetActiveScene());
+        }
+
+        public void CaptureAllState()
+        {
+            var snapshot = gameData ?? new GameData();
             foreach (var toSave in saveables)
             {
                 toSave?.OnSave(snapshot);
             }
 
             gameData = snapshot;
-            string json = JsonUtility.ToJson(gameData, true);
-            File.WriteAllText(savePath, json);
+            hasLoadedFromDisk = true;
+        }
+
+        public void CaptureSceneState(Scene scene)
+        {
+            var snapshot = gameData ?? new GameData();
+            foreach (var toSave in saveables)
+            {
+                if (ShouldCaptureSaveable(toSave, scene))
+                    toSave?.OnSave(snapshot);
+            }
+
+            gameData = snapshot;
+            hasLoadedFromDisk = true;
         }
 
         public void LoadGame()
@@ -79,6 +104,20 @@ namespace Systems.SaveSystem
             }
 
             Debug.Log($"[SaveManager] Game loaded from {savePath}.");
+        }
+
+        private static bool ShouldCaptureSaveable(ISaveable saveable, Scene targetScene)
+        {
+            if (!targetScene.IsValid())
+                return true;
+
+            if (saveable is Component component)
+            {
+                var scene = component.gameObject.scene;
+                return scene == targetScene;
+            }
+
+            return true;
         }
     }
 }
