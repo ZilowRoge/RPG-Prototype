@@ -203,7 +203,8 @@ namespace Common.World.Loot
                 if (targetAmount <= 0)
                     targetAmount = 1;
 
-                var copy = new ItemInstance(item.instance.Definition, targetAmount, null, item.instance.Modifiers);
+                var instanceId = item.instance.InstanceId;
+                var copy = new ItemInstance(item.instance.Definition, targetAmount, instanceId, item.instance.Modifiers);
                 inventoryController.TryAddItemInstance(copy);
             }
         }

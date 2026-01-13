@@ -3,13 +3,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using Player.Interfaces;
 using Player.Targeting;
+using UI.Player.Common;
 
 namespace UI.Player.Target
 {
     /// <summary>
     /// Displays the currently selected target's name and health using a fill image.
     /// </summary>
-    public class TargetHealthUI : MonoBehaviour
+    public class TargetHealthUI : MonoBehaviour, IPlayerReferenceReceiver
     {
         [Header("References")]
         [SerializeField] private TargetSelector targetSelector;
@@ -125,6 +126,17 @@ namespace UI.Player.Target
 
             if (label != null)
                 label.text = $"{displayName}";
+        }
+
+        public void BindPlayerReferences(PlayerUIReferences refs)
+        {
+            targetSelector = refs.TargetSelector;
+            if (targetSelector == null)
+                targetSelector = FindFirstObjectByType<TargetSelector>();
+
+            SynchroniseTarget(targetSelector != null ? targetSelector.CurrentTarget : null);
+            nextUpdateTime = 0f;
+            hasTarget = currentHealth != null;
         }
     }
 }

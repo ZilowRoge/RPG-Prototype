@@ -2,13 +2,14 @@ using TMPro;
 using UnityEngine;
 using Player.Statistics;
 using UnityEngine.UI;
+using UI.Player.Common;
 
 namespace UI.Player.Statistics
 {
     /// <summary>
     /// Handles the player HUD resource bars (health / mana / stamina).
     /// </summary>
-    public class PlayerResourceBarsUI : MonoBehaviour
+    public class PlayerResourceBarsUI : MonoBehaviour, IPlayerReferenceReceiver
     {
         [SerializeField] private StatsController stats;
 
@@ -56,6 +57,16 @@ namespace UI.Player.Statistics
 
             if (label != null)
                 label.text = $"{Mathf.FloorToInt(clamped)} / {Mathf.FloorToInt(max)}";
+        }
+
+        public void BindPlayerReferences(PlayerUIReferences refs)
+        {
+            stats = refs.Stats;
+            if (stats == null)
+                stats = FindFirstObjectByType<StatsController>();
+
+            if (isActiveAndEnabled)
+                RefreshAll();
         }
     }
 }

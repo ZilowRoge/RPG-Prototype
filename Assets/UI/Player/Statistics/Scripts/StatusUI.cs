@@ -4,9 +4,10 @@ using UnityEngine.UI;
 using Player.Statistics;
 using Player.Progress;
 using Player.Events;
+using UI.Player.Common;
 
 namespace UI.Player.Statistics {
-public class PlayerStatusUI : MonoBehaviour
+public class PlayerStatusUI : MonoBehaviour, IPlayerReferenceReceiver
 {
     [SerializeField] private StatsController stats;
     [SerializeField] private ProgressController progress;
@@ -20,24 +21,26 @@ public class PlayerStatusUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI levelText;
     [SerializeField] private TextMeshProUGUI experienceText;
     [SerializeField] private PlayerEventHub playerEvents;
+    private bool subscribed;
 
     private void OnEnable()
     {
         CacheEventHub();
-        if (playerEvents != null)
-            playerEvents.AvailableExperienceChanged += HandleExperienceChanged;
+        Subscribe();
 
         RefreshExperience();
     }
 
     private void OnDisable()
     {
-        if (playerEvents != null)
-            playerEvents.AvailableExperienceChanged -= HandleExperienceChanged;
+        Unsubscribe();
     }
 
     private void Update()
     {
+        if (stats == null)
+            return;
+
         healthBar.UpdateBar(stats.CurrentHealth, stats.maxHealth);
         manaBar.UpdateBar(stats.CurrentMana, stats.maxMana);
         staminaBar.UpdateBar(stats.CurrentStamina, stats.maxStamina);
@@ -63,6 +66,47 @@ public class PlayerStatusUI : MonoBehaviour
     {
         if (playerEvents == null && progress != null)
             playerEvents = progress.EventHub;
+    }
+
+    public void BindPlayerReferences(PlayerUIReferences refs)
+    {
+        Unsubscribe();
+
+        stats = refs.Stats;
+        progress = refs.Progress;
+        playerEvents = refs.EventHub;
+
+        if (stats == null)
+            stats = FindFirstObjectByType<StatsController>();
+
+        if (progress == null)
+            progress = FindFirstObjectByType<ProgressController>();
+
+        CacheEventHub();
+
+        if (isActiveAndEnabled)
+        {
+            Subscribe();
+            RefreshExperience();
+        }
+    }
+
+    private void Subscribe()
+    {
+        if (subscribed || playerEvents == null)
+            return;
+
+        playerEvents.AvailableExperienceChanged += HandleExperienceChanged;
+        subscribed = true;
+    }
+
+    private void Unsubscribe()
+    {
+        if (!subscribed || playerEvents == null)
+            return;
+
+        playerEvents.AvailableExperienceChanged -= HandleExperienceChanged;
+        subscribed = false;
     }
 
 }

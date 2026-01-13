@@ -21,7 +21,7 @@ namespace Player
         void Start()
         {
             controller = GetComponent<CharacterController>();
-            cameraTransform = Camera.main.transform;
+            ResolveCamera();
             if (statsController == null)
             {
                 statsController = GetComponent<StatsController>();
@@ -65,6 +65,9 @@ namespace Player
                 controller?.SimpleMove(Vector3.zero);
                 return;
             }
+
+            if (!EnsureCamera())
+                return;
 
             Vector3 camForward = cameraTransform.forward;
             Vector3 camRight = cameraTransform.right;
@@ -122,6 +125,24 @@ namespace Player
                 else
                     moveY = isRunning ? 2f : 1f;
             }
+        }
+
+        private bool EnsureCamera()
+        {
+            if (cameraTransform != null)
+                return true;
+
+            return ResolveCamera();
+        }
+
+        private bool ResolveCamera()
+        {
+            var cam = Camera.main;
+            if (cam == null)
+                return false;
+
+            cameraTransform = cam.transform;
+            return true;
         }
     }
 }

@@ -73,7 +73,7 @@ namespace UI.Player
         private void OnDisable()
         {
             ReleaseCursor();
-            PlayerInputLockService.Instance?.SetLock(this, false);
+            PlayerInputLockService.TryGetInstance()?.SetLock(this, false);
         }
 
         private void Update()
@@ -245,12 +245,14 @@ namespace UI.Player
             if (cursorCaptured)
                 return;
 
+            Debug.Log($"[PlayerWindowController] CaptureCursor lockState={Cursor.lockState} visible={Cursor.visible}", this);
             cursorCaptured = true;
             previousCursorLockState = Cursor.lockState;
             previousCursorVisible = Cursor.visible;
 
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
+            Debug.Log($"[PlayerWindowController] CaptureCursor applied lockState={Cursor.lockState} visible={Cursor.visible}", this);
         }
 
         private void ReleaseCursor()
@@ -258,9 +260,11 @@ namespace UI.Player
             if (!cursorCaptured)
                 return;
 
+            Debug.Log($"[PlayerWindowController] ReleaseCursor restore lockState={previousCursorLockState} visible={previousCursorVisible}", this);
             cursorCaptured = false;
             Cursor.lockState = previousCursorLockState;
             Cursor.visible = previousCursorVisible;
+            Debug.Log($"[PlayerWindowController] ReleaseCursor applied lockState={Cursor.lockState} visible={Cursor.visible}", this);
         }
     }
 }

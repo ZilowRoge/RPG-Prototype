@@ -9,10 +9,11 @@ using NPC.Dialog;
 using Player.Progress;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
+using UI.Player.Common;
 
 namespace UI.NPC.Dialog
 {
-    public class DialogControllerUI : MonoBehaviour
+    public class DialogControllerUI : MonoBehaviour, IPlayerReferenceReceiver
     {
         [Header("UI References")]
         [SerializeField] private TMP_Text npcText;
@@ -414,6 +415,13 @@ namespace UI.NPC.Dialog
             if (canvasGroup != null) return canvasGroup;
             if (dialogRoot != null) return dialogRoot.GetComponent<CanvasGroup>();
             return null;
+        }
+
+        public void BindPlayerReferences(PlayerUIReferences refs)
+        {
+            progressController = refs.Progress;
+            if (progressController == null)
+                progressController = FindFirstObjectByType<ProgressController>();
         }
     }
 }

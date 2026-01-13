@@ -21,12 +21,16 @@ namespace Systems.SaveSystem
 
         public void Awake()
         {
-            if (Instance == null) {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            if (Instance == null)
+            {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
-            }
-            else {
-                Destroy(gameObject);
             }
 
             savePath = Path.Combine(Application.persistentDataPath, "savegame.json");
@@ -42,7 +46,9 @@ namespace Systems.SaveSystem
             saveables.Add(saveable);
 
             if (hasLoadedFromDisk && gameData != null)
+            {
                 saveable.OnLoad(gameData);
+            }
         }
 
         public void Unregister(ISaveable saveable) {
@@ -79,7 +85,9 @@ namespace Systems.SaveSystem
             foreach (var toSave in saveables)
             {
                 if (ShouldCaptureSaveable(toSave, scene))
+                {
                     toSave?.OnSave(snapshot);
+                }
             }
 
             gameData = snapshot;
@@ -103,7 +111,6 @@ namespace Systems.SaveSystem
                 toLoad?.OnLoad(gameData);
             }
 
-            Debug.Log($"[SaveManager] Game loaded from {savePath}.");
         }
 
         private static bool ShouldCaptureSaveable(ISaveable saveable, Scene targetScene)

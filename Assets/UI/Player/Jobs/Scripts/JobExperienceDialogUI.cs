@@ -4,10 +4,11 @@ using UnityEngine.UI;
 using Player.Progress;
 using Player.Events;
 using Systems.Jobs;
+using UI.Player.Common;
 
 namespace UI.Player.Jobs
 {
-    public class JobExperienceDialogUI : MonoBehaviour
+    public class JobExperienceDialogUI : MonoBehaviour, IPlayerReferenceReceiver
     {
         [SerializeField] private GameObject root;
         [SerializeField] private TMP_Text jobNameText;
@@ -213,6 +214,15 @@ namespace UI.Player.Jobs
             int requiredTotal = jobInstance.Data.GetRequiredExperience(jobInstance.CurrentLevel);
             int remaining = Mathf.Max(0, requiredTotal - jobInstance.Experience);
             return Mathf.Max(0, Mathf.Min(poolAmount, remaining));
+        }
+
+        public void BindPlayerReferences(PlayerUIReferences refs)
+        {
+            if (isVisible)
+                Hide();
+
+            progressController = refs.Progress;
+            playerEvents = refs.EventHub;
         }
     }
 }

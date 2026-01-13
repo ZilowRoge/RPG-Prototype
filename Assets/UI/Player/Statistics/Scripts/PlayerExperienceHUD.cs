@@ -3,6 +3,7 @@ using UnityEngine;
 using Player.Progress;
 using Player.Events;
 using Systems.Jobs;
+using UI.Player.Common;
 
 namespace UI.Player.Statistics
 {
@@ -10,7 +11,7 @@ namespace UI.Player.Statistics
     /// Displays the pool of spendable experience on the HUD
     /// and hides it until the player can afford at least one class level-up.
     /// </summary>
-    public class PlayerExperienceHUD : MonoBehaviour
+    public class PlayerExperienceHUD : MonoBehaviour, IPlayerReferenceReceiver
     {
         [SerializeField] private ProgressController progress;
         [SerializeField] private TextMeshProUGUI experienceText;
@@ -122,6 +123,25 @@ namespace UI.Player.Statistics
         {
             if (playerEvents == null && progress != null)
                 playerEvents = progress.EventHub;
+        }
+
+        public void BindPlayerReferences(PlayerUIReferences refs)
+        {
+            Unsubscribe();
+
+            progress = refs.Progress;
+            playerEvents = refs.EventHub;
+
+            if (progress == null)
+                progress = FindFirstObjectByType<ProgressController>();
+
+            CacheEventHub();
+
+            if (isActiveAndEnabled)
+            {
+                Subscribe();
+                RefreshFromProgress();
+            }
         }
     }
 }

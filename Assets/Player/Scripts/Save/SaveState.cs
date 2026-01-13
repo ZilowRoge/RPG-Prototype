@@ -8,6 +8,7 @@ using Systems.SaveSystem;
 using Systems.SaveSystem.SaveData;
 using Inventory;
 using Items;
+using Common.World.SceneTransitions;
 
 namespace Player.Save
 {
@@ -16,6 +17,7 @@ namespace Player.Save
     {
         public static event Action PlayerLoadedFromSave;
         public static bool IsRestoring { get; private set; }
+        public static bool SuppressNextTransformRestore { get; set; }
 
         [Header("References")]
         [SerializeField] private ProgressController progressController;
@@ -476,6 +478,17 @@ namespace Player.Save
             if (snapshot == null || !snapshot.hasPlayerTransform)
                 return;
 
+            if (SceneTransitionManager.Instance != null && SceneTransitionManager.Instance.IsTransitioning)
+            {
+                return;
+            }
+
+            if (SuppressNextTransformRestore)
+            {
+                SuppressNextTransformRestore = false;
+                return;
+            }
+
             var target = transform;
             if (target == null)
                 return;
@@ -490,13 +503,6 @@ namespace Player.Save
             }
 
             target.SetPositionAndRotation(snapshot.playerPosition, snapshot.playerRotation);
-
-            var body = target.GetComponent<Rigidbody>();
-            if (body != null)
-            {
-                body.linearVelocity = Vector3.zero;
-                body.angularVelocity = Vector3.zero;
-            }
 
             if (controller != null)
                 controller.enabled = controllerWasEnabled;

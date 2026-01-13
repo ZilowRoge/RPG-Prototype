@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Items;
 using Player.Save;
 using UnityEngine;
-using System.Linq;
 
 namespace Inventory
 {
@@ -15,8 +14,6 @@ namespace Inventory
         [Header("References")]
         [SerializeField] private Inventory inventory = new();
         [SerializeField] private EquipmentController equipmentController;
-        [Header("Debug")]
-        [SerializeField] private List<ItemDefinition> debugItems = new();
         [SerializeField] private bool initializeOnAwake = true;
         [Tooltip("Optional override. Use a positive value to force a specific slot count when initializing.")]
         [SerializeField] private int initialSlotCount = -1;
@@ -160,7 +157,6 @@ namespace Inventory
             if (initializeOnAwake)
             {
                 Initialize();
-                SpawnDebugItems();
             }
         }
 
@@ -173,33 +169,6 @@ namespace Inventory
         {
             var count = slotCount > 0 ? slotCount : initialSlotCount;
             inventory.InitializeSlots(count);
-        }
-
-        private void SpawnDebugItems()
-        {
-            if (SaveState.IsRestoring)
-                return;
-
-            if (inventory == null || debugItems == null || debugItems.Count == 0)
-                return;
-
-            // Skip spawning if inventory already has items (e.g., loaded from save).
-            if (inventory.Slots != null)
-            {
-                foreach (var slot in inventory.Slots)
-                {
-                    if (slot != null && !slot.IsEmpty)
-                        return;
-                }
-            }
-
-            foreach (var item in debugItems)
-            {
-                if (item == null)
-                    continue;
-
-                TryAddItem(item);
-            }
         }
 
         private void CacheDependencies()

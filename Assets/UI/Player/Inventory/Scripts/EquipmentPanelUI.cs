@@ -285,6 +285,21 @@ namespace UI.Player.Inventory
             refreshCallback = callback;
         }
 
+        public void SetControllers(EquipmentController equipment, InventoryController inventory, InventoryPanelUI inventoryPanel = null)
+        {
+            equipmentController = equipment;
+            inventoryController = inventory != null ? inventory : equipmentController != null ? equipmentController.GetComponent<InventoryController>() : null;
+
+            if (inventoryPanel != null)
+                linkedInventoryPanel = inventoryPanel;
+
+            if (tooltip == null && linkedInventoryPanel != null)
+                tooltip = linkedInventoryPanel.GetComponentInChildren<ItemTooltipUI>(true);
+
+            if (isActiveAndEnabled)
+                Refresh();
+        }
+
         private void RequestRefresh()
         {
             if (refreshCallback != null)

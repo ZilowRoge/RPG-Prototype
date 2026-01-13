@@ -28,7 +28,6 @@ namespace Player.Targeting
 
         [Header("Debug")] 
         [SerializeField] private bool debugDraw = true;
-        [SerializeField] private bool debugVerbose = false;
         [SerializeField] private Color debugRayColor = new Color(0f, 1f, 1f, 0.7f);
         [SerializeField] private Color debugHitColor = new Color(1f, 0.92f, 0.016f, 0.9f);
         [SerializeField] private float debugHitMarkerSize = 0.2f;

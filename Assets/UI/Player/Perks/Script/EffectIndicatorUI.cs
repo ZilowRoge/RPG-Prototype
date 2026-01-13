@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Player.Events;
 using Systems.Perks;
+using UI.Player.Common;
 
 namespace UI.Player.Perks
 {
@@ -10,7 +11,7 @@ namespace UI.Player.Perks
     /// Manages a layout-based list of active effect icons.
     /// Adds an entry when an interval perk triggers and removes it after its lifetime.
     /// </summary>
-    public class EffectIndicatorUI : MonoBehaviour
+    public class EffectIndicatorUI : MonoBehaviour, IPlayerReferenceReceiver
     {
         [Header("References")]
         [SerializeField] private PlayerEventHub playerEvents;
@@ -27,21 +28,12 @@ namespace UI.Player.Perks
             if (playerEvents == null)
                 playerEvents = FindFirstObjectByType<PlayerEventHub>();
 
-            if (playerEvents != null)
-            {
-                playerEvents.PerkIntervalPrimed += OnIntervalEffectPrimed;
-                playerEvents.PerkIntervalTriggered += OnIntervalEffectTriggered;
-            }
+            Subscribe();
         }
 
         private void OnDisable()
         {
-            if (playerEvents != null)
-            {
-                playerEvents.PerkIntervalPrimed -= OnIntervalEffectPrimed;
-                playerEvents.PerkIntervalTriggered -= OnIntervalEffectTriggered;
-                playerEvents = null;
-            }
+            Unsubscribe();
 
             ClearEntries();
         }
@@ -189,6 +181,39 @@ namespace UI.Player.Perks
                     Destroy(entries[i].Instance);
             }
             entries.Clear();
+        }
+
+        public void BindPlayerReferences(PlayerUIReferences refs)
+        {
+            Unsubscribe();
+
+            playerEvents = refs.EventHub;
+            if (playerEvents == null)
+                playerEvents = FindFirstObjectByType<PlayerEventHub>();
+
+            if (isActiveAndEnabled)
+                Subscribe();
+
+            ClearEntries();
+        }
+
+        private void Subscribe()
+        {
+            if (playerEvents == null)
+                return;
+
+            playerEvents.PerkIntervalPrimed += OnIntervalEffectPrimed;
+            playerEvents.PerkIntervalTriggered += OnIntervalEffectTriggered;
+        }
+
+        private void Unsubscribe()
+        {
+            if (playerEvents == null)
+                return;
+
+            playerEvents.PerkIntervalPrimed -= OnIntervalEffectPrimed;
+            playerEvents.PerkIntervalTriggered -= OnIntervalEffectTriggered;
+            playerEvents = null;
         }
 
         private struct Entry

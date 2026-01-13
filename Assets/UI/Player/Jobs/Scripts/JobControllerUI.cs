@@ -7,10 +7,11 @@ using Systems.Jobs;
 using UI.Player.Perks;
 using Player.Progress;
 using Player.Events;
+using UI.Player.Common;
 
 namespace UI.Player.Jobs
 {
-    public class JobControllerUI : MonoBehaviour
+    public class JobControllerUI : MonoBehaviour, IPlayerReferenceReceiver
     {
         [Header("Core References")]
         [SerializeField] private ProgressController progressController;
@@ -176,6 +177,27 @@ namespace UI.Player.Jobs
             }
 
             experienceDialog.Show(job, progressController);
+        }
+
+        public void BindPlayerReferences(PlayerUIReferences refs)
+        {
+            Unsubscribe();
+
+            progressController = refs.Progress;
+            playerEvents = refs.EventHub;
+
+            if (progressController == null)
+                progressController = FindFirstObjectByType<ProgressController>();
+
+            if (playerEvents == null && progressController != null)
+                playerEvents = progressController.EventHub;
+
+            if (isActiveAndEnabled)
+            {
+                Subscribe();
+                if (progressController != null)
+                    Refresh();
+            }
         }
     }
 }

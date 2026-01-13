@@ -8,7 +8,7 @@ using UI.Player.Common;
 
 namespace UI.Player.Statistics
 {
-    public class StatsListUI : MonoBehaviour
+    public class StatsListUI : MonoBehaviour, IPlayerReferenceReceiver
     {
         [SerializeField] private StatsController controller;
         [SerializeField] private GameObject statEntryPrefab;
@@ -159,6 +159,16 @@ namespace UI.Player.Statistics
             public EStatistics Stat { get; }
             public int BaseValue { get; }
             public int TempAllocation { get; }
+        }
+
+        public void BindPlayerReferences(PlayerUIReferences refs)
+        {
+            controller = refs.Stats;
+            if (controller == null)
+                controller = FindFirstObjectByType<StatsController>();
+
+            if (isActiveAndEnabled)
+                RefreshUI();
         }
     }
 }

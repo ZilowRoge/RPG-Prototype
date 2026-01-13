@@ -37,7 +37,7 @@ namespace Player.Progress
         
         private void Start() {
             // AddJob("job_wizard");
-            Systems.SaveSystem.SaveManager.Instance.LoadGame();
+            // Systems.SaveSystem.SaveManager.Instance.LoadGame();
         }
         
         public bool HasJob(string jobId)

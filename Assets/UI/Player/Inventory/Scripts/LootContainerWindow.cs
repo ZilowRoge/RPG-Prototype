@@ -2,15 +2,15 @@ using Inventory;
 using Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UI.Player.Common;
 
 namespace UI.Player.Inventory
 {
     /// <summary>
     /// Displays a container inventory alongside the player's inventory and supports transferring items between them.
     /// </summary>
-    public class LootContainerWindow : MonoBehaviour
+    public class LootContainerWindow : MonoBehaviour, IPlayerReferenceReceiver
     {
-        private const string LogPrefix = "[LootContainerWindow]";
 
         [Header("Root")]
         [SerializeField] private GameObject root;
@@ -44,7 +44,7 @@ namespace UI.Player.Inventory
         {
             if (isOpen)
             {
-                PlayerInputLockService.Instance?.SetLock(this, false);
+                PlayerInputLockService.TryGetInstance()?.SetLock(this, false);
                 isOpen = false;
             }
         }
@@ -65,7 +65,6 @@ namespace UI.Player.Inventory
 
             if (playerInventory == null || containerInventory == null)
             {
-                Debug.LogWarning($"{LogPrefix} Missing inventory controller reference.");
                 return;
             }
 
@@ -110,7 +109,6 @@ namespace UI.Player.Inventory
         {
             if (panel == null)
             {
-                Debug.LogWarning($"{LogPrefix} Missing panel reference.", this);
                 return;
             }
 
@@ -286,6 +284,20 @@ namespace UI.Player.Inventory
             cursorCaptured = false;
             Cursor.lockState = previousCursorLock;
             Cursor.visible = previousCursorVisible;
+        }
+
+        public void BindPlayerReferences(PlayerUIReferences refs)
+        {
+            var newPlayerController = refs.Inventory;
+            if (newPlayerController == playerController)
+                return;
+
+            playerController = newPlayerController;
+            if (playerPanel != null)
+                playerPanel.SetInventoryController(playerController);
+
+            if (isOpen)
+                Refresh();
         }
     }
 }
