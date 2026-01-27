@@ -116,6 +116,11 @@ namespace Player.Statistics
             activeDamageShield = shield;
         }
 
+        public bool IsShieldActive()
+        {
+            return activeDamageShield != null;
+        }
+
         public void UnregisterDamageShield(IDamageShield shield)
         {
             if (shield == null || activeDamageShield != shield)

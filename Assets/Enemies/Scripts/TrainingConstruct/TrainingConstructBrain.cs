@@ -22,7 +22,7 @@ namespace Enemies.TrainingConstruct
             Chase,
             ImpulseAttack,
             ChargeAttack,
-            Reboot
+            Vulnerable
         }
 
         [Header("Configuration")]
@@ -58,8 +58,8 @@ namespace Enemies.TrainingConstruct
         private BehaviourConfig.DetectionSettings DetectionSettings =>
             behaviourConfig != null ? behaviourConfig.Detection : default;
 
-        private BehaviourConfig.RebootSettings RebootSettings =>
-            behaviourConfig != null ? behaviourConfig.Reboot : default;
+        private BehaviourConfig.VulnerableSettings VulnerableSettings =>
+            behaviourConfig != null ? behaviourConfig.Vulnerable : default;
 
         private float DetectionRange => DetectionSettings.detectionRange > 0f ? DetectionSettings.detectionRange : 10f;
         private float LeashRangeMultiplier => DetectionSettings.leashRangeMultiplier > 0f ? DetectionSettings.leashRangeMultiplier : 1.25f;
@@ -141,7 +141,7 @@ namespace Enemies.TrainingConstruct
                 case ConstructState.ImpulseAttack:
                     FaceTarget();
                     break;
-                case ConstructState.Reboot:
+                case ConstructState.Vulnerable:
                     FaceTarget();
                     break;
             }
@@ -335,8 +335,8 @@ namespace Enemies.TrainingConstruct
                 case ConstructState.ChargeAttack:
                     stateRoutine = StartCoroutine(ChargeAttackRoutine());
                     break;
-                case ConstructState.Reboot:
-                    stateRoutine = StartCoroutine(RebootRoutine());
+                case ConstructState.Vulnerable:
+                    stateRoutine = StartCoroutine(VulnerableRoutine());
                     break;
             }
         }
@@ -523,9 +523,9 @@ namespace Enemies.TrainingConstruct
             float recovery = rule != null ? Mathf.Max(0f, rule.RecoveryDuration) : 0f;
 
 
-            if (RebootSettings.enabled)
+            if (VulnerableSettings.enabled)
             {
-                SwitchState(ConstructState.Reboot);
+                SwitchState(ConstructState.Vulnerable);
             }
             else
             {
@@ -536,9 +536,9 @@ namespace Enemies.TrainingConstruct
             }
         }
 
-        private IEnumerator RebootRoutine()
+        private IEnumerator VulnerableRoutine()
         {
-            float duration = RebootSettings.duration > 0f ? RebootSettings.duration : 1f;
+            float duration = VulnerableSettings.duration > 0f ? VulnerableSettings.duration : 1f;
             SetAgentStopped(true);
             navMeshAgent.velocity = Vector3.zero;
 
@@ -723,6 +723,5 @@ namespace Enemies.TrainingConstruct
         }
     }
 }
-
 
 
