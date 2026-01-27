@@ -17,6 +17,7 @@ namespace Player.Statistics
         [SerializeField] private PlayerEventHub playerEvents;
         [SerializeField] private EquipmentController equipmentController;
         [SerializeField] private StatsRuntime runtime = new();
+        private IDamageShield activeDamageShield;
         [Header("Knockback")]
         [SerializeField, Tooltip("Duration in seconds over which knockback displacement is applied.")]
         private float knockbackDuration = 0.15f;
@@ -98,9 +99,43 @@ namespace Player.Statistics
             return runtime.UseMana(amount);
         }
 
+        public void RegisterDamageShield(IDamageShield shield)
+        {
+            if (shield == null)
+                return;
+
+            if (isDead)
+            {
+                shield.Deactivate();
+                return;
+            }
+
+            if (activeDamageShield != null && activeDamageShield != shield)
+                activeDamageShield.Deactivate();
+
+            activeDamageShield = shield;
+        }
+
+        public void UnregisterDamageShield(IDamageShield shield)
+        {
+            if (shield == null || activeDamageShield != shield)
+                return;
+
+            activeDamageShield = null;
+        }
+
         public void ReceiveDamage(float amount, Transform source = null)
         {
             if (isDead)
+                return;
+
+            if (amount <= 0f)
+                return;
+
+            if (activeDamageShield != null)
+                amount = activeDamageShield.AbsorbDamage(amount);
+
+            if (amount <= 0f)
                 return;
 
             runtime.ReceiveDamage(amount);
@@ -186,6 +221,7 @@ namespace Player.Statistics
             runtime.OverrideResources(health, mana, stamina, maxHealth, maxMana, maxStamina);
             if (runtime.CurrentHealth > 0f)
                 isDead = false;
+            ClearDamageShield();
         }
 
         private void OnPerkResourcesUpdated()
@@ -326,6 +362,7 @@ namespace Player.Statistics
                 return;
 
             isDead = true;
+            ClearDamageShield();
 
             if (playerEvents != null)
             {
@@ -374,6 +411,16 @@ namespace Player.Statistics
                 value = value * Multiply + AddValue;
                 return value;
             }
+        }
+
+        private void ClearDamageShield()
+        {
+            if (activeDamageShield == null)
+                return;
+
+            var shield = activeDamageShield;
+            activeDamageShield = null;
+            shield.Deactivate();
         }
     }
 }

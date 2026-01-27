@@ -15,3 +15,5 @@ MonoBehaviour:
   spells:
   - symbolSequence: 09000000
     spell: {fileID: 11400000, guid: e0433c33f051ba3489a964dd4be995b3, type: 2}
+  - symbolSequence: 06000000
+    spell: {fileID: 11400000, guid: dc7323eeab49f7f4c9a5412a8cd56855, type: 2}

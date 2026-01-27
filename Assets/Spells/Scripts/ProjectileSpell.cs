@@ -3,7 +3,7 @@ using Spells.Projectiles;
 
 namespace Spells
 {
-    public abstract class ProjectileSpell : Spell
+    public abstract class ProjectileSpell : TargetedSpell
     {
         [Header("Projectile")]
         [SerializeField] protected GameObject projectilePrefab;

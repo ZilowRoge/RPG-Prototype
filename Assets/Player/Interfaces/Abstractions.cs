@@ -38,6 +38,12 @@ namespace Player.Interfaces
         void ReceiveDamage(float amount, Transform source = null);
     }
 
+    public interface IDamageShield
+    {
+        float AbsorbDamage(float amount);
+        void Deactivate();
+    }
+
     public interface IKnockbackable
     {
         void ApplyKnockback(Vector3 direction, float force);
