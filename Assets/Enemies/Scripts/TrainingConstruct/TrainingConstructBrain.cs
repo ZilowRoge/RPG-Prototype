@@ -1,4 +1,5 @@
 using System.Collections;
+using Enemies.Abstraction;
 using Enemies.Combat;
 using Enemies.Controllers;
 using Enemies.Config;
@@ -13,7 +14,7 @@ namespace Enemies.TrainingConstruct
     /// Uses external configuration assets for movement and attacks.
     /// </summary>
     [RequireComponent(typeof(NavMeshAgent))]
-    public class TrainingConstructBrain : MonoBehaviour
+    public class TrainingConstructBrain : EnemyBrainBase
     {
         private enum ConstructState
         {
@@ -25,15 +26,8 @@ namespace Enemies.TrainingConstruct
             Vulnerable
         }
 
-        [Header("Configuration")]
-        [SerializeField] private BehaviourConfig behaviourConfig;
-
         [Header("References")]
-        [SerializeField] private Transform playerTarget;
-        [SerializeField] private AttackController attackController;
-        [SerializeField] private NavMeshAgent navMeshAgent;
         [SerializeField] private ChargeHitbox chargeHitbox;
-        [SerializeField] private ComponentLogger logger = new ComponentLogger();
         [Header("Damage Awareness")]
         [SerializeField, Tooltip("When true, any incoming damage will force the construct to detect and chase the attacker.")]
         private bool aggroOnDamage = true;
@@ -50,30 +44,15 @@ namespace Enemies.TrainingConstruct
         private float damageAggroTimer;
         private StatsController statsController;
 
-        private MovementConfig MovementConfig => behaviourConfig != null ? behaviourConfig.Movement : null;
-        private MovementConfig.IdleSettings IdleSettings => MovementConfig?.Idle ?? default;
-        private MovementConfig.ChaseSettings ChaseSettings => MovementConfig?.Chase ?? default;
         private MovementConfig.ChargeSettings ChargeSettings => MovementConfig?.Charge ?? default;
 
-        private BehaviourConfig.DetectionSettings DetectionSettings =>
-            behaviourConfig != null ? behaviourConfig.Detection : default;
-
-        private BehaviourConfig.VulnerableSettings VulnerableSettings =>
-            behaviourConfig != null ? behaviourConfig.Vulnerable : default;
-
-        private float DetectionRange => DetectionSettings.detectionRange > 0f ? DetectionSettings.detectionRange : 10f;
         private float LeashRangeMultiplier => DetectionSettings.leashRangeMultiplier > 0f ? DetectionSettings.leashRangeMultiplier : 1.25f;
         private float LeashRange => DetectionRange * LeashRangeMultiplier;
         private bool HasDamageAggro => aggroOnDamage && damageAggroTimer > 0f;
 
-        private void Awake()
+        protected override void Awake()
         {
-            InitializeLogger();
-            if (navMeshAgent == null)
-                navMeshAgent = GetComponent<NavMeshAgent>();
-
-            if (attackController == null)
-                attackController = GetComponent<AttackController>();
+            base.Awake();
 
             if (chargeHitbox == null)
                 chargeHitbox = GetComponentInChildren<ChargeHitbox>(true);
@@ -287,14 +266,6 @@ namespace Enemies.TrainingConstruct
             {
                 SetDestinationSafe(hit.position, "Idle wander");
             }
-        }
-
-        private bool IsPlayerWithinRange(float range)
-        {
-            if (playerTarget == null)
-                return false;
-
-            return Vector3.SqrMagnitude(playerTarget.position - transform.position) <= range * range;
         }
 
         private void SwitchState(ConstructState newState)
@@ -549,20 +520,6 @@ namespace Enemies.TrainingConstruct
             SwitchState(ConstructState.Idle);
         }
 
-        private void FaceTarget()
-        {
-            if (playerTarget == null)
-                return;
-
-            Vector3 direction = playerTarget.position - transform.position;
-            direction.y = 0f;
-            if (direction.sqrMagnitude < 0.001f)
-                return;
-
-            Quaternion lookRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 10f);
-        }
-
         private void FaceDirection(Vector3 direction)
         {
             if (direction.sqrMagnitude < 0.001f)
@@ -570,25 +527,6 @@ namespace Enemies.TrainingConstruct
 
             Quaternion lookRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
             transform.rotation = lookRotation;
-        }
-
-        private bool IsAttackReady(AttackDefinition attackDefinition)
-        {
-            if (attackDefinition == null || attackController == null)
-                return false;
-
-            float currentTime = Time.time;
-            return attackController.RuntimeState.IsReady(attackDefinition, currentTime);
-        }
-
-        public void SetBehaviourConfig(BehaviourConfig config)
-        {
-            behaviourConfig = config;
-        }
-
-        public void SetPlayerTarget(Transform target)
-        {
-            playerTarget = target;
         }
 
         public void ResetBehaviour()
@@ -621,58 +559,6 @@ namespace Enemies.TrainingConstruct
             }
 
             return false;
-        }
-
-        private bool EnsureAgentOnNavMesh(string context)
-        {
-            if (navMeshAgent == null || !navMeshAgent.enabled)
-                return false;
-
-            if (navMeshAgent.isOnNavMesh)
-                return true;
-
-            if (NavMesh.SamplePosition(transform.position, out var hit, 1.5f, navMeshAgent.areaMask))
-            {
-                navMeshAgent.Warp(hit.position);
-                logger.Log(ComponentLogger.LogFlag.Events,
-                    "{0}: warped agent onto NavMesh.",
-                    context);
-                return true;
-            }
-
-            logger.LogWarning(ComponentLogger.LogFlag.Events,
-                "{0}: failed to find NavMesh.",
-                context);
-            return false;
-        }
-
-        private void SetDestinationSafe(Vector3 destination, string debugContext)
-        {
-            if (!EnsureAgentOnNavMesh(debugContext))
-                return;
-
-            if (!navMeshAgent.SetDestination(destination))
-            {
-                logger.LogWarning(ComponentLogger.LogFlag.Events,
-                    "{0}: SetDestination failed.",
-                    debugContext);
-            }
-        }
-
-        private void SetAgentStopped(bool stop)
-        {
-            if (navMeshAgent == null || !navMeshAgent.enabled)
-                return;
-
-            if (!navMeshAgent.isOnNavMesh)
-            {
-                logger.LogWarning(ComponentLogger.LogFlag.Events,
-                    "Tried to set isStopped={0} while agent off NavMesh.",
-                    stop);
-                return;
-            }
-
-            navMeshAgent.isStopped = stop;
         }
 
         private void OnDrawGizmos()
@@ -710,18 +596,5 @@ namespace Enemies.TrainingConstruct
             if (currentState == ConstructState.Idle || currentState == ConstructState.Detect)
                 SwitchState(ConstructState.Detect);
         }
-        private void OnValidate()
-        {
-            InitializeLogger();
-        }
-
-        private void InitializeLogger()
-        {
-            if (logger == null)
-                logger = new ComponentLogger();
-            logger.BindContext(this);
-        }
     }
 }
-
-

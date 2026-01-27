@@ -1,4 +1,5 @@
 using System.Collections;
+using Enemies.Abstraction;
 using Enemies.Combat;
 using Enemies.Config;
 using Enemies.Controllers;
@@ -10,7 +11,7 @@ using UnityEngine.AI;
 namespace Enemies.AcademyDuelist
 {
     [RequireComponent(typeof(NavMeshAgent))]
-    public class AcademyDuelistBrain : MonoBehaviour
+    public class AcademyDuelistBrain : EnemyBrainBase
     {
         private enum DuelistState
         {
@@ -22,16 +23,11 @@ namespace Enemies.AcademyDuelist
         }
 
         [Header("Configuration")]
-        [SerializeField] private BehaviourConfig behaviourConfig;
         [SerializeField] private AttackRule heavyAttackRule;
         [SerializeField] private AttackRule quickBreakRule;
 
         [Header("References")]
-        [SerializeField] private Transform playerTarget;
-        [SerializeField] private AttackController attackController;
-        [SerializeField] private NavMeshAgent navMeshAgent;
         [SerializeField] private PlayerStats playerStats;
-        [SerializeField] private ComponentLogger logger = new ComponentLogger();
 
         [Header("Strafe")]
         [SerializeField] private float strafeAngularSpeed = 60f;
@@ -45,36 +41,17 @@ namespace Enemies.AcademyDuelist
 
         private DuelistState currentState = DuelistState.Idle;
         private Coroutine stateRoutine;
-        private float baseSpeed;
-        private float baseAcceleration;
         private bool strafePaused;
         private float strafeTimer;
         private float strafeDirection;
         private Vector3 strafeHeading;
         private bool lastShieldActive;
-        private bool pendingQuickBreak;
         private float quickBreakDelayTimer;
         private AttackRule currentAttackRule;
 
-        private MovementConfig MovementConfig => behaviourConfig != null ? behaviourConfig.Movement : null;
-        private MovementConfig.IdleSettings IdleSettings => MovementConfig?.Idle ?? default;
-        private MovementConfig.ChaseSettings ChaseSettings => MovementConfig?.Chase ?? default;
-        private BehaviourConfig.DetectionSettings DetectionSettings =>
-            behaviourConfig != null ? behaviourConfig.Detection : default;
-        private BehaviourConfig.VulnerableSettings VulnerableSettings =>
-            behaviourConfig != null ? behaviourConfig.Vulnerable : default;
-
-        private float DetectionRange => DetectionSettings.detectionRange > 0f ? DetectionSettings.detectionRange : 10f;
-
-        private void Awake()
+        protected override void Awake()
         {
-            InitializeLogger();
-
-            if (navMeshAgent == null)
-                navMeshAgent = GetComponent<NavMeshAgent>();
-
-            if (attackController == null)
-                attackController = GetComponent<AttackController>();
+            base.Awake();
 
             if (playerTarget == null)
             {
@@ -86,8 +63,6 @@ namespace Enemies.AcademyDuelist
             if (playerTarget != null && playerStats == null)
                 playerStats = playerTarget.GetComponent<PlayerStats>();
 
-            baseSpeed = navMeshAgent != null ? navMeshAgent.speed : 0f;
-            baseAcceleration = navMeshAgent != null ? navMeshAgent.acceleration : 0f;
             strafeDirection = startStrafeRight ? 1f : -1f;
 
             EnsureAgentOnNavMesh("Awake");
@@ -100,26 +75,12 @@ namespace Enemies.AcademyDuelist
 
         private void Update()
         {
-            if (playerTarget == null)
-            {
-                var playerObject = GameObject.FindGameObjectWithTag("Player");
-                if (playerObject != null)
-                    playerTarget = playerObject.transform;
-            }
-
-            if (playerTarget != null && playerStats == null)
-                playerStats = playerTarget.GetComponent<PlayerStats>();
-
             UpdateShieldStatus();
-
-            if (currentState == DuelistState.Idle)
-            {
-                UpdateIdle();
-                return;
-            }
-
             switch (currentState)
             {
+                case DuelistState.Idle:
+                    UpdateIdle();
+                    break;
                 case DuelistState.ChargeHeavy:
                 case DuelistState.HeavyAttack:
                 case DuelistState.Vulnerable:
@@ -155,9 +116,8 @@ namespace Enemies.AcademyDuelist
 
         private void UpdateStrafe()
         {
-            float moveSpeed = IdleSettings.moveSpeed > 0f ? IdleSettings.moveSpeed : baseSpeed * 0.6f;
+            float moveSpeed = IdleSettings.moveSpeed > 0f ? IdleSettings.moveSpeed : navMeshAgent.speed;
             navMeshAgent.speed = moveSpeed;
-            navMeshAgent.acceleration = ChaseSettings.acceleration > 0f ? ChaseSettings.acceleration : baseAcceleration;
 
             strafeTimer -= Time.deltaTime;
             if (strafeTimer <= 0f)
@@ -222,6 +182,9 @@ namespace Enemies.AcademyDuelist
 
         private void UpdateShieldStatus()
         {
+            if (playerStats == null && playerTarget != null)
+                playerStats = playerTarget.GetComponent<PlayerStats>();
+
             if (playerStats == null)
                 return;
 
@@ -239,37 +202,40 @@ namespace Enemies.AcademyDuelist
             if (quickBreakRule == null || quickBreakRule.Attack == null)
                 return;
 
-            pendingQuickBreak = true;
             quickBreakDelayTimer = GetRandomRange(quickBreakDelayRange, 0.25f);
         }
 
         private bool TryStartQuickBreak(float distance)
         {
-            if (!pendingQuickBreak)
+            if (quickBreakDelayTimer <= 0f)
                 return false;
 
+            quickBreakDelayTimer -= Time.deltaTime;
             if (quickBreakDelayTimer > 0f)
-            {
-                quickBreakDelayTimer -= Time.deltaTime;
                 return false;
-            }
 
             if (currentState != DuelistState.Idle)
                 return false;
 
             if (quickBreakRule == null || quickBreakRule.Attack == null)
             {
-                pendingQuickBreak = false;
+                quickBreakDelayTimer = 0f;
                 return false;
             }
 
             if (!quickBreakRule.IsDistanceSatisfied(distance))
+            {
+                quickBreakDelayTimer = 0f;
                 return false;
+            }
 
             if (!IsAttackReady(quickBreakRule.Attack))
+            {
+                quickBreakDelayTimer = 0f;
                 return false;
+            }
 
-            pendingQuickBreak = false;
+            quickBreakDelayTimer = 0f;
             currentAttackRule = quickBreakRule;
             SwitchState(DuelistState.QuickBreak);
             return true;
@@ -415,89 +381,6 @@ namespace Enemies.AcademyDuelist
             SwitchState(DuelistState.Idle);
         }
 
-        private bool IsPlayerWithinRange(float range)
-        {
-            if (playerTarget == null)
-                return false;
-
-            return Vector3.SqrMagnitude(playerTarget.position - transform.position) <= range * range;
-        }
-
-        private bool IsAttackReady(AttackDefinition attackDefinition)
-        {
-            if (attackDefinition == null || attackController == null)
-                return false;
-
-            float currentTime = Time.time;
-            return attackController.RuntimeState.IsReady(attackDefinition, currentTime);
-        }
-
-        private void FaceTarget()
-        {
-            if (playerTarget == null)
-                return;
-
-            Vector3 direction = playerTarget.position - transform.position;
-            direction.y = 0f;
-            if (direction.sqrMagnitude < 0.001f)
-                return;
-
-            Quaternion lookRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 10f);
-        }
-
-        private bool EnsureAgentOnNavMesh(string context)
-        {
-            if (navMeshAgent == null || !navMeshAgent.enabled)
-                return false;
-
-            if (navMeshAgent.isOnNavMesh)
-                return true;
-
-            if (NavMesh.SamplePosition(transform.position, out var hit, 1.5f, navMeshAgent.areaMask))
-            {
-                navMeshAgent.Warp(hit.position);
-                logger.Log(ComponentLogger.LogFlag.Events,
-                    "{0}: warped agent onto NavMesh.",
-                    context);
-                return true;
-            }
-
-            logger.LogWarning(ComponentLogger.LogFlag.Events,
-                "{0}: failed to find NavMesh.",
-                context);
-            return false;
-        }
-
-        private void SetDestinationSafe(Vector3 destination, string debugContext)
-        {
-            if (!EnsureAgentOnNavMesh(debugContext))
-                return;
-
-            if (!navMeshAgent.SetDestination(destination))
-            {
-                logger.LogWarning(ComponentLogger.LogFlag.Events,
-                    "{0}: SetDestination failed.",
-                    debugContext);
-            }
-        }
-
-        private void SetAgentStopped(bool stop)
-        {
-            if (navMeshAgent == null || !navMeshAgent.enabled)
-                return;
-
-            if (!navMeshAgent.isOnNavMesh)
-            {
-                logger.LogWarning(ComponentLogger.LogFlag.Events,
-                    "Tried to set isStopped={0} while agent off NavMesh.",
-                    stop);
-                return;
-            }
-
-            navMeshAgent.isStopped = stop;
-        }
-
         private float GetRandomRange(Vector2 range, float fallback)
         {
             float min = Mathf.Min(range.x, range.y);
@@ -510,18 +393,6 @@ namespace Enemies.AcademyDuelist
                 min = max;
 
             return Random.Range(min, max);
-        }
-
-        private void OnValidate()
-        {
-            InitializeLogger();
-        }
-
-        private void InitializeLogger()
-        {
-            if (logger == null)
-                logger = new ComponentLogger();
-            logger.BindContext(this);
         }
     }
 }
