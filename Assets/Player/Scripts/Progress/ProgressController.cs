@@ -20,7 +20,6 @@ namespace Player.Progress
         private readonly Dictionary<string, bool> flags = new Dictionary<string, bool>();
         private readonly JobContainer jobs = new JobContainer();
         private int availableExperience;
-        private bool loggedMissingEventHub;
 
         public int AvailableExperience => availableExperience;
         public PlayerEventHub EventHub
@@ -33,11 +32,14 @@ namespace Player.Progress
             }
         }
 
-        public QuestManager QuestManager => questManager;
-        
-        private void Start() {
-            // AddJob("job_wizard");
-            // Systems.SaveSystem.SaveManager.Instance.LoadGame();
+        public QuestManager QuestManager
+        {
+            get
+            {
+                if (questManager == null)
+                    CacheQuestManager();
+                return questManager;
+            }
         }
         
         public bool HasJob(string jobId)
@@ -261,12 +263,14 @@ namespace Player.Progress
         private void Awake()
         {
             CacheEventHub();
+            CacheQuestManager();
             availableExperience = Mathf.Max(0, startingAvailableExperience);
         }
 
         private void OnValidate()
         {
             CacheEventHub();
+            CacheQuestManager();
         }
 
         private static int ParseSymbolId(string raw)
@@ -289,56 +293,56 @@ namespace Player.Progress
 
         private void NotifyAvailableExperienceChanged()
         {
-            if (playerEvents != null)
-            {
-                playerEvents.NotifyAvailableExperienceChanged(availableExperience);
-            }
-            else
+            if (playerEvents == null)
             {
                 WarnMissingEventHub();
+                return;
             }
+            playerEvents.NotifyAvailableExperienceChanged(availableExperience);
         }
 
         private void NotifyJobExperienceChanged(JobInstance job)
         {
-            if (playerEvents != null)
-            {
-                playerEvents.NotifyJobExperienceChanged(job);
-            }
-            else
+            if (playerEvents == null)
             {
                 WarnMissingEventHub();
+                return;
             }
+            playerEvents.NotifyJobExperienceChanged(job);
         }
 
         private void NotifyFlagChanged(string key, bool value)
         {
-            if (playerEvents != null)
-            {
-                playerEvents.NotifyFlagChanged(key, value);
-            }
-            else
+            if (playerEvents == null)
             {
                 WarnMissingEventHub();
+                return;
             }
+            playerEvents.NotifyFlagChanged(key, value);
         }
 
         private void CacheEventHub()
         {
             if (playerEvents == null)
                 playerEvents = GetComponent<PlayerEventHub>() ?? GetComponentInParent<PlayerEventHub>() ?? FindFirstObjectByType<PlayerEventHub>();
+        }
 
-            if (playerEvents != null)
-                loggedMissingEventHub = false;
+        private void CacheQuestManager()
+        {
+            if (questManager != null)
+                return;
+
+            var gameManagerObject = GameObject.FindGameObjectWithTag("GameManager");
+            if (gameManagerObject != null)
+                questManager = gameManagerObject.GetComponent<QuestManager>();
+
+            if (questManager == null)
+                Debug.LogWarning("[ProgressController] QuestManager was not found on the GameManager tagged object.");
         }
 
         private void WarnMissingEventHub()
         {
-            if (loggedMissingEventHub)
-                return;
-
             Debug.LogWarning("[ProgressController] PlayerEventHub is not assigned. Progress notifications will not be broadcast.");
-            loggedMissingEventHub = true;
         }
     }
 }

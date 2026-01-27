@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -19,6 +20,7 @@ namespace Player.FightSystem.Magic
         [SerializeField] private MonoBehaviour defaultCombatConsumerBehaviour;
         [SerializeField, Tooltip("Time window (seconds) to allow chaining symbols before finalizing the sequence.")]
         private float continuationWindow = 0.75f;
+        private static readonly HashSet<int> SequenceTerminatorSymbols = new HashSet<int> { 6, 9 };
         [SerializeField, Tooltip("Optional camera sensitivity controller to dampen look speed while drawing symbols.")]
         private CinemachineSensitivityController cameraSensitivityController;
         [SerializeField] private ComponentLogger logger = new ComponentLogger();
@@ -28,6 +30,7 @@ namespace Player.FightSystem.Magic
         private ISymbolConsumer activeConsumer;
         private ISymbolConsumer defaultCombatConsumer;
         private bool isDrawing;
+        private bool hasPendingSymbols;
         private Coroutine pendingFinishRoutine;
         private const float RecognitionThreshold = 0.8f;
         private const string PlayerUiTag = "PlayerUI";
@@ -125,7 +128,10 @@ namespace Player.FightSystem.Magic
                 if (notifyConsumer)
                     ScheduleConsumerNotification();
                 else
+                {
+                    hasPendingSymbols = false;
                     CancelPendingFinish();
+                }
                 return;
             }
 
@@ -142,9 +148,12 @@ namespace Player.FightSystem.Magic
             Cursor.visible = false;
 
             if (notifyConsumer)
-                activeConsumer?.OnSymbolSequenceCommitted();
+                CommitSequence();
             else
+            {
+                hasPendingSymbols = false;
                 CancelPendingFinish();
+            }
         }
 
         private void ResolveDrawingSpace()
@@ -198,6 +207,15 @@ namespace Player.FightSystem.Magic
                 return;
             }
             activeConsumer?.OnSymbolRecognized(symbolId.ToString());
+            hasPendingSymbols = true;
+
+            if (IsSequenceTerminator(symbolId))
+            {
+                CancelPendingFinish();
+                CommitSequence();
+                return;
+            }
+
             ScheduleConsumerNotification();
         }
 
@@ -219,9 +237,12 @@ namespace Player.FightSystem.Magic
         {
             CancelPendingFinish();
 
+            if (!hasPendingSymbols)
+                return;
+
             if (continuationWindow <= 0f)
             {
-                activeConsumer?.OnSymbolSequenceCommitted();
+                CommitSequence();
                 return;
             }
 
@@ -243,7 +264,7 @@ namespace Player.FightSystem.Magic
             pendingFinishRoutine = null;
             logger.Log(ComponentLogger.LogFlag.Events,
                 "Continuation window expired. Finalizing symbol sequence.");
-            activeConsumer?.OnSymbolSequenceCommitted();
+            CommitSequence();
         }
 
         private void CancelPendingFinish()
@@ -253,6 +274,20 @@ namespace Player.FightSystem.Magic
                 StopCoroutine(pendingFinishRoutine);
                 pendingFinishRoutine = null;
             }
+        }
+
+        private void CommitSequence()
+        {
+            if (!hasPendingSymbols)
+                return;
+
+            hasPendingSymbols = false;
+            activeConsumer?.OnSymbolSequenceCommitted();
+        }
+
+        private static bool IsSequenceTerminator(int symbolId)
+        {
+            return SequenceTerminatorSymbols.Contains(symbolId);
         }
         private void OnValidate()
         {

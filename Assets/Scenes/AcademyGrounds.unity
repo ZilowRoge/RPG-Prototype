@@ -522,6 +522,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f6803ff197aa15342ab9dc207e2fe8f7, type: 3}
+--- !u!114 &591420038 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7601089769593226917, guid: f6803ff197aa15342ab9dc207e2fe8f7, type: 3}
+  m_PrefabInstance: {fileID: 591420037}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a94b771f56b0574888759a4227f1f8f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &680938382 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 959822582627907130, guid: b5cbbde1e7f28944684afbf0151919a1, type: 3}
@@ -688,6 +699,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 5389066240880142616, guid: b5cbbde1e7f28944684afbf0151919a1, type: 3}
+      propertyPath: questManager
+      value: 
+      objectReference: {fileID: 591420038}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
