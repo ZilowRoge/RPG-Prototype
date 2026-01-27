@@ -30,6 +30,7 @@ namespace Player.FightSystem.Magic
         private bool isDrawing;
         private Coroutine pendingFinishRoutine;
         private const float RecognitionThreshold = 0.8f;
+        private const string PlayerUiTag = "PlayerUI";
 
         public ISymbolConsumer ActiveConsumer => activeConsumer;
         public ISymbolConsumer DefaultCombatConsumer => defaultCombatConsumer;
@@ -41,6 +42,7 @@ namespace Player.FightSystem.Magic
             symbolRecognizer = new SymbolRecognizer(modelAsset);
             if (cameraSensitivityController == null)
                 cameraSensitivityController = FindFirstObjectByType<CinemachineSensitivityController>();
+            ResolveDrawingSpace();
 
             if (defaultCombatConsumerBehaviour != null)
             {
@@ -143,6 +145,18 @@ namespace Player.FightSystem.Magic
                 activeConsumer?.OnSymbolSequenceCommitted();
             else
                 CancelPendingFinish();
+        }
+
+        private void ResolveDrawingSpace()
+        {
+            if (symbolDrawUI != null)
+                return;
+
+            var playerUi = GameObject.FindWithTag(PlayerUiTag);
+            if (playerUi == null)
+                return;
+
+            symbolDrawUI = playerUi.GetComponentInChildren<SymbolDrawUI>(true);
         }
 
         private void ApplyDrawingCameraSensitivity(bool drawing)

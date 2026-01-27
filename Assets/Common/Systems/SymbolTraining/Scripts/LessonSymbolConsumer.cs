@@ -24,7 +24,12 @@ namespace Common.Systems.SymbolTraining
         private void Awake()
         {
             if (lessonUI == null)
-                lessonUI = FindFirstObjectByType<SymbolLessonUI>(FindObjectsInactive.Include);
+            {
+                var playerUi = GameObject.FindWithTag("PlayerUI");
+                lessonUI = playerUi != null
+                    ? playerUi.GetComponentInChildren<SymbolLessonUI>(true)
+                    : null;
+            }
         }
 
         public bool BeginLesson(

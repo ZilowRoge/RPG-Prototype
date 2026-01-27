@@ -139,7 +139,10 @@ namespace Common.World.Loot
             if (containerWindowOverride != null)
                 return containerWindowOverride;
 
-            return FindFirstObjectByType<LootContainerWindow>(FindObjectsInactive.Include);
+            var playerUi = GameObject.FindWithTag("PlayerUI");
+            return playerUi != null
+                ? playerUi.GetComponentInChildren<LootContainerWindow>(true)
+                : null;
         }
 
         private string ResolveSceneId()

@@ -346,7 +346,10 @@ namespace Common.World.SceneTransitions
 
         private static void BindPlayerUiReferences(GameObject player)
         {
-            var binder = FindFirstObjectByType<PlayerUIReferenceBinder>(FindObjectsInactive.Include);
+            var playerUi = GameObject.FindWithTag("PlayerUI");
+            var binder = playerUi != null
+                ? playerUi.GetComponentInChildren<PlayerUIReferenceBinder>(true)
+                : null;
             if (binder != null)
                 binder.BindPlayer(player);
         }
