@@ -1,6 +1,7 @@
 using Enemies.Combat;
 using Enemies.Config;
 using Enemies.Controllers;
+using Enemies.Interfaces;
 using Systems.Debugging;
 using UnityEngine;
 using UnityEngine.AI;
@@ -18,9 +19,8 @@ namespace Enemies.Abstraction
         [SerializeField] protected NavMeshAgent navMeshAgent;
         [SerializeField] protected ComponentLogger logger = new ComponentLogger();
 
-        protected MovementConfig MovementConfig => behaviourConfig != null ? behaviourConfig.Movement : null;
-        protected MovementConfig.IdleSettings IdleSettings => MovementConfig?.Idle ?? default;
-        protected MovementConfig.ChaseSettings ChaseSettings => MovementConfig?.Chase ?? default;
+        protected abstract IEnemyMovement Movement { get; }
+
         protected BehaviourConfig.DetectionSettings DetectionSettings =>
             behaviourConfig != null ? behaviourConfig.Detection : default;
         protected BehaviourConfig.VulnerableSettings VulnerableSettings =>
@@ -43,6 +43,18 @@ namespace Enemies.Abstraction
         public void SetBehaviourConfig(BehaviourConfig config)
         {
             behaviourConfig = config;
+            OnBehaviourConfigChanged();
+        }
+
+        protected virtual void OnBehaviourConfigChanged()
+        {
+            if (Movement != null)
+            {
+                Movement.Initialize(new EnemyMovementContext(
+                    transform,
+                    navMeshAgent,
+                    logger));
+            }
         }
 
         public virtual void SetPlayerTarget(Transform target)
@@ -79,42 +91,6 @@ namespace Enemies.Abstraction
 
             Quaternion lookRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
             transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 10f);
-        }
-
-        protected bool EnsureAgentOnNavMesh(string context)
-        {
-            if (navMeshAgent == null || !navMeshAgent.enabled)
-                return false;
-
-            if (navMeshAgent.isOnNavMesh)
-                return true;
-
-            if (NavMesh.SamplePosition(transform.position, out var hit, 1.5f, navMeshAgent.areaMask))
-            {
-                navMeshAgent.Warp(hit.position);
-                logger.Log(ComponentLogger.LogFlag.Events,
-                    "{0}: warped agent onto NavMesh.",
-                    context);
-                return true;
-            }
-
-            logger.LogWarning(ComponentLogger.LogFlag.Events,
-                "{0}: failed to find NavMesh.",
-                context);
-            return false;
-        }
-
-        protected void SetDestinationSafe(Vector3 destination, string debugContext)
-        {
-            if (!EnsureAgentOnNavMesh(debugContext))
-                return;
-
-            if (!navMeshAgent.SetDestination(destination))
-            {
-                logger.LogWarning(ComponentLogger.LogFlag.Events,
-                    "{0}: SetDestination failed.",
-                    debugContext);
-            }
         }
 
         protected void SetAgentStopped(bool stop)

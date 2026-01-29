@@ -1,5 +1,6 @@
 using System.Collections;
 using Enemies.Abstraction;
+using Enemies.Interfaces;
 using Enemies.Combat;
 using Enemies.Config;
 using Enemies.Controllers;
@@ -22,32 +23,25 @@ namespace Enemies.AcademyDuelist
             QuickBreak
         }
 
-        [Header("Configuration")]
-        [SerializeField] private AttackRule heavyAttackRule;
-        [SerializeField] private AttackRule quickBreakRule;
-
         [Header("References")]
         [SerializeField] private PlayerStats playerStats;
 
-        [Header("Strafe")]
-        [SerializeField] private float strafeAngularSpeed = 60f;
-        [SerializeField] private Vector2 strafeMoveDurationRange = new Vector2(2f, 4f);
-        [SerializeField] private Vector2 strafePauseDurationRange = new Vector2(0.5f, 1.25f);
-        [SerializeField, Range(0f, 1f)] private float strafeDistanceBias = 0.5f;
-        [SerializeField] private bool startStrafeRight = true;
+        [Header("Movement")]
+        [SerializeField] private AcademyDuelistMovement movement = new AcademyDuelistMovement();
 
         [Header("Quick Break")]
         [SerializeField] private Vector2 quickBreakDelayRange = new Vector2(0.15f, 0.4f);
 
         private DuelistState currentState = DuelistState.Idle;
         private Coroutine stateRoutine;
-        private bool strafePaused;
-        private float strafeTimer;
-        private float strafeDirection;
-        private Vector3 strafeHeading;
         private bool lastShieldActive;
         private float quickBreakDelayTimer;
         private AttackRule currentAttackRule;
+        private const string HeavyAttackId = "academy_duelist_heavy_attack";
+        private const string QuickBreakId = "academy_duelist_magic_missile";
+        private const string ChargeUpForAbilityId = "heavy_attack_charge_up";
+
+        protected override IEnemyMovement Movement => movement;
 
         protected override void Awake()
         {
@@ -63,9 +57,12 @@ namespace Enemies.AcademyDuelist
             if (playerTarget != null && playerStats == null)
                 playerStats = playerTarget.GetComponent<PlayerStats>();
 
-            strafeDirection = startStrafeRight ? 1f : -1f;
+            movement.Initialize(new EnemyMovementContext(
+                transform,
+                navMeshAgent,
+                logger));
 
-            EnsureAgentOnNavMesh("Awake");
+            movement.EnsureAgentOnNavMesh("Awake");
         }
 
         private void OnEnable()
@@ -92,92 +89,25 @@ namespace Enemies.AcademyDuelist
 
         private void UpdateIdle()
         {
+            logger.Log(ComponentLogger.LogFlag.Events, "[AcademyDuelistBrain] UpdateIdle.");
             if (playerTarget == null)
             {
-                SetAgentStopped(true);
+                movement.Move(EnemyMovementState.None, null, Time.deltaTime);
                 return;
             }
 
             if (!IsPlayerWithinRange(DetectionRange))
             {
-                SetAgentStopped(true);
+                movement.Move(EnemyMovementState.None, playerTarget, Time.deltaTime);
                 return;
             }
 
-            UpdateStrafe();
-
-            float distance = Vector3.Distance(transform.position, playerTarget.position);
+            float distance = movement.Move(EnemyMovementState.Idle, playerTarget, Time.deltaTime);
 
             if (TryStartQuickBreak(distance))
                 return;
 
             TryStartHeavyAttack(distance);
-        }
-
-        private void UpdateStrafe()
-        {
-            float moveSpeed = IdleSettings.moveSpeed > 0f ? IdleSettings.moveSpeed : navMeshAgent.speed;
-            navMeshAgent.speed = moveSpeed;
-
-            strafeTimer -= Time.deltaTime;
-            if (strafeTimer <= 0f)
-            {
-                if (strafePaused)
-                    BeginStrafeMove();
-                else
-                    BeginStrafePause();
-            }
-
-            if (strafePaused)
-            {
-                SetAgentStopped(true);
-                return;
-            }
-
-            SetAgentStopped(false);
-
-            if (playerTarget == null)
-                return;
-
-            Vector3 fromPlayer = transform.position - playerTarget.position;
-            fromPlayer.y = 0f;
-
-            if (strafeHeading.sqrMagnitude < 0.001f)
-                strafeHeading = fromPlayer.sqrMagnitude > 0.001f ? fromPlayer.normalized : transform.forward;
-
-            float angular = strafeAngularSpeed != 0f ? strafeAngularSpeed : 60f;
-            Quaternion rotation = Quaternion.AngleAxis(angular * strafeDirection * Time.deltaTime, Vector3.up);
-            strafeHeading = rotation * strafeHeading.normalized;
-
-            float targetDistance = GetPreferredDistance();
-            Vector3 desiredPosition = playerTarget.position + strafeHeading.normalized * targetDistance;
-
-            SetDestinationSafe(desiredPosition, "Strafe");
-        }
-
-        private void BeginStrafeMove()
-        {
-            strafePaused = false;
-            strafeTimer = GetRandomRange(strafeMoveDurationRange, 2f);
-            if (Random.value > 0.5f)
-                strafeDirection *= -1f;
-        }
-
-        private void BeginStrafePause()
-        {
-            strafePaused = true;
-            strafeTimer = GetRandomRange(strafePauseDurationRange, 0.5f);
-        }
-
-        private float GetPreferredDistance()
-        {
-            float min = ChaseSettings.preferredMinDistance > 0f ? ChaseSettings.preferredMinDistance : 4f;
-            float max = ChaseSettings.preferredMaxDistance > 0f ? ChaseSettings.preferredMaxDistance : min + 2f;
-            if (max < min + 0.1f)
-                max = min + 0.5f;
-
-            float t = Mathf.Clamp01(strafeDistanceBias);
-            return Mathf.Lerp(min, max, t);
         }
 
         private void UpdateShieldStatus()
@@ -199,7 +129,7 @@ namespace Enemies.AcademyDuelist
 
         private void QueueQuickBreak()
         {
-            if (quickBreakRule == null || quickBreakRule.Attack == null)
+            if (FindRuleById(QuickBreakId) == null)
                 return;
 
             quickBreakDelayTimer = GetRandomRange(quickBreakDelayRange, 0.25f);
@@ -217,43 +147,61 @@ namespace Enemies.AcademyDuelist
             if (currentState != DuelistState.Idle)
                 return false;
 
-            if (quickBreakRule == null || quickBreakRule.Attack == null)
-            {
-                quickBreakDelayTimer = 0f;
-                return false;
-            }
-
-            if (!quickBreakRule.IsDistanceSatisfied(distance))
-            {
-                quickBreakDelayTimer = 0f;
-                return false;
-            }
-
-            if (!IsAttackReady(quickBreakRule.Attack))
+            if (!CanPerformQuickBreak(distance))
             {
                 quickBreakDelayTimer = 0f;
                 return false;
             }
 
             quickBreakDelayTimer = 0f;
-            currentAttackRule = quickBreakRule;
+            currentAttackRule = FindRuleById(QuickBreakId);
             SwitchState(DuelistState.QuickBreak);
             return true;
         }
 
         private void TryStartHeavyAttack(float distance)
         {
-            if (heavyAttackRule == null || heavyAttackRule.Attack == null)
+            if (!CanPerformHeavyAttack(distance))
                 return;
 
-            if (!heavyAttackRule.IsDistanceSatisfied(distance))
-                return;
-
-            if (!IsAttackReady(heavyAttackRule.Attack))
-                return;
-
-            currentAttackRule = heavyAttackRule;
+            currentAttackRule = FindRuleById(HeavyAttackId);
             SwitchState(DuelistState.ChargeHeavy);
+        }
+
+        private bool CanPerformHeavyAttack(float distance)
+        {
+            var rule = FindRuleById(HeavyAttackId);
+            return rule != null &&
+                rule.Attack != null &&
+                rule.IsDistanceSatisfied(distance) &&
+                IsAttackReady(rule.Attack);
+        }
+
+        private bool CanPerformQuickBreak(float distance)
+        {
+            var rule = FindRuleById(QuickBreakId);
+            return rule != null &&
+                rule.Attack != null &&
+                rule.IsDistanceSatisfied(distance) &&
+                IsAttackReady(rule.Attack);
+        }
+ 
+        private AttackRule FindRuleById(string ruleId)
+        {
+            if (behaviourConfig == null || behaviourConfig.Attacks == null)
+                return null;
+
+            foreach (var rule in behaviourConfig.Attacks)
+            {
+                if (rule == null)
+                    continue;
+                if (string.IsNullOrWhiteSpace(rule.RuleId))
+                    continue;
+                if (rule.RuleId == ruleId)
+                    return rule;
+            }
+
+            return null;
         }
 
         private void SwitchState(DuelistState newState)
@@ -278,9 +226,6 @@ namespace Enemies.AcademyDuelist
             switch (newState)
             {
                 case DuelistState.Idle:
-                    strafeHeading = Vector3.zero;
-                    BeginStrafeMove();
-                    SetAgentStopped(false);
                     break;
                 case DuelistState.ChargeHeavy:
                     stateRoutine = StartCoroutine(ChargeHeavyRoutine());
@@ -311,11 +256,28 @@ namespace Enemies.AcademyDuelist
 
         private IEnumerator ChargeHeavyRoutine()
         {
-            var rule = currentAttackRule ?? heavyAttackRule;
+            logger.Log(ComponentLogger.LogFlag.Events, "[AcademyDuelistBrain] ChargeHeavyRoutine start.");
             SetAgentStopped(true);
             navMeshAgent.velocity = Vector3.zero;
 
-            float chargeUp = rule != null ? Mathf.Max(0f, rule.ChargeUpDuration) : 0f;
+            GameObject chargeUpForAbilityInstance = null;
+            float chargeUp = 0f;
+            if (TryGetChargeUpForAbilityEntry(ChargeUpForAbilityId, out var entry))
+            {
+                logger.Log(ComponentLogger.LogFlag.Events,
+                    "[AcademyDuelistBrain] ChargeUp entry found id={0} chargingTime={1:F2}.",
+                    ChargeUpForAbilityId,
+                    entry.chargingTime);
+                chargeUp = Mathf.Max(0f, entry.chargingTime);
+                TrySpawnChargeUpForAbility(entry, ref chargeUpForAbilityInstance);
+            }
+            else
+            {
+                logger.Log(ComponentLogger.LogFlag.Events,
+                    "[AcademyDuelistBrain] ChargeUp entry missing for id={0}.",
+                    ChargeUpForAbilityId);
+            }
+
             float elapsed = 0f;
             while (elapsed < chargeUp)
             {
@@ -324,27 +286,25 @@ namespace Enemies.AcademyDuelist
                 yield return null;
             }
 
+            logger.Log(ComponentLogger.LogFlag.Events, "[AcademyDuelistBrain] ChargeHeavyRoutine end (chargeUp={0:F2}).", chargeUp);
             SwitchState(DuelistState.HeavyAttack);
         }
 
         private IEnumerator HeavyAttackRoutine()
         {
-            var rule = currentAttackRule ?? heavyAttackRule;
+            var rule = currentAttackRule ?? FindRuleById(HeavyAttackId);
             SetAgentStopped(true);
             navMeshAgent.velocity = Vector3.zero;
             FaceTarget();
 
             if (rule != null && rule.Attack != null && attackController != null && playerTarget != null)
-                attackController.TryUseAttack(rule.Attack, playerTarget, rule.CooldownModifier);
+                attackController.TryUseAttack(rule.Attack, playerTarget);
 
             float recovery = rule != null ? Mathf.Max(0f, rule.RecoveryDuration) : 0f;
             if (recovery > 0f)
                 yield return new WaitForSeconds(recovery);
 
-            if (VulnerableSettings.enabled)
-                SwitchState(DuelistState.Vulnerable);
-            else
-                SwitchState(DuelistState.Idle);
+            SwitchState(DuelistState.Vulnerable);
         }
 
         private IEnumerator VulnerableRoutine()
@@ -361,7 +321,7 @@ namespace Enemies.AcademyDuelist
 
         private IEnumerator QuickBreakRoutine()
         {
-            var rule = currentAttackRule ?? quickBreakRule;
+            var rule = currentAttackRule ?? FindRuleById(QuickBreakId);
             SetAgentStopped(true);
             navMeshAgent.velocity = Vector3.zero;
 
@@ -372,7 +332,7 @@ namespace Enemies.AcademyDuelist
             FaceTarget();
 
             if (rule != null && rule.Attack != null && attackController != null && playerTarget != null)
-                attackController.TryUseAttack(rule.Attack, playerTarget, rule.CooldownModifier);
+                attackController.TryUseAttack(rule.Attack, playerTarget);
 
             float recovery = rule != null ? Mathf.Max(0f, rule.RecoveryDuration) : 0f;
             if (recovery > 0f)
@@ -393,6 +353,58 @@ namespace Enemies.AcademyDuelist
                 min = max;
 
             return Random.Range(min, max);
+        }
+
+        private bool TryGetChargeUpForAbilityEntry(string vfxId, out BehaviourConfig.ChargeUpForAbilityEntry entry)
+        {
+            logger.Log(ComponentLogger.LogFlag.Events,
+                "[AcademyDuelistBrain] TryGetChargeUpForAbilityEntry id={0}.",
+                vfxId);
+            entry = default;
+            if (string.IsNullOrWhiteSpace(vfxId))
+                return false;
+
+            if (behaviourConfig == null || behaviourConfig.ChargeUpForAbilityEntries == null)
+                return false;
+
+            var entries = behaviourConfig.ChargeUpForAbilityEntries;
+            for (int i = 0; i < entries.Count; i++)
+            {
+                var candidate = entries[i];
+                if (candidate.vfxId != vfxId)
+                    continue;
+
+                entry = candidate;
+                logger.Log(ComponentLogger.LogFlag.Events,
+                    "[AcademyDuelistBrain] ChargeUp entry matched id={0}.",
+                    vfxId);
+                return true;
+            }
+
+            logger.Log(ComponentLogger.LogFlag.Events,
+                "[AcademyDuelistBrain] ChargeUp entry not found id={0}.",
+                vfxId);
+            return false;
+        }
+
+        private void TrySpawnChargeUpForAbility(BehaviourConfig.ChargeUpForAbilityEntry entry, ref GameObject instance)
+        {
+            if (entry.prefab == null || entry.chargingTime <= 0f)
+                return;
+
+            Vector3 worldOffset = transform.TransformDirection(entry.offset);
+            Vector3 spawnPosition = transform.position + worldOffset;
+            if (entry.attachToOwner)
+            {
+                instance = Instantiate(entry.prefab, transform.position, transform.rotation, transform);
+                instance.transform.localPosition = entry.offset;
+            }
+            else
+            {
+                instance = Instantiate(entry.prefab, spawnPosition, transform.rotation);
+            }
+
+            Destroy(instance, entry.chargingTime);
         }
     }
 }

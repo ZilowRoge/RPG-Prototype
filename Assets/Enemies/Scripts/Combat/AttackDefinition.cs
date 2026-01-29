@@ -6,8 +6,6 @@ namespace Enemies.Combat
     [CreateAssetMenu(menuName = "Combat/AttackDefinition")]
     public class AttackDefinition : ScriptableObject
     {
-        [SerializeField] private string attackId;
-        [SerializeField] private string displayName;
         [SerializeField] private float damage = 10f;
         [SerializeField] private float range = 2f;
         [SerializeField, Tooltip("Base cooldown in seconds between consecutive uses of this attack.")]
@@ -16,8 +14,6 @@ namespace Enemies.Combat
         [SerializeField, Tooltip("Optional tags usable for AI decision making (e.g., Melee, Ranged, AoE).")]
         private List<string> tags = new();
 
-        public string AttackId => attackId;
-        public string DisplayName => displayName;
         public float Damage => damage;
         public float Range => range;
         public float BaseCooldown => baseCooldown;

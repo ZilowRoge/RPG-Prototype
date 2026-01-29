@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8790b2cd34a9d114889d625e40f5efac, type: 3}
   m_Name: PlayerStatistics
   m_EditorClassIdentifier: 
-  walkSpeed: 10
-  runSpeed: 15
+  walkSpeed: 7
+  runSpeed: 11
   baseDamageMin: 10
   baseDamageMax: 15
   baseArmor: 0

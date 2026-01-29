@@ -9,7 +9,6 @@ namespace Enemies.Combat
         [SerializeField] private GameObject projectilePrefab;
         [SerializeField] private ProjectileMover mover;
         [SerializeField] private float projectileSpeed = 10f;
-        [SerializeField] private float damageMultiplier = 1f;
         [SerializeField, Tooltip("Local offset from the source where the projectile spawns.")]
         private Vector3 spawnOffset = new Vector3(0f, 1f, 0.5f);
         [SerializeField, Tooltip("When true, aim toward the target if available.")]
@@ -47,8 +46,7 @@ namespace Enemies.Combat
                 return;
             }
 
-            float finalDamage = context.Attack.Damage * Mathf.Max(0f, damageMultiplier);
-            controller.Init(mover, context.Target, projectileSpeed, finalDamage, forward);
+            controller.Init(mover, context.Target, projectileSpeed, context.Attack.Damage, forward);
         }
     }
 }

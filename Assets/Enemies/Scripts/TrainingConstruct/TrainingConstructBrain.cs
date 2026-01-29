@@ -1,8 +1,9 @@
 using System.Collections;
 using Enemies.Abstraction;
+using Enemies.Interfaces;
 using Enemies.Combat;
-using Enemies.Controllers;
 using Enemies.Config;
+using Enemies.Controllers;
 using Systems.Debugging;
 using UnityEngine;
 using UnityEngine.AI;
@@ -28,6 +29,10 @@ namespace Enemies.TrainingConstruct
 
         [Header("References")]
         [SerializeField] private ChargeHitbox chargeHitbox;
+        [SerializeField] private TrainingConstructMovement movement = new TrainingConstructMovement();
+        [Header("Charge")]
+        [SerializeField] private float chargeDashSpeed = 12f;
+        [SerializeField] private float chargeDashDuration = 0.75f;
         [Header("Damage Awareness")]
         [SerializeField, Tooltip("When true, any incoming damage will force the construct to detect and chase the attacker.")]
         private bool aggroOnDamage = true;
@@ -36,15 +41,15 @@ namespace Enemies.TrainingConstruct
 
         [SerializeField] private ConstructState currentState = ConstructState.Idle;
         private Coroutine stateRoutine;
-        private float idleTimer;
-        private Vector3 idleAnchor;
-        private float baseSpeed;
-        private float baseAcceleration;
         private AttackRule currentAttackRule;
         private float damageAggroTimer;
         private StatsController statsController;
 
-        private MovementConfig.ChargeSettings ChargeSettings => MovementConfig?.Charge ?? default;
+        private const string ImpulseAttackId = "training_construct_impulse_attack";
+        private const string ChargeAttackId = "training_construct_charge_attack";
+        private const string ChargeUpForAbilityId = "training_construct_charge";
+
+        protected override IEnemyMovement Movement => movement;
 
         private float LeashRangeMultiplier => DetectionSettings.leashRangeMultiplier > 0f ? DetectionSettings.leashRangeMultiplier : 1.25f;
         private float LeashRange => DetectionRange * LeashRangeMultiplier;
@@ -73,11 +78,12 @@ namespace Enemies.TrainingConstruct
                 }
             }
 
-            idleAnchor = transform.position;
-            baseSpeed = navMeshAgent.speed;
-            baseAcceleration = navMeshAgent.acceleration;
+            movement.Initialize(new EnemyMovementContext(
+                transform,
+                navMeshAgent,
+                logger));
 
-            EnsureAgentOnNavMesh("Awake");
+            movement.EnsureAgentOnNavMesh("Awake");
         }
 
         private void OnEnable()
@@ -128,22 +134,7 @@ namespace Enemies.TrainingConstruct
 
         private void UpdateIdle()
         {
-            float rotationSpeed = IdleSettings.rotationSpeed != 0f ? IdleSettings.rotationSpeed : 20f;
-            float moveInterval = IdleSettings.moveInterval > 0f ? IdleSettings.moveInterval : 5f;
-            float moveSpeed = IdleSettings.moveSpeed > 0f ? IdleSettings.moveSpeed : baseSpeed * 0.5f;
-
-            navMeshAgent.speed = moveSpeed;
-            navMeshAgent.acceleration = ChaseSettings.acceleration > 0f ? ChaseSettings.acceleration : baseAcceleration;
-            SetAgentStopped(false);
-
-            transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime, Space.World);
-
-            idleTimer += Time.deltaTime;
-            if (idleTimer >= moveInterval)
-            {
-                idleTimer = 0f;
-                TryMoveToRandomIdlePoint();
-            }
+            movement.Move(EnemyMovementState.Idle, playerTarget, Time.deltaTime);
 
             if (HasDamageAggro || IsPlayerWithinRange(DetectionRange))
             {
@@ -169,36 +160,7 @@ namespace Enemies.TrainingConstruct
                 SwitchState(ConstructState.Idle);
                 return;
             }
-
-            float chaseSpeed = ChaseSettings.speed > 0f ? ChaseSettings.speed : baseSpeed;
-            float chaseAcceleration = ChaseSettings.acceleration > 0f ? ChaseSettings.acceleration : baseAcceleration;
-            float preferredMinDistance = ChaseSettings.preferredMinDistance > 0f ? ChaseSettings.preferredMinDistance : 3f;
-            float preferredMaxDistance = ChaseSettings.preferredMaxDistance > 0f ? ChaseSettings.preferredMaxDistance : 5f;
-
-            navMeshAgent.speed = chaseSpeed;
-            navMeshAgent.acceleration = chaseAcceleration;
-            SetAgentStopped(false);
-
-            float distance = Vector3.Distance(transform.position, playerTarget.position);
-                logger.Log(ComponentLogger.LogFlag.Events, "Distance to player: {0:F2}", distance);
-            Debug.DrawLine(transform.position, playerTarget.position, Color.green);
-            if (distance > preferredMaxDistance)
-            {
-                SetDestinationSafe(playerTarget.position, "Chase towards player");
-            }
-            else if (distance < preferredMinDistance)
-            {
-                Vector3 retreatDir = (transform.position - playerTarget.position).normalized;
-                Vector3 retreatPoint = transform.position + retreatDir * 2f;
-                if (NavMesh.SamplePosition(retreatPoint, out var hit, 2f, navMeshAgent.areaMask))
-                    SetDestinationSafe(hit.position, "Retreat from player");
-            }
-            else
-            {
-                navMeshAgent.velocity = Vector3.zero;
-                SetAgentStopped(true);
-            }
-
+            float distance = movement.Move(EnemyMovementState.Chase, playerTarget, Time.deltaTime);
             TryBeginAttack(distance);
         }
 
@@ -245,27 +207,13 @@ namespace Enemies.TrainingConstruct
         {
             currentAttackRule = rule;
 
-            switch (rule.Type)
+            if (rule != null && rule.RuleId == ChargeAttackId)
             {
-                case AttackType.Impulse:
-                    SwitchState(ConstructState.ImpulseAttack);
-                    break;
-                case AttackType.Charge:
-                    SwitchState(ConstructState.ChargeAttack);
-                    break;
+                SwitchState(ConstructState.ChargeAttack);
+                return;
             }
-        }
 
-        private void TryMoveToRandomIdlePoint()
-        {
-            float radius = IdleSettings.moveRadius > 0f ? IdleSettings.moveRadius : 4f;
-            Vector3 randomPoint = idleAnchor + Random.insideUnitSphere * radius;
-            randomPoint.y = idleAnchor.y;
-
-            if (NavMesh.SamplePosition(randomPoint, out var hit, radius, navMeshAgent.areaMask))
-            {
-                SetDestinationSafe(hit.position, "Idle wander");
-            }
+            SwitchState(ConstructState.ImpulseAttack);
         }
 
         private void SwitchState(ConstructState newState)
@@ -290,15 +238,8 @@ namespace Enemies.TrainingConstruct
             switch (newState)
             {
                 case ConstructState.Idle:
-                    idleTimer = 0f;
-                    navMeshAgent.speed = IdleSettings.moveSpeed > 0f ? IdleSettings.moveSpeed : baseSpeed * 0.5f;
-                    navMeshAgent.acceleration = ChaseSettings.acceleration > 0f ? ChaseSettings.acceleration : baseAcceleration;
-                    SetAgentStopped(false);
                     break;
                 case ConstructState.Chase:
-                    navMeshAgent.speed = ChaseSettings.speed > 0f ? ChaseSettings.speed : baseSpeed;
-                    navMeshAgent.acceleration = ChaseSettings.acceleration > 0f ? ChaseSettings.acceleration : baseAcceleration;
-                    SetAgentStopped(false);
                     break;
                 case ConstructState.ImpulseAttack:
                     stateRoutine = StartCoroutine(ImpulseAttackRoutine());
@@ -316,10 +257,6 @@ namespace Enemies.TrainingConstruct
         {
             switch (state)
             {
-                case ConstructState.Chase:
-                    navMeshAgent.speed = baseSpeed;
-                    navMeshAgent.acceleration = baseAcceleration;
-                    break;
                 case ConstructState.ImpulseAttack:
                 case ConstructState.ChargeAttack:
                     currentAttackRule = null;
@@ -365,7 +302,7 @@ namespace Enemies.TrainingConstruct
 
             if (rule != null && rule.Attack != null && attackController != null && playerTarget != null)
             {
-                attackController.TryUseAttack(rule.Attack, playerTarget, rule.CooldownModifier);
+                attackController.TryUseAttack(rule.Attack, playerTarget);
             }
 
             float recovery = rule != null ? Mathf.Max(0f, rule.RecoveryDuration) : 0f;
@@ -380,6 +317,9 @@ namespace Enemies.TrainingConstruct
             var rule = currentAttackRule;
             SetAgentStopped(true);
             navMeshAgent.velocity = Vector3.zero;
+
+            GameObject chargeUpForAbilityInstance = null;
+            TrySpawnChargeUpForAbility(ChargeUpForAbilityId, rule, ref chargeUpForAbilityInstance);
 
             float chargeUp = rule != null ? Mathf.Max(0f, rule.ChargeUpDuration) : 0f;
             if (chargeUp > 0f)
@@ -398,8 +338,8 @@ namespace Enemies.TrainingConstruct
             bool performedAttack = false;
             bool agentInitiallyEnabled = navMeshAgent.enabled;
 
-            float dashSpeed = ChargeSettings.dashSpeed > 0f ? ChargeSettings.dashSpeed : 12f;
-            float dashDuration = ChargeSettings.dashDuration > 0f ? ChargeSettings.dashDuration : 0.75f;
+            float dashSpeed = chargeDashSpeed > 0f ? chargeDashSpeed : 12f;
+            float dashDuration = chargeDashDuration > 0f ? chargeDashDuration : 0.75f;
 
             var chargeBehaviour = rule?.Attack?.Behaviour as ChargeAttackBehaviour;
             GameObject chargeVfxInstance = null;
@@ -487,7 +427,7 @@ namespace Enemies.TrainingConstruct
             if (chargeVfxInstance != null && destroyVfxManually)
                 Destroy(chargeVfxInstance);
 
-            EnsureAgentOnNavMesh("Charge end");
+            movement.EnsureAgentOnNavMesh("Charge end");
             SetAgentStopped(true);
             navMeshAgent.velocity = Vector3.zero;
 
@@ -540,7 +480,7 @@ namespace Enemies.TrainingConstruct
             if (rule == null || rule.Attack == null || attackController == null)
                 return false;
 
-            if (targetHint != null && attackController.TryUseAttack(rule.Attack, targetHint, rule.CooldownModifier))
+            if (targetHint != null && attackController.TryUseAttack(rule.Attack, targetHint))
             {
                 if (targetHint.GetComponent<Player.Statistics.StatsController>() != null)
                 {
@@ -559,6 +499,42 @@ namespace Enemies.TrainingConstruct
             }
 
             return false;
+        }
+
+        private void TrySpawnChargeUpForAbility(string vfxId, AttackRule rule, ref GameObject instance)
+        {
+            if (string.IsNullOrWhiteSpace(vfxId))
+                return;
+
+            if (behaviourConfig == null || behaviourConfig.ChargeUpForAbilityEntries == null)
+                return;
+
+            var entries = behaviourConfig.ChargeUpForAbilityEntries;
+            for (int i = 0; i < entries.Count; i++)
+            {
+                var entry = entries[i];
+                if (entry.prefab == null || entry.vfxId != vfxId)
+                    continue;
+
+                if (entry.chargingTime <= 0f)
+                    return;
+
+                Vector3 worldOffset = transform.TransformDirection(entry.offset);
+                Vector3 spawnPosition = transform.position + worldOffset;
+                if (entry.attachToOwner)
+                {
+                    instance = Instantiate(entry.prefab, transform.position, transform.rotation, transform);
+                    instance.transform.localPosition = entry.offset;
+                }
+                else
+                {
+                    instance = Instantiate(entry.prefab, spawnPosition, transform.rotation);
+                }
+
+                Destroy(instance, entry.chargingTime);
+
+                return;
+            }
         }
 
         private void OnDrawGizmos()

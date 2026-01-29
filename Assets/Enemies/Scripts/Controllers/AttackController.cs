@@ -12,7 +12,7 @@ namespace Enemies.Controllers
 
         public AttackRuntimeState RuntimeState => runtimeState;
 
-        public bool TryUseAttack(AttackDefinition attack, Transform target, float cooldownModifier = 1f)
+        public bool TryUseAttack(AttackDefinition attack, Transform target)
         {
             if (attack == null)
             {
@@ -33,9 +33,9 @@ namespace Enemies.Controllers
                 attack,
                 Time.deltaTime);
 
-            Debug.Log($"[AttackController] Executing '{attack.name}' on {(target != null ? target.name : "null")} (cooldown modifier {cooldownModifier}).", this);
+            Debug.Log($"[AttackController] Executing '{attack.name}' on {(target != null ? target.name : "null")}.", this);
             attack.Execute(in context);
-            runtimeState.StartCooldown(attack, currentTime, cooldownModifier);
+            runtimeState.StartCooldown(attack, currentTime);
             return true;
         }
     }

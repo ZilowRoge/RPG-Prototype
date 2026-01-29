@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b29a5adafec79d4491e9c5a159df802, type: 3}
+  m_Name: AcademyDuelistBehaviour
+  m_EditorClassIdentifier: 
+  detection:
+    detectionRange: 50
+    leashRangeMultiplier: 1.2
+  vulnerable:
+    enabled: 1
+    duration: 2
+  attacks:
+  - ruleId: academy_duelist_heavy_attack
+    attack: {fileID: 11400000, guid: 073fb99ca0ae73147a5fd6da647db57a, type: 2}
+    minDistance: 0
+    maxDistance: 30
+    chargeUpDuration: 0
+    recoveryDuration: 0
+  - ruleId: academy_duelist_magic_missile
+    attack: {fileID: 11400000, guid: 6328c83b8ae98ab419befd49b7cd7cce, type: 2}
+    minDistance: 0
+    maxDistance: 30
+    chargeUpDuration: 0
+    recoveryDuration: 0
+  chargeUpForAbilityEntries:
+  - vfxId: heavy_attack_charge_up
+    prefab: {fileID: 4471660816884531832, guid: 316638c2a7a188e49b43d9f8d648ccd8, type: 3}
+    offset: {x: 0, y: 0, z: 1}
+    attachToOwner: 1
+    chargingTime: 1
