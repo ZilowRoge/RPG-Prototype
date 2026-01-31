@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PlayerStatistics
   m_EditorClassIdentifier: 
   walkSpeed: 7
-  runSpeed: 11
+  runSpeed: 10
   baseDamageMin: 10
   baseDamageMax: 15
   baseArmor: 0

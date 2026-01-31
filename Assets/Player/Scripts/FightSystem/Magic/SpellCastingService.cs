@@ -25,7 +25,7 @@ namespace Player.FightSystem.Magic
                 Debug.LogWarning($"[SpellCastingService] Can't prepare spell, reason: {result}");
             else
             {
-                Debug.Log($"[SpellCastingService] Spell '{spell.name}' prepared successfully. Activating.");
+                // Debug.Log($"[SpellCastingService] Spell '{spell.name}' prepared successfully. Activating.");
                 spell.OnActivation(caster);
                 SpawnIndicator(spell, caster);
             }
