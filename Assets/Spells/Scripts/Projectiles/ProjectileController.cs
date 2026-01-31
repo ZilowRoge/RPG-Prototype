@@ -1,5 +1,4 @@
 using UnityEngine;
-using Player.Statistics;
 using Player.Interfaces;
 
 namespace Spells.Projectiles
@@ -14,10 +13,11 @@ namespace Spells.Projectiles
 
         [Header("Tuning")]
         [SerializeField] private float maxLifetime = 8f;
-        [SerializeField] private float hitRadius = 0.25f;
+        [SerializeField] private bool shouldDestroyOnCollision = true;
 
         private float life;
         private ProjectileMover mover;
+        private bool hasHit;
 
         // Internal transient state for strategies
         public Vector3 CurrentDirection { get; set; }
@@ -52,18 +52,41 @@ namespace Spells.Projectiles
                 // Fallback: fly straight forward
                 transform.position += CurrentDirection * speed * dt;
             }
+        }
 
-            if (target != null)
+        private void OnTriggerEnter(Collider other)
+        {
+            TryApplyDamage(other);
+        }
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            if (collision == null)
+                return;
+
+            TryApplyDamage(collision.collider);
+        }
+
+        private void TryApplyDamage(Collider collider)
+        {
+            if (hasHit || collider == null)
+                return;
+
+            var damageables = collider.GetComponents<IDamageable>();
+            bool hasDamageables = damageables != null && damageables.Length > 0;
+
+            if (!hasDamageables && !shouldDestroyOnCollision)
+                return;
+
+            if (hasDamageables)
             {
-                var tPos = target.position;
-                if ((transform.position - tPos).sqrMagnitude <= hitRadius * hitRadius)
-                {
-                    var damageables = target.GetComponents<IDamageable>();
-                    for (int i = 0; i < damageables.Length; i++)
-                        damageables[i].ReceiveDamage(damage, transform);
-                    Destroy(gameObject);
-                }
+                for (int i = 0; i < damageables.Length; i++)
+                    damageables[i].ReceiveDamage(damage, transform);
             }
+
+            hasHit = true;
+            if (shouldDestroyOnCollision)
+                Destroy(gameObject);
         }
     }
 }
