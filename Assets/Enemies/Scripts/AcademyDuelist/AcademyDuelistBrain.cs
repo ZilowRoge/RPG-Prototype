@@ -34,7 +34,6 @@ namespace Enemies.AcademyDuelist
 
         private DuelistState currentState = DuelistState.Idle;
         private Coroutine stateRoutine;
-        private bool lastShieldActive;
         private float quickBreakDelayTimer;
         private AttackRule currentAttackRule;
         private const string HeavyAttackId = "academy_duelist_heavy_attack";
@@ -119,20 +118,29 @@ namespace Enemies.AcademyDuelist
                 return;
 
             bool shieldActive = playerStats.IsShieldActive();
-            if (shieldActive && !lastShieldActive && currentState != DuelistState.ChargeHeavy)
-            {
-                QueueQuickBreak();
-            }
+            if (!shieldActive || currentState != DuelistState.Idle || quickBreakDelayTimer > 0f)
+                return;
 
-            lastShieldActive = shieldActive;
+            logger.Log(ComponentLogger.LogFlag.Events,
+                "[AcademyDuelistBrain] Shield active. Queueing QuickBreak (state={0}).",
+                currentState);
+            QueueQuickBreak();
         }
 
         private void QueueQuickBreak()
         {
             if (FindRuleById(QuickBreakId) == null)
+            {
+                logger.Log(ComponentLogger.LogFlag.Events,
+                    "[AcademyDuelistBrain] QuickBreak queue skipped (rule missing).");
                 return;
+            }
 
             quickBreakDelayTimer = GetRandomRange(quickBreakDelayRange, 0.25f);
+            logger.Log(ComponentLogger.LogFlag.Events,
+                "[AcademyDuelistBrain] QuickBreak queued delay={0:F2} state={1}.",
+                quickBreakDelayTimer,
+                currentState);
         }
 
         private bool TryStartQuickBreak(float distance)
@@ -150,11 +158,17 @@ namespace Enemies.AcademyDuelist
             if (!CanPerformQuickBreak(distance))
             {
                 quickBreakDelayTimer = 0f;
+                logger.Log(ComponentLogger.LogFlag.Events,
+                    "[AcademyDuelistBrain] QuickBreak ready but cannot perform (distance={0:F2}).",
+                    distance);
                 return false;
             }
 
             quickBreakDelayTimer = 0f;
             currentAttackRule = FindRuleById(QuickBreakId);
+            logger.Log(ComponentLogger.LogFlag.Events,
+                "[AcademyDuelistBrain] QuickBreak triggered (distance={0:F2}).",
+                distance);
             SwitchState(DuelistState.QuickBreak);
             return true;
         }
@@ -326,18 +340,29 @@ namespace Enemies.AcademyDuelist
             navMeshAgent.velocity = Vector3.zero;
 
             float chargeUp = rule != null ? Mathf.Max(0f, rule.ChargeUpDuration) : 0f;
+            logger.Log(ComponentLogger.LogFlag.Events,
+                "[AcademyDuelistBrain] QuickBreakRoutine start (chargeUp={0:F2}).",
+                chargeUp);
             if (chargeUp > 0f)
                 yield return new WaitForSeconds(chargeUp);
 
             FaceTarget();
 
             if (rule != null && rule.Attack != null && attackController != null && playerTarget != null)
+            {
+                logger.Log(ComponentLogger.LogFlag.Events,
+                    "[AcademyDuelistBrain] QuickBreak cast (ruleId={0}).",
+                    rule.RuleId);
                 attackController.TryUseAttack(rule.Attack, playerTarget);
+            }
 
             float recovery = rule != null ? Mathf.Max(0f, rule.RecoveryDuration) : 0f;
             if (recovery > 0f)
                 yield return new WaitForSeconds(recovery);
 
+            logger.Log(ComponentLogger.LogFlag.Events,
+                "[AcademyDuelistBrain] QuickBreakRoutine end (recovery={0:F2}).",
+                recovery);
             SwitchState(DuelistState.Idle);
         }
 

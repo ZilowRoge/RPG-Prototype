@@ -9,10 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 33eccfdee4fabae41ac45eef9cdccd85, type: 3}
-  m_Name: HeavyAttack
+  m_Script: {fileID: 11500000, guid: 0c2a16a6d6102164194abae33a30e2e7, type: 3}
+  m_Name: StatsConfig
   m_EditorClassIdentifier: 
-  damage: 30
-  baseCooldown: 5
-  behaviour: {fileID: 11400000, guid: 5074ac440fc38ca458eae08c6ec21075, type: 2}
-  tags: []
+  maxHealth: 60
+  maxMana: 0
+  maxStamina: 0
+  healthRegenPerSecond: 0
+  manaRegenPerSecond: 0
+  staminaRegenPerSecond: 0

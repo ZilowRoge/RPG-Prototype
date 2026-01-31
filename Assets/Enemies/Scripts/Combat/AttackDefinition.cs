@@ -7,7 +7,6 @@ namespace Enemies.Combat
     public class AttackDefinition : ScriptableObject
     {
         [SerializeField] private float damage = 10f;
-        [SerializeField] private float range = 2f;
         [SerializeField, Tooltip("Base cooldown in seconds between consecutive uses of this attack.")]
         private float baseCooldown = 1.5f;
         [SerializeField] private AttackBehaviour behaviour;
@@ -15,7 +14,6 @@ namespace Enemies.Combat
         private List<string> tags = new();
 
         public float Damage => damage;
-        public float Range => range;
         public float BaseCooldown => baseCooldown;
         public IReadOnlyList<string> Tags => tags;
         public AttackBehaviour Behaviour => behaviour;

@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   projectilePrefab: {fileID: 1708353066763615851, guid: 635e72d64793b69429af65b2ca9c8703, type: 3}
   mover: {fileID: 11400000, guid: 5d01ead0a69c396469c22bd10d1b7a12, type: 2}
-  projectileSpeed: 20
+  projectileSpeed: 30
   spawnOffset: {x: 0, y: 1, z: 0.5}
   aimAtTarget: 1
