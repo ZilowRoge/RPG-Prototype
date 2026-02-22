@@ -20,16 +20,13 @@ MonoBehaviour:
   options:
   - text: I'm new here, can I learn a symbol from you?
     nextNodeId: npc_ma_trainer_start_lesson
-    conditions:
-    - conditionType: 0
-      identifier: sym_9_lesson_finished
-      expectedValue: 0
+    conditions: []
     onSelect:
     - type: 0
       actionId: sym_9_lesson_start
       actionValue: 1
-    HideIfLocked: 1
-  - text: I finished the lesson
+    HideIfLocked: 0
+  - text: I finished the lesson.
     nextNodeId: npc_ma_trainer_lesson_finished
     conditions:
     - conditionType: 0
@@ -41,6 +38,20 @@ MonoBehaviour:
     onSelect:
     - type: 3
       actionId: sym_9
+      actionValue: 0
+    HideIfLocked: 1
+  - text: I finished the lesson.
+    nextNodeId: npc_ma_trainer_lesson_finished
+    conditions:
+    - conditionType: 0
+      identifier: sym_6_lesson_finished
+      expectedValue: 1
+    - conditionType: 5
+      identifier: sym_6
+      expectedValue: 0
+    onSelect:
+    - type: 3
+      actionId: sym_6
       actionValue: 0
     HideIfLocked: 1
   - text: Maybe later. I need some time to prepare.

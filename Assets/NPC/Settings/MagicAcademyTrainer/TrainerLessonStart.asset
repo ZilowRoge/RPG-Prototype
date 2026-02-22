@@ -15,18 +15,27 @@ MonoBehaviour:
   id: npc_ma_trainer_start_lesson
   text: 'Ah, a new student of the arcane script.
 
-    Every symbol is a word of power
-    and every mistake has its price.
-
-    Shall we begin your lesson?'
+    Which symbol do you want to
+    learn?'
   options:
-  - text: Yes, we can begin the lesson.
+  - text: Magic Missile symbol
     nextNodeId: 
     conditions: []
     onSelect:
     - type: 0
       actionId: sym_9_lesson_start
       actionValue: 1
+    HideIfLocked: 0
+  - text: Magic Shield symbol
+    nextNodeId: 
+    conditions:
+    - conditionType: 0
+      identifier: fight_exam_passed
+      expectedValue: 1
+    onSelect:
+    - type: 0
+      actionId: sym_6_lesson_start
+      actionValue: 0
     HideIfLocked: 0
   - text: I have something other to do
     nextNodeId: 

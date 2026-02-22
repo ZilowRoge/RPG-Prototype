@@ -19,6 +19,12 @@ MonoBehaviour:
   - key: entrance_exam_started
     description: Player started the entrance exam
     defaultValue: 0
+  - key: sym_6_lesson_start
+    description: Player had started the lesson for symbol 6
+    defaultValue: 0
+  - key: sym_6_lesson_finished
+    description: Player had finished the lesson for symbol 6
+    defaultValue: 0
   - key: sym_9_lesson_finished
     description: Player had finished the lesson for symbol 9
     defaultValue: 0
