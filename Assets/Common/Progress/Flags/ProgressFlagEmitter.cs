@@ -36,7 +36,14 @@ namespace Common.Progress
             if (progressController == null || string.IsNullOrEmpty(flagKey))
                 return;
 
+            bool previousValue = progressController.GetFlag(flagKey);
             progressController.SetFlag(flagKey, flagValue);
+
+            if (previousValue != flagValue)
+            {
+                Debug.Log($"[ProgressFlagEmitter] Flag '{flagKey}' changed: {previousValue} -> {flagValue}.", this);
+            }
+
             emitted = true;
         }
     }

@@ -9,6 +9,12 @@ namespace Common.World.Exams.Pressure
     [AddComponentMenu("Game/World/Exams/Pressure/Exam Dummy")]
     public class ExamDummy : MonoBehaviour
     {
+        public enum MotionMode
+        {
+            StationaryTimed = 0,
+            Advancing = 1
+        }
+
         private enum Resolution
         {
             Hit,
@@ -21,6 +27,8 @@ namespace Common.World.Exams.Pressure
         private Vector3 targetPosition;
         private Vector3 direction;
         private float speed;
+        private MotionMode motionMode;
+        private float lifetimeRemaining;
 
         private Action<ExamDummy> onHit;
         private Action<ExamDummy> onMiss;
@@ -30,11 +38,13 @@ namespace Common.World.Exams.Pressure
         private bool resolved;
 
         /// <summary>
-        /// Launches the dummy from origin to target and starts listening for collisions.
+        /// Launches the dummy and starts listening for collisions.
         /// </summary>
         public void Launch(Vector3 origin,
                            Vector3 target,
+                           MotionMode mode,
                            float overrideSpeed,
+                           float stationaryLifetime,
                            Action<ExamDummy> hitCallback,
                            Action<ExamDummy> missCallback,
                            Action<ExamDummy> releaseCallback)
@@ -47,7 +57,9 @@ namespace Common.World.Exams.Pressure
 
             transform.forward = direction;
 
+            motionMode = mode;
             speed = overrideSpeed > 0f ? overrideSpeed : Mathf.Max(0.1f, defaultSpeed);
+            lifetimeRemaining = Mathf.Max(0f, stationaryLifetime);
             onHit = hitCallback;
             onMiss = missCallback;
             onReleased = releaseCallback;
@@ -60,6 +72,14 @@ namespace Common.World.Exams.Pressure
         {
             if (!active)
                 return;
+
+            if (motionMode == MotionMode.StationaryTimed)
+            {
+                lifetimeRemaining -= Time.deltaTime;
+                if (lifetimeRemaining <= 0f)
+                    Resolve(Resolution.Miss);
+                return;
+            }
 
             float step = speed * Time.deltaTime;
             transform.position += direction * step;
@@ -112,6 +132,8 @@ namespace Common.World.Exams.Pressure
             targetPosition = Vector3.zero;
             direction = Vector3.forward;
             speed = defaultSpeed;
+            motionMode = MotionMode.Advancing;
+            lifetimeRemaining = 0f;
         }
 
         private void Resolve(Resolution resolution)

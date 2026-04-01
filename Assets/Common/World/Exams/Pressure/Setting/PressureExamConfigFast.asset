@@ -15,9 +15,18 @@ MonoBehaviour:
   introDelay: 1
   restartDelay: 1.5
   completionHoldDuration: 1
-  maxMisses: 3
-  waves:
-  - dummyCount: 1
-    spawnInterval: 0
-    dummySpeed: 5
-    delayAfterWave: 0
+  stages:
+  - mode: 0
+    shieldCount: 3
+    requiredHits: 2
+    spawnInterval: 0.6
+    stationaryLifetime: 1.4
+    shieldSpeed: 4
+    delayAfterStage: 0.5
+  - mode: 1
+    shieldCount: 3
+    requiredHits: 2
+    spawnInterval: 0.4
+    stationaryLifetime: 0
+    shieldSpeed: 6
+    delayAfterStage: 0

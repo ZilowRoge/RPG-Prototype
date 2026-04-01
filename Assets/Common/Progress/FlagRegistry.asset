@@ -18,6 +18,9 @@ MonoBehaviour:
     defaultValue: 0
   - key: entrance_exam_started
     description: Player started the entrance exam
+    defaultValue: 1
+  - key: entrance_exam_passed
+    description: Player passed the entrance exam
     defaultValue: 0
   - key: sym_6_lesson_start
     description: Player had started the lesson for symbol 6
@@ -30,13 +33,4 @@ MonoBehaviour:
     defaultValue: 0
   - key: sym_9_lesson_start
     description: Player had started the lesson for symbol 9
-    defaultValue: 0
-  - key: controll_exam_passed
-    description: Player passed the control exam
-    defaultValue: 0
-  - key: pression_exam_passed
-    description: Player passed the pression exam
-    defaultValue: 0
-  - key: fight_exam_passed
-    description: Player passed the fight exam
     defaultValue: 0

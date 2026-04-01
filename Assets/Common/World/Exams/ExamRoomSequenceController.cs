@@ -1,4 +1,3 @@
-using Common.World.Exams.Combat;
 using Common.World.Exams.Pressure;
 using Player.Save;
 using UnityEngine;
@@ -6,33 +5,25 @@ using UnityEngine;
 namespace Common.World.Exams
 {
     /// <summary>
-    /// Coordinates a room that hosts both the pressure and combat exams.
-    /// Ensures the pressure station is available first and swaps to the combat station after completion.
+    /// Coordinates the entrance exam room.
+    /// Keeps the pressure station available.
     /// </summary>
     [AddComponentMenu("Game/World/Exams/Exam Room Sequence Controller")]
     public class ExamRoomSequenceController : MonoBehaviour
     {
         [Header("Exam Controllers")]
         [SerializeField] private PressureExamController pressureExam;
-        [SerializeField] private CombatExamController combatExam;
 
         [Header("Station Roots")]
         [SerializeField] private GameObject pressureExamStationRoot;
-        [SerializeField] private GameObject combatExamStationRoot;
 
         private void Awake()
         {
             if (pressureExam == null)
                 Debug.LogWarning($"{nameof(ExamRoomSequenceController)} on {name} has no pressure exam reference assigned.", this);
 
-            if (combatExam == null)
-                Debug.LogWarning($"{nameof(ExamRoomSequenceController)} on {name} has no combat exam reference assigned.", this);
-
             if (pressureExamStationRoot == null)
                 Debug.LogWarning($"{nameof(ExamRoomSequenceController)} on {name} has no pressure station root assigned.", this);
-
-            if (combatExamStationRoot == null)
-                Debug.LogWarning($"{nameof(ExamRoomSequenceController)} on {name} has no combat station root assigned.", this);
         }
 
         private void OnEnable()
@@ -84,19 +75,16 @@ namespace Common.World.Exams
         private void ShowPressureStation()
         {
             SetActive(pressureExamStationRoot, true);
-            SetActive(combatExamStationRoot, false);
         }
 
         private void ShowCombatStation()
         {
             SetActive(pressureExamStationRoot, false);
-            SetActive(combatExamStationRoot, true);
         }
 
         private void OnSaveLoaded()
         {
             ResetExam(pressureExam);
-            ResetExam(combatExam);
             UpdateActiveStations();
         }
 

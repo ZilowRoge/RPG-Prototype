@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Common.Progress;
 using Player.Statistics;
 using UI.Player.Exams;
 using UnityEngine;
@@ -10,7 +9,7 @@ using UnityEngine.Events;
 namespace Common.World.Exams.Pressure
 {
     /// <summary>
-    /// Coordinates the pressure exam: spawning dummies, tracking misses and signalling results.
+    /// Coordinates the pressure exam: two shield stages, scoring and signalling results.
     /// </summary>
     [AddComponentMenu("Game/World/Exams/Pressure/Pressure Exam Controller")]
     public class PressureExamController : MonoBehaviour, IExamResettable
@@ -46,9 +45,12 @@ namespace Common.World.Exams.Pressure
         private Coroutine examRoutine;
         private Coroutine postRoutine;
 
-        private int currentWaveIndex = -1;
         private int currentHits;
         private int currentMisses;
+        private int currentStageHits;
+        private int currentStageMisses;
+        private int currentStageShieldCount;
+        private int currentStageRequiredHits;
 
         /// <summary>
         /// Attempts to start the pressure exam for the provided player object.
@@ -117,27 +119,26 @@ namespace Common.World.Exams.Pressure
             SetState(ExamState.Running);
             examUI?.HandleExamStarted(this);
 
-            var waves = config.Waves;
-            if (waves == null || waves.Count == 0)
+            var stages = config.Stages;
+            if (stages == null || stages.Count == 0)
             {
                 HandleSuccess();
                 yield break;
             }
 
-            for (int i = 0; i < waves.Count; i++)
+            for (int i = 0; i < stages.Count; i++)
             {
                 if (State != ExamState.Running)
                     yield break;
 
-                currentWaveIndex = i;
-                examUI?.HandleWaveAdvanced(i, waves.Count);
+                BeginStage(i, stages[i], stages.Count);
 
-                yield return RunWave(waves[i]);
+                yield return RunStage(stages[i]);
 
                 if (State != ExamState.Running)
                     yield break;
 
-                float delay = waves[i].DelayAfterWave;
+                float delay = stages[i].DelayAfterStage;
                 if (delay > 0f)
                     yield return new WaitForSeconds(delay);
             }
@@ -146,22 +147,54 @@ namespace Common.World.Exams.Pressure
                 HandleSuccess();
         }
 
-        private IEnumerator RunWave(PressureExamConfig.WaveDefinition wave)
+        private void BeginStage(int stageIndex, PressureExamConfig.StageDefinition stage, int totalStages)
         {
-            if (wave == null)
+            currentStageHits = 0;
+            currentStageMisses = 0;
+            currentStageShieldCount = stage != null ? stage.ShieldCount : 0;
+            currentStageRequiredHits = stage != null ? stage.RequiredHits : 0;
+
+            examUI?.HandleWaveAdvanced(stageIndex, totalStages);
+            examUI?.HandleMissCountChanged(0, GetCurrentStageMaxMisses());
+        }
+
+        private IEnumerator RunStage(PressureExamConfig.StageDefinition stage)
+        {
+            if (stage == null)
                 yield break;
 
-            int spawnCount = wave.DummyCount;
-            float interval = wave.SpawnInterval;
+            int spawnCount = stage.ShieldCount;
+            float interval = stage.SpawnInterval;
 
             for (int i = 0; i < spawnCount; i++)
             {
                 if (State != ExamState.Running)
                     yield break;
 
-                SpawnDummy(wave.DummySpeed);
+                var spawnedDummy = SpawnDummy(stage);
+                bool isLastSpawn = i == spawnCount - 1;
 
-                if (interval <= 0f || i == spawnCount - 1)
+                if (stage.Mode == PressureExamConfig.StageMode.StationaryTimed && spawnedDummy != null)
+                {
+                    while (State == ExamState.Running && liveDummies.Contains(spawnedDummy))
+                        yield return null;
+
+                    if (!isLastSpawn && interval > 0f)
+                    {
+                        float timer = 0f;
+                        while (timer < interval && State == ExamState.Running)
+                        {
+                            timer += Time.deltaTime;
+                            yield return null;
+                        }
+                    }
+                }
+
+                if (stage.Mode == PressureExamConfig.StageMode.StationaryTimed)
+                {
+                    yield return null;
+                }
+                else if (interval <= 0f || isLastSpawn)
                 {
                     yield return null;
                 }
@@ -178,33 +211,85 @@ namespace Common.World.Exams.Pressure
 
             while (liveDummies.Count > 0 && State == ExamState.Running)
                 yield return null;
+
+            if (State != ExamState.Running)
+                yield break;
+
+            if (currentStageHits < currentStageRequiredHits)
+                HandleFailure();
         }
 
-        private void SpawnDummy(float speed)
+        private ExamDummy SpawnDummy(PressureExamConfig.StageDefinition stage)
         {
-            var dummy = shieldSpawner.Spawn(speed, OnDummyHit, OnDummyMiss, OnDummyReleased);
+            ExamDummy dummy;
+            if (stage.Mode == PressureExamConfig.StageMode.StationaryTimed)
+            {
+                dummy = shieldSpawner.SpawnStationary(stage.StationaryLifetime, OnDummyHit, OnDummyMiss, OnDummyReleased);
+            }
+            else
+            {
+                dummy = shieldSpawner.SpawnAdvancing(stage.ShieldSpeed, ResolveAdvancingTarget(), OnDummyHit, OnDummyMiss, OnDummyReleased);
+            }
+
             if (dummy != null)
+            {
                 liveDummies.Add(dummy);
+                return dummy;
+            }
+
+            // Treat a failed spawn as a miss to prevent stalled stage progression.
+            OnDummyMiss(null);
+            return null;
         }
 
         private void OnDummyHit(ExamDummy dummy)
         {
             currentHits++;
+            currentStageHits++;
             examUI?.HandleHitCountChanged(currentHits);
         }
 
         private void OnDummyMiss(ExamDummy dummy)
         {
             currentMisses++;
-            examUI?.HandleMissCountChanged(currentMisses, config.MaxMisses);
+            currentStageMisses++;
+            examUI?.HandleMissCountChanged(currentStageMisses, GetCurrentStageMaxMisses());
 
-            if (config.MaxMisses > 0 && currentMisses >= config.MaxMisses)
+            if (!CanStillPassCurrentStage())
                 HandleFailure();
         }
 
         private void OnDummyReleased(ExamDummy dummy)
         {
             liveDummies.Remove(dummy);
+        }
+
+        private bool CanStillPassCurrentStage()
+        {
+            if (currentStageShieldCount <= 0)
+                return false;
+
+            int remainingPotentialHits = currentStageShieldCount - (currentStageHits + currentStageMisses);
+            return currentStageHits + Mathf.Max(0, remainingPotentialHits) >= currentStageRequiredHits;
+        }
+
+        private int GetCurrentStageMaxMisses()
+        {
+            return Mathf.Max(0, currentStageShieldCount - currentStageRequiredHits);
+        }
+
+        private Vector3 ResolveAdvancingTarget()
+        {
+            if (CurrentParticipant != null)
+            {
+                var participantTransform = CurrentParticipant.transform;
+                if (participantTransform != null)
+                    return participantTransform.position;
+            }
+
+            return shieldSpawner != null
+                ? shieldSpawner.transform.position + Vector3.right * 3f
+                : transform.position + Vector3.right * 3f;
         }
 
         private void HandleFailure()
@@ -219,7 +304,7 @@ namespace Common.World.Exams.Pressure
 
             SetState(ExamState.Failed);
             CurrentParticipant = null;
-            examUI?.HandleExamFailed(this, currentMisses, config.MaxMisses);
+            examUI?.HandleExamFailed(this, currentStageMisses, GetCurrentStageMaxMisses());
 
             float restartDelay = config != null ? config.RestartDelay : 0f;
             postRoutine = StartCoroutine(TransitionToIdle(restartDelay));
@@ -238,7 +323,7 @@ namespace Common.World.Exams.Pressure
             HasCompleted = true;
             SetState(ExamState.Completed);
             CurrentParticipant = null;
-            int maxMisses = config != null ? config.MaxMisses : 0;
+            int maxMisses = CalculateTotalAllowedMisses();
             examUI?.HandleExamCompleted(this, currentHits, currentMisses, maxMisses);
             onExamPassed?.Invoke();
 
@@ -262,19 +347,40 @@ namespace Common.World.Exams.Pressure
 
         private void ResetCounters(bool notifyUi = true)
         {
-            currentWaveIndex = -1;
             currentHits = 0;
             currentMisses = 0;
+            currentStageHits = 0;
+            currentStageMisses = 0;
+            currentStageShieldCount = 0;
+            currentStageRequiredHits = 0;
 
             if (!notifyUi)
                 return;
 
-            int maxMisses = config != null ? config.MaxMisses : 0;
-            int totalWaves = config != null && config.Waves != null ? config.Waves.Count : 0;
+            int maxMisses = CalculateTotalAllowedMisses();
+            int totalWaves = config != null && config.Stages != null ? config.Stages.Count : 0;
 
             examUI?.HandleHitCountChanged(currentHits);
             examUI?.HandleMissCountChanged(currentMisses, maxMisses);
             examUI?.HandleWaveAdvanced(0, totalWaves);
+        }
+
+        private int CalculateTotalAllowedMisses()
+        {
+            if (config == null || config.Stages == null)
+                return 0;
+
+            int totalAllowed = 0;
+            for (int i = 0; i < config.Stages.Count; i++)
+            {
+                var stage = config.Stages[i];
+                if (stage == null)
+                    continue;
+
+                totalAllowed += Mathf.Max(0, stage.ShieldCount - stage.RequiredHits);
+            }
+
+            return totalAllowed;
         }
 
         private void RefillParticipantMana()

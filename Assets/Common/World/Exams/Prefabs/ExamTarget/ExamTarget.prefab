@@ -185,6 +185,7 @@ GameObject:
   - component: {fileID: 3003684208662263764}
   - component: {fileID: 7846577437814252611}
   - component: {fileID: -8157049674482428524}
+  - component: {fileID: -6981514648889219523}
   m_Layer: 7
   m_Name: ExamTarget
   m_TagString: Untagged
@@ -280,6 +281,28 @@ MonoBehaviour:
     currentStamina: 0
   navMeshKnockbackResumeDelay: 0
   deathDestroyDelay: 0
+  logger:
+    loggingEnabled: 0
+    enabledFlags: -1
+    alwaysLogWarnings: 1
+    alwaysLogErrors: 1
+    prefixOverride: 
+--- !u!114 &-6981514648889219523
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4353350134961819920}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d521d331fdbb6b741acbfe046ad2106c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  group: 0
+  includeChildren: 1
+  explicitRenderers: []
+  selectedOnStart: 0
 --- !u!1 &7648676611016525407
 GameObject:
   m_ObjectHideFlags: 0

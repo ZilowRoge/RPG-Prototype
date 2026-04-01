@@ -30,7 +30,7 @@ MonoBehaviour:
     nextNodeId: 
     conditions:
     - conditionType: 0
-      identifier: fight_exam_passed
+      identifier: entrance_exam_passed
       expectedValue: 1
     onSelect:
     - type: 0

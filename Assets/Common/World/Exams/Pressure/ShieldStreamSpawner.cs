@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Common.World.Exams.Pressure
 {
     /// <summary>
-    /// Responsible for spawning and pooling exam dummies that fly towards the player.
+    /// Responsible for spawning and pooling exam dummies.
     /// </summary>
     [AddComponentMenu("Game/World/Exams/Pressure/Shield Stream Spawner")]
     public class ShieldStreamSpawner : MonoBehaviour
@@ -32,28 +32,31 @@ namespace Common.World.Exams.Pressure
         }
 
         /// <summary>
-        /// Spawns and launches a dummy towards the configured target.
+        /// Spawns a stationary dummy that exists for the specified lifetime.
         /// </summary>
-        public ExamDummy Spawn(float speed,
-                               Action<ExamDummy> onHit,
-                               Action<ExamDummy> onMiss,
-                               Action<ExamDummy> onReleased = null)
+        public ExamDummy SpawnStationary(float lifetime,
+                                         Action<ExamDummy> onHit,
+                                         Action<ExamDummy> onMiss,
+                                         Action<ExamDummy> onReleased = null)
         {
-            var dummy = Acquire();
-            if (dummy == null)
-                return null;
-
             var origin = ResolveSpawnPosition();
-            var target = ResolveTargetPosition(origin);
+            return SpawnInternal(origin, origin, ExamDummy.MotionMode.StationaryTimed, 0f, lifetime, onHit, onMiss, onReleased);
+        }
 
-            active.Add(dummy);
-            dummy.Launch(origin, target, speed, onHit, onMiss, releasedDummy =>
-            {
-                onReleased?.Invoke(releasedDummy);
-                Release(releasedDummy);
-            });
+        /// <summary>
+        /// Spawns a dummy that advances towards a provided world-space target.
+        /// </summary>
+        public ExamDummy SpawnAdvancing(float speed,
+                                        Vector3 targetPosition,
+                                        Action<ExamDummy> onHit,
+                                        Action<ExamDummy> onMiss,
+                                        Action<ExamDummy> onReleased = null)
+        {
+            var origin = ResolveSpawnPosition();
+            if ((targetPosition - origin).sqrMagnitude <= 0.0001f)
+                targetPosition = ResolveTargetPosition(origin);
 
-            return dummy;
+            return SpawnInternal(origin, targetPosition, ExamDummy.MotionMode.Advancing, speed, 0f, onHit, onMiss, onReleased);
         }
 
         /// <summary>
@@ -76,6 +79,29 @@ namespace Common.World.Exams.Pressure
                 var dummy = CreateInstance();
                 pool.Enqueue(dummy);
             }
+        }
+
+        private ExamDummy SpawnInternal(Vector3 origin,
+                                        Vector3 target,
+                                        ExamDummy.MotionMode mode,
+                                        float speed,
+                                        float lifetime,
+                                        Action<ExamDummy> onHit,
+                                        Action<ExamDummy> onMiss,
+                                        Action<ExamDummy> onReleased)
+        {
+            var dummy = Acquire();
+            if (dummy == null)
+                return null;
+
+            active.Add(dummy);
+            dummy.Launch(origin, target, mode, speed, lifetime, onHit, onMiss, releasedDummy =>
+            {
+                onReleased?.Invoke(releasedDummy);
+                Release(releasedDummy);
+            });
+
+            return dummy;
         }
 
         private ExamDummy Acquire()
