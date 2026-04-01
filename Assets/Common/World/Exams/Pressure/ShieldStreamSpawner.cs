@@ -163,7 +163,7 @@ namespace Common.World.Exams.Pressure
         private Vector3 ResolveTargetPosition(Vector3 origin)
         {
             float distance = Mathf.Max(0.1f, travelDistance);
-            return origin + Vector3.back * distance;
+            return origin + Vector3.right * distance;
         }
     }
 }

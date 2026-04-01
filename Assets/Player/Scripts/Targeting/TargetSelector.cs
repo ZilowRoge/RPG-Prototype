@@ -1,6 +1,7 @@
 using UnityEngine;
 using Player.Interfaces;
 using Systems.Debugging;
+using OutlineURP;
 
 namespace Player.Targeting
 {
@@ -31,6 +32,11 @@ namespace Player.Targeting
         [SerializeField] private Color debugRayColor = new Color(0f, 1f, 1f, 0.7f);
         [SerializeField] private Color debugHitColor = new Color(1f, 0.92f, 0.016f, 0.9f);
         [SerializeField] private float debugHitMarkerSize = 0.2f;
+        
+        [Header("Target Highlight")]
+        [SerializeField] private bool enableOutlineHighlight = true;
+        [SerializeField] private bool autoCreateOutlineTarget = true;
+        [SerializeField] private OutlineGroup autoCreatedOutlineGroup = OutlineGroup.Enemy;
 
         [Header("References")] 
         [SerializeField] private Camera viewCamera;
@@ -38,6 +44,7 @@ namespace Player.Targeting
 
         private float nextUpdateTime;
         private readonly Collider[] overlapBuffer = new Collider[64];
+        private OutlineTarget outlinedTarget;
 
         public Transform CurrentTarget { get; private set; }
 
@@ -55,6 +62,11 @@ namespace Player.Targeting
             InitializeLogger();
             nextUpdateTime = 0f;
         }
+        
+        private void OnDisable()
+        {
+            SetCurrentTarget(null);
+        }
 
         private void OnValidate()
         {
@@ -64,29 +76,28 @@ namespace Player.Targeting
         private void Update()
         {
             if (CurrentTarget != null && !IsTargetValid(CurrentTarget))
-                CurrentTarget = null;
+                SetCurrentTarget(null);
 
             if (Time.time < nextUpdateTime) return;
             nextUpdateTime = Time.time + Mathf.Max(0.01f, updateInterval);
 
-            var prev = CurrentTarget;
             Transform target = null;
             if (preferCenterRay && viewCamera != null)
             {
                 if (TryPickByRay(viewCamera, out target, maxDistance, rayRadius))
                 {
-                    CurrentTarget = target;
+                    SetCurrentTarget(target);
                     return;
                 }
             }
 
             if (TryPickByFov(out target, maxDistance, fovAngle))
             {
-                CurrentTarget = target;
+                SetCurrentTarget(target);
                 return;
             }
 
-            CurrentTarget = null;
+            SetCurrentTarget(null);
         }
 
         private bool TryPickByRay(Camera cam, out Transform target, float range, float radius)
@@ -292,7 +303,7 @@ namespace Player.Targeting
         
         public void ClearTarget()
         {
-            CurrentTarget = null;
+            SetCurrentTarget(null);
         }
         public Transform FindBestTarget(float range, float fov, bool preferCenter)
         {
@@ -316,6 +327,74 @@ namespace Player.Targeting
             if (logger == null)
                 logger = new ComponentLogger();
             logger.BindContext(this);
+        }
+        
+        private void SetCurrentTarget(Transform target)
+        {
+            CurrentTarget = target;
+            SyncTargetOutline(target);
+        }
+
+        private void SyncTargetOutline(Transform target)
+        {
+            if (!enableOutlineHighlight)
+            {
+                ClearTargetOutline();
+                return;
+            }
+
+            var newOutlineTarget = ResolveOutlineTarget(target);
+            if (outlinedTarget == newOutlineTarget)
+            {
+                if (newOutlineTarget != null)
+                    OutlineController.SetSelected(newOutlineTarget, true);
+                return;
+            }
+
+            if (outlinedTarget != null)
+                OutlineController.SetSelected(outlinedTarget, false);
+
+            outlinedTarget = newOutlineTarget;
+            if (outlinedTarget != null)
+                OutlineController.SetSelected(outlinedTarget, true);
+        }
+
+        private OutlineTarget ResolveOutlineTarget(Transform target)
+        {
+            if (target == null)
+                return null;
+
+            var existingOutline = target.GetComponentInParent<OutlineTarget>();
+            if (existingOutline != null)
+                return existingOutline;
+
+            if (!autoCreateOutlineTarget)
+                return null;
+
+            Transform outlineRoot = target;
+            var damageable = target.GetComponentInParent<IDamageable>();
+            if (damageable is Component damageableComponent)
+                outlineRoot = damageableComponent.transform;
+
+            if (outlineRoot == null)
+                return null;
+
+            var createdOutline = outlineRoot.GetComponent<OutlineTarget>();
+            if (createdOutline != null)
+                return createdOutline;
+
+            createdOutline = outlineRoot.gameObject.AddComponent<OutlineTarget>();
+            createdOutline.SetGroup(autoCreatedOutlineGroup);
+            return createdOutline;
+        }
+
+        private void ClearTargetOutline()
+        {
+            if (outlinedTarget == null)
+                return;
+
+            OutlineController.SetSelected(outlinedTarget, false);
+            outlinedTarget = null;
         }
 
     }

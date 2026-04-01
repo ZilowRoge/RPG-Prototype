@@ -52,10 +52,6 @@ namespace Common.World.Exams
         {
             switch (state)
             {
-                case PressureExamController.ExamState.Completed:
-                    ShowCombatStation();
-                    break;
-
                 case PressureExamController.ExamState.Idle:
                 case PressureExamController.ExamState.Failed:
                     if (pressureExam != null && !pressureExam.HasCompleted)
@@ -66,20 +62,12 @@ namespace Common.World.Exams
 
         private void UpdateActiveStations()
         {
-            if (pressureExam != null && pressureExam.HasCompleted)
-                ShowCombatStation();
-            else
-                ShowPressureStation();
+            ShowPressureStation();
         }
 
         private void ShowPressureStation()
         {
             SetActive(pressureExamStationRoot, true);
-        }
-
-        private void ShowCombatStation()
-        {
-            SetActive(pressureExamStationRoot, false);
         }
 
         private void OnSaveLoaded()
