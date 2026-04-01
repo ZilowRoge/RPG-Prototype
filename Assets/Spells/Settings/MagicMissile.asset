@@ -14,12 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spellName: Magic Missile
   manaCost: 5
-  requiresTarget: 1
-  desiredTargetRange: 25
-  desiredFovAngle: 120
-  preferCenterRay: 1
   castOnActivation: 1
   indicatorPrefab: {fileID: 0}
+  requiresTarget: 1
+  desiredTargetRange: 35
+  desiredFovAngle: 120
+  preferCenterRay: 1
   projectilePrefab: {fileID: 1708353066763615851, guid: 635e72d64793b69429af65b2ca9c8703, type: 3}
   projectileSpeed: 20
   damage: 10

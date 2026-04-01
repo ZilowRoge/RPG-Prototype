@@ -75,8 +75,10 @@ namespace Spells.Projectiles
             var damageables = collider.GetComponents<IDamageable>();
             bool hasDamageables = damageables != null && damageables.Length > 0;
 
-            if (!hasDamageables && !shouldDestroyOnCollision)
+            if (!hasDamageables) {
+                Debug.Log("Should do nothing");
                 return;
+            }
 
             if (hasDamageables)
             {
