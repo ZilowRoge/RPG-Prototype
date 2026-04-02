@@ -77,6 +77,9 @@ namespace Inventory
             {
                 case ItemType.Equipment:
                     return HandleEquipmentUse(request, slot);
+                case ItemType.Material:
+                    Debug.LogWarning($"{LogPrefix} Item '{definition.Name}' is a material and cannot be used directly.");
+                    return false;
                 default:
                     Debug.LogWarning($"{LogPrefix} Item type {definition.Type} not supported.");
                     return false;
@@ -86,6 +89,7 @@ namespace Inventory
         public void HandleItemEquipped(EquipmentSlot slot, ItemInstance item)
         {
             // Placeholder for stat/buff integration.
+            // This is for adding stats to player from equipment.
         }
 
         public void HandleItemUnequipped(EquipmentSlot slot, ItemInstance item)
