@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2356f5a15271fbb43aa3de34bc9e4a8f, type: 3}
   m_Name: SimpleManaCrystal
   m_EditorClassIdentifier: 
-  itemId: item_000
-  itemName: New Item
-  itemType: 1
-  description: Item description
-  icon: {fileID: 0}
-  maxStack: 1
+  itemId: item_simple_mana_crystal
+  itemName: Simple Mana Crystal
+  itemType: 2
+  description: Item used for wand crafting.
+  icon: {fileID: 21300000, guid: 59fc79490b9257c40bf948535a93fda5, type: 3}
+  maxStack: 10
   typeDatas: []
