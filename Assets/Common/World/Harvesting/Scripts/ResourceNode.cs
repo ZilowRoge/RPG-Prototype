@@ -15,6 +15,10 @@ namespace Common.World.Harvesting
         [SerializeField] private Transform dropPoint;
         [SerializeField] private Vector3 dropOffset = new Vector3(0f, 0.5f, 0f);
 
+        [Header("Audio")]
+        [SerializeField] private AudioClip interactionSound;
+        [SerializeField, Range(0f, 1f)] private float interactionSoundVolume = 1f;
+
         private bool isDepleted;
 
         private void Reset()
@@ -48,6 +52,8 @@ namespace Common.World.Harvesting
             var spawnPosition = dropPoint != null ? dropPoint.position : transform.position + dropOffset;
             var spawnRotation = dropPoint != null ? dropPoint.rotation : Quaternion.identity;
 
+            PlayInteractionSound();
+
             var spawnedPickupObject = Instantiate(pickupPrefab, spawnPosition, spawnRotation);
             var spawnedPickup = spawnedPickupObject.GetComponent<WorldItemPickup>();
             spawnedPickup.Configure(dropAmount);
@@ -61,6 +67,15 @@ namespace Common.World.Harvesting
             var nodeCollider = GetComponent<Collider>();
             if (nodeCollider != null && !nodeCollider.isTrigger)
                 nodeCollider.isTrigger = true;
+        }
+
+        private void PlayInteractionSound()
+        {
+            if (interactionSound == null)
+                return;
+
+            var soundPosition = dropPoint != null ? dropPoint.position : transform.position;
+            AudioSource.PlayClipAtPoint(interactionSound, soundPosition, interactionSoundVolume);
         }
     }
 }
