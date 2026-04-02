@@ -617,6 +617,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2618290115695875113, guid: 327ac95fc3537644fbab0fa4af6d0bc9, type: 3}
+      propertyPath: interactionSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 7d73e0c3e76ffdf4380525c7a1574b1e, type: 3}
     - target: {fileID: 5285068987377655325, guid: 327ac95fc3537644fbab0fa4af6d0bc9, type: 3}
       propertyPath: tooltipRoot
       value: 
