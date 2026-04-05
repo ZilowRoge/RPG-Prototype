@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Items;
 using UI.Player.Common;
 using UnityEngine;
-using UnityEngine.UI;
 using CraftingData = global::Crafting;
 
 namespace UI.Player.Crafting
@@ -15,7 +14,7 @@ namespace UI.Player.Crafting
         [SerializeField] private Color availableColor = Color.white;
         [SerializeField] private Color unavailableColor = new Color(1f, 0.45f, 0.45f, 1f);
 
-        private DynamicListPool<Image> iconPool;
+        private DynamicListPool<CraftingItemIconUI> iconPool;
 
         private void Awake()
         {
@@ -44,10 +43,7 @@ namespace UI.Player.Crafting
                     itemDatabase.TryGetById(itemAmount.ItemId, out definition);
 
                 var sprite = definition != null ? definition.Icon : null;
-                icon.sprite = sprite;
-                icon.enabled = sprite != null;
-                icon.preserveAspect = true;
-                icon.color = ResolveColor(availability, index, sprite);
+                icon.Bind(sprite, itemAmount.Amount, ResolveColor(availability, index, sprite));
             });
         }
 
@@ -68,7 +64,7 @@ namespace UI.Player.Crafting
         private void EnsurePool()
         {
             if (iconPool == null)
-                iconPool = new DynamicListPool<Image>(iconPrefab, contentRoot);
+                iconPool = new DynamicListPool<CraftingItemIconUI>(iconPrefab, contentRoot);
         }
 
         private static Transform FindChildRecursive(Transform parent, string childName)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UI.Player.Common;
 using UnityEngine;
+using UnityEngine.Serialization;
 using CraftingData = global::Crafting;
 
 namespace UI.Player.Crafting
@@ -13,8 +14,12 @@ namespace UI.Player.Crafting
         [SerializeField] private bool autoSelectFirst = true;
         [SerializeField] private Color selectedTextColor = Color.white;
         [SerializeField] private Color normalTextColor = new Color(0.85f, 0.85f, 0.85f, 1f);
-        [SerializeField] private Color selectedUnavailableTextColor = new Color(1f, 0.7f, 0.7f, 1f);
-        [SerializeField] private Color unavailableTextColor = new Color(0.75f, 0.45f, 0.45f, 1f);
+        [SerializeField] private Color selectedAvailableImageColor = new Color(0.40f, 0.60f, 0.35f, 1f);
+        [SerializeField] private Color availableImageColor = new Color(0.32f, 0.32f, 0.32f, 1f);
+        [FormerlySerializedAs("selectedUnavailableTextColor")]
+        [SerializeField] private Color selectedUnavailableImageColor = new Color(0.70f, 0.30f, 0.30f, 1f);
+        [FormerlySerializedAs("unavailableTextColor")]
+        [SerializeField] private Color unavailableImageColor = new Color(0.50f, 0.22f, 0.22f, 1f);
 
         private readonly List<CraftingData.CraftingRecipe> recipeBuffer = new();
         private DynamicListPool<CraftingRecipeListItemUI> itemPool;
@@ -60,8 +65,10 @@ namespace UI.Player.Crafting
                     ReferenceEquals(recipe, currentSelection),
                     selectedTextColor,
                     normalTextColor,
-                    selectedUnavailableTextColor,
-                    unavailableTextColor);
+                    selectedAvailableImageColor,
+                    availableImageColor,
+                    selectedUnavailableImageColor,
+                    unavailableImageColor);
             });
 
             return currentSelection;
@@ -80,8 +87,10 @@ namespace UI.Player.Crafting
                     ReferenceEquals(item.Recipe, currentSelection),
                     selectedTextColor,
                     normalTextColor,
-                    selectedUnavailableTextColor,
-                    unavailableTextColor);
+                    selectedAvailableImageColor,
+                    availableImageColor,
+                    selectedUnavailableImageColor,
+                    unavailableImageColor);
             }
         }
 

@@ -9,6 +9,7 @@ namespace UI.Player.Crafting
     public class CraftingRecipeListItemUI : MonoBehaviour
     {
         [SerializeField] private TMP_Text titleLabel;
+        [SerializeField] private Image stateImage;
         [SerializeField] private Button button;
 
         private CraftingData.CraftingRecipe recipe;
@@ -55,17 +56,24 @@ namespace UI.Player.Crafting
             bool selected,
             Color selectedColor,
             Color normalColor,
-            Color selectedUnavailableColor,
-            Color unavailableColor)
+            Color selectedAvailableImageColor,
+            Color availableImageColor,
+            Color selectedUnavailableImageColor,
+            Color unavailableImageColor)
         {
-            if (titleLabel == null)
-                return;
+            if (titleLabel != null)
+            {
+                titleLabel.fontStyle = selected ? FontStyles.Bold : FontStyles.Normal;
+                titleLabel.color = selected ? selectedColor : normalColor;
+            }
 
-            titleLabel.fontStyle = selected ? FontStyles.Bold : FontStyles.Normal;
-            if (selected)
-                titleLabel.color = canCraft ? selectedColor : selectedUnavailableColor;
-            else
-                titleLabel.color = canCraft ? normalColor : unavailableColor;
+            if (stateImage != null)
+            {
+                if (selected)
+                    stateImage.color = canCraft ? selectedAvailableImageColor : selectedUnavailableImageColor;
+                else
+                    stateImage.color = canCraft ? availableImageColor : unavailableImageColor;
+            }
         }
 
         private void OnClicked()
@@ -79,8 +87,42 @@ namespace UI.Player.Crafting
             if (titleLabel == null)
                 titleLabel = GetComponentInChildren<TMP_Text>(true);
 
+            if (stateImage == null)
+                stateImage = ResolveStateImage();
+
             if (button == null)
                 button = GetComponent<Button>() ?? GetComponentInChildren<Button>(true);
+        }
+
+        private Image ResolveStateImage()
+        {
+            var background = FindChildRecursive(transform, "Background");
+            if (background != null)
+            {
+                var backgroundImage = background.GetComponent<Image>() ?? background.GetComponentInChildren<Image>(true);
+                if (backgroundImage != null)
+                    return backgroundImage;
+            }
+
+            return GetComponent<Image>() ?? GetComponentInChildren<Image>(true);
+        }
+
+        private static Transform FindChildRecursive(Transform parent, string childName)
+        {
+            if (parent == null || string.IsNullOrWhiteSpace(childName))
+                return null;
+
+            if (string.Equals(parent.name, childName, StringComparison.Ordinal))
+                return parent;
+
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                var result = FindChildRecursive(parent.GetChild(i), childName);
+                if (result != null)
+                    return result;
+            }
+
+            return null;
         }
 
         private void RegisterListener()
