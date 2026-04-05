@@ -204,6 +204,10 @@ namespace Inventory
             if (weapon != null)
                 return weapon.Slot;
 
+            var tool = definition.GetStatBlock<GatheringToolItemData>();
+            if (tool != null)
+                return EquipmentSlot.Weapon;
+
             return null;
         }
 

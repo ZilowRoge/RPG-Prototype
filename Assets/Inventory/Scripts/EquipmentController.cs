@@ -154,6 +154,13 @@ namespace Inventory
                 return true;
             }
 
+            var toolData = definition.GetStatBlock<GatheringToolItemData>();
+            if (toolData != null)
+            {
+                slot = EquipmentSlot.Weapon;
+                return true;
+            }
+
             return false;
         }
 
@@ -199,6 +206,12 @@ namespace Inventory
             if (weaponData != null)
             {
                 return weaponData.Slot == slot;
+            }
+
+            var toolData = instance.Definition.GetStatBlock<GatheringToolItemData>();
+            if (toolData != null)
+            {
+                return slot == EquipmentSlot.Weapon;
             }
 
             return false;
