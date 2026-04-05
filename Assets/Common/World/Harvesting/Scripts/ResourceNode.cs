@@ -1,5 +1,6 @@
 using Common.World.Interaction;
 using Inventory;
+using Items;
 using UnityEngine;
 
 namespace Common.World.Harvesting
@@ -7,11 +8,14 @@ namespace Common.World.Harvesting
     [AddComponentMenu("Game/World/Harvesting/Resource Node")]
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Collider))]
-    public class ResourceNode : MonoBehaviour, IInteractable
+    public class ResourceNode : MonoBehaviour, IInteractable, IInteractionTooltipProvider
     {
         [Header("Resource")]
         [SerializeField, Min(1)] private int totalResourceAmount = 6;
         [SerializeField, Min(1)] private int dropAmountPerExtraction = 1;
+
+        [Header("Tool Requirement")]
+        [SerializeField] private GatheringToolType requiredToolType = GatheringToolType.Pickaxe;
 
         [Header("Mining")]
         [SerializeField, Min(1)] private int minHitsPerExtraction = 2;
@@ -53,6 +57,9 @@ namespace Common.World.Harvesting
                 return;
 
             if (Time.time < nextAllowedHitTime)
+                return;
+
+            if (!HasRequiredToolEquipped(player))
                 return;
 
             if (pickupPrefab == null)
@@ -101,6 +108,14 @@ namespace Common.World.Harvesting
             hitsRequiredForNextExtraction = GetRandomHitsRequired();
         }
 
+        public InteractionTooltipState GetTooltipState(GameObject player)
+        {
+            if (!HasRequiredToolEquipped(player))
+                return new InteractionTooltipState(GetMissingToolMessage(), true);
+
+            return new InteractionTooltipState(string.Empty, false);
+        }
+
         private void EnsureTriggerCollider()
         {
             var nodeCollider = GetComponent<Collider>();
@@ -120,6 +135,40 @@ namespace Common.World.Harvesting
         private int GetRandomHitsRequired()
         {
             return Random.Range(minHitsPerExtraction, maxHitsPerExtraction + 1);
+        }
+
+        private bool HasRequiredToolEquipped(GameObject player)
+        {
+            var equipmentController = ResolvePlayerEquipment(player);
+            if (equipmentController == null)
+                return false;
+
+            var equippedItem = equipmentController.GetItem(EquipmentSlot.Weapon);
+            var definition = equippedItem?.Definition;
+            if (definition == null)
+                return false;
+
+            var toolData = definition.GetStatBlock<GatheringToolItemData>();
+            return toolData != null && toolData.ToolType == requiredToolType;
+        }
+
+        private static EquipmentController ResolvePlayerEquipment(GameObject player)
+        {
+            if (player == null)
+                return null;
+
+            return player.GetComponentInParent<EquipmentController>()
+                ?? player.GetComponentInChildren<EquipmentController>(true);
+        }
+
+        private string GetMissingToolMessage()
+        {
+            return requiredToolType switch
+            {
+                GatheringToolType.Axe => "Equip axe",
+                GatheringToolType.Pickaxe => "Equip pickaxe",
+                _ => $"Equip {requiredToolType}"
+            };
         }
 
         private void DepleteNode()

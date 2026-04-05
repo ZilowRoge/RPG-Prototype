@@ -14,10 +14,13 @@ namespace Common.World.Interaction
         [SerializeField] private GameObject tooltipRoot;
         [SerializeField] private TMP_Text tooltipLabel;
         [SerializeField] private string message = "Nacisnij [E], aby wejsc w interakcje";
+        [SerializeField] private Color normalTextColor = Color.white;
+        [SerializeField] private Color blockedTextColor = new Color(1f, 0.55f, 0.55f, 1f);
         [SerializeField] private bool logDebug;
         [SerializeField] private bool logWarnings = true;
 
         private int activeInteractors;
+        private GameObject currentPlayer;
         private bool loggedMissingTooltipTag;
         private bool loggedMissingTooltipLabel;
 
@@ -49,7 +52,16 @@ namespace Common.World.Interaction
         private void OnDisable()
         {
             activeInteractors = 0;
+            currentPlayer = null;
             HideTooltip();
+        }
+
+        private void Update()
+        {
+            if (activeInteractors <= 0 || !IsTooltipVisible())
+                return;
+
+            RefreshTooltipState();
         }
 
         public void HideAfterInteraction()
@@ -65,6 +77,7 @@ namespace Common.World.Interaction
                 return;
             }
             activeInteractors++;
+            currentPlayer = ResolvePlayer(other);
             LogDebug($"OnTriggerEnter player: {other.name}, activeInteractors={activeInteractors}");
             ShowTooltip();
         }
@@ -79,17 +92,19 @@ namespace Common.World.Interaction
             activeInteractors = Mathf.Max(0, activeInteractors - 1);
             LogDebug($"OnTriggerExit player: {other.name}, activeInteractors={activeInteractors}");
             if (activeInteractors == 0)
+            {
+                currentPlayer = null;
                 HideTooltip();
+            }
         }
 
         private void ShowTooltip()
         {
             EnsureTooltipReferences();
+            RefreshTooltipState();
+
             if (tooltipLabel != null)
-            {
-                tooltipLabel.text = message;
                 tooltipLabel.enabled = true;
-            }
 
             if (tooltipRoot != null)
             {
@@ -127,6 +142,19 @@ namespace Common.World.Interaction
             }
 
             LogMissingTooltip("HideTooltip");
+        }
+
+        private void RefreshTooltipState()
+        {
+            EnsureTooltipReferences();
+            var state = ResolveTooltipState();
+            var resolvedMessage = ResolveTooltipMessage(state);
+
+            if (tooltipLabel != null)
+            {
+                tooltipLabel.text = resolvedMessage;
+                tooltipLabel.color = state.IsBlocked ? blockedTextColor : normalTextColor;
+            }
         }
 
         private void AutoAssignTooltipReferences()
@@ -186,6 +214,18 @@ namespace Common.World.Interaction
             return string.Equals(c.gameObject.name, "Player");
         }
 
+        private GameObject ResolvePlayer(Component component)
+        {
+            if (component == null)
+                return currentPlayer;
+
+            var interactor = component.GetComponentInParent<Interactor>();
+            if (interactor != null)
+                return interactor.gameObject;
+
+            return IsPlayer(component) ? component.gameObject : currentPlayer;
+        }
+
         private static GameObject ResolveRootFromLabel(TMP_Text label)
         {
             if (label == null)
@@ -216,6 +256,38 @@ namespace Common.World.Interaction
             }
 
             return null;
+        }
+
+        private bool IsTooltipVisible()
+        {
+            if (tooltipRoot != null)
+                return tooltipRoot.activeSelf;
+
+            return tooltipLabel != null && tooltipLabel.enabled;
+        }
+
+        private InteractionTooltipState ResolveTooltipState()
+        {
+            var provider = ResolveTooltipProvider();
+            if (provider == null)
+                return new InteractionTooltipState(message, false);
+
+            return provider.GetTooltipState(currentPlayer);
+        }
+
+        private string ResolveTooltipMessage(InteractionTooltipState state)
+        {
+            if (!string.IsNullOrWhiteSpace(state.Message))
+                return state.Message;
+
+            return message;
+        }
+
+        private IInteractionTooltipProvider ResolveTooltipProvider()
+        {
+            return GetComponent<IInteractionTooltipProvider>()
+                ?? GetComponentInParent<IInteractionTooltipProvider>()
+                ?? GetComponentInChildren<IInteractionTooltipProvider>(true);
         }
 
         private void LogMissingTooltip(string context)

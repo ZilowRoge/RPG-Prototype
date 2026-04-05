@@ -10,13 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2356f5a15271fbb43aa3de34bc9e4a8f, type: 3}
-  m_Name: IronPickaxe
+  m_Name: IronOre
   m_EditorClassIdentifier: 
-  itemId: item_iron_pickaxe
-  itemName: Iron pickaxe
-  itemType: 1
-  description: Used to mine out ore or crystals.
-  icon: {fileID: 21300000, guid: f9100cc82d5991542a34c2efd2a8cb09, type: 3}
+  itemId: item_iron_ore
+  itemName: Iron ore
+  itemType: 2
+  description: It's an ore, used for smelting into ingots.
+  icon: {fileID: 21300000, guid: 93a92aa72a2a8b54a9316dc2fad1b1b4, type: 3}
   maxStack: 1
-  typeDatas:
-  - {fileID: 11400000, guid: fe62135b30599114c9a5d8fb3561e50f, type: 2}
+  typeDatas: []

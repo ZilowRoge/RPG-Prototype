@@ -105,6 +105,9 @@ namespace Player {
             if (!TryResolveInteractable(out var interactable))
                 return;
 
+            if (IsInteractionBlocked(interactable))
+                return;
+
             var tooltip = FindTooltip(interactable);
             interactable.Interact(gameObject);
             tooltip?.HideAfterInteraction();
@@ -353,6 +356,21 @@ namespace Player {
             return component.GetComponent<InteractionTooltip>()
                 ?? component.GetComponentInParent<InteractionTooltip>()
                 ?? component.GetComponentInChildren<InteractionTooltip>(true);
+        }
+
+        private bool IsInteractionBlocked(IInteractable interactable)
+        {
+            if (interactable is not Component component)
+                return false;
+
+            var provider = component.GetComponent<IInteractionTooltipProvider>()
+                ?? component.GetComponentInParent<IInteractionTooltipProvider>()
+                ?? component.GetComponentInChildren<IInteractionTooltipProvider>(true);
+
+            if (provider == null)
+                return false;
+
+            return provider.GetTooltipState(gameObject).IsBlocked;
         }
     }
 }
