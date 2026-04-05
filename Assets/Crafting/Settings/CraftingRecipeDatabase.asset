@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d64b2ec781074b3bb34d6dcb0a5c2c65, type: 3}
   m_Name: CraftingRecipeDatabase
   m_EditorClassIdentifier: 
-  recipes: []
+  recipes:
+  - {fileID: 11400000, guid: 2b1a8731c018cb045ba8163512712ec4, type: 2}

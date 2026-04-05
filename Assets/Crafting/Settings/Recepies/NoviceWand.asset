@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea44598e90bc4a0d84bd9e6fa91143d2, type: 3}
   m_Name: NoviceWand
   m_EditorClassIdentifier: 
-  recipeId: recipe_simple_wand
+  recipeId: recipe_novice_wand
   stationType: 0
   materials:
   - itemId: item_simple_stick
@@ -20,5 +20,5 @@ MonoBehaviour:
   - itemId: item_simple_mana_crystal
     amount: 1
   products:
-  - itemId: item_novice_robe
+  - itemId: item_novice_wand
     amount: 1

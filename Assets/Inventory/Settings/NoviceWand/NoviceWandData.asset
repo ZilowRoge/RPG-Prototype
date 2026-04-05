@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: NoviceWandData
   m_EditorClassIdentifier: 
   slot: 5
-  minDamage: 10
-  maxDamage: 5
+  minDamage: 5
+  maxDamage: 10

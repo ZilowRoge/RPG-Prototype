@@ -12,10 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2356f5a15271fbb43aa3de34bc9e4a8f, type: 3}
   m_Name: NoviceWand
   m_EditorClassIdentifier: 
-  itemId: item_000
-  itemName: New Item
+  itemId: item_novice_wand
+  itemName: Novice Wand
   itemType: 1
-  description: Item description
-  icon: {fileID: 0}
+  description: Novice wand
+  icon: {fileID: 21300000, guid: 2597a03f57d46754db65acb7667282f8, type: 3}
   maxStack: 1
-  typeDatas: []
+  typeDatas:
+  - {fileID: 11400000, guid: 0469f797f7c9f9e4ab4fdaad4d6700b9, type: 2}
