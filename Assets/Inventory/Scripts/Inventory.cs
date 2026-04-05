@@ -13,6 +13,48 @@ namespace Inventory
         public int SlotCount => slots.Count;
         public int Capacity => slots.Count;
 
+        public int GetItemCount(ItemDefinition definition)
+        {
+            if (definition == null)
+                return 0;
+
+            int total = 0;
+            foreach (var slot in slots)
+            {
+                if (slot == null || slot.IsEmpty)
+                    continue;
+
+                var instance = slot.ItemInstance;
+                if (instance?.Definition != definition)
+                    continue;
+
+                total += instance.StackCount;
+            }
+
+            return total;
+        }
+
+        public int GetItemCount(string itemId)
+        {
+            if (string.IsNullOrWhiteSpace(itemId))
+                return 0;
+
+            int total = 0;
+            foreach (var slot in slots)
+            {
+                if (slot == null || slot.IsEmpty)
+                    continue;
+
+                var definition = slot.ItemInstance?.Definition;
+                if (definition == null || !string.Equals(definition.Id, itemId, System.StringComparison.Ordinal))
+                    continue;
+
+                total += slot.ItemInstance.StackCount;
+            }
+
+            return total;
+        }
+
         public void InitializeSlots(int slotCount = -1)
         {
             var targetCount = slotCount > 0 ? slotCount : slots.Count;

@@ -32,6 +32,10 @@ namespace Inventory
 
         public bool TryRemoveItem(ItemDefinition definition, int amount) => inventory != null && inventory.TryRemoveItem(definition, amount);
 
+        public int GetItemCount(ItemDefinition definition) => inventory != null ? inventory.GetItemCount(definition) : 0;
+
+        public int GetItemCount(string itemId) => inventory != null ? inventory.GetItemCount(itemId) : 0;
+
         public bool TryMoveItem(int sourceIndex, int targetIndex) => inventory != null && inventory.TryMoveItem(sourceIndex, targetIndex);
 
         public bool TryTransferItemTo(InventoryController target, int sourceIndex, int targetIndex = -1)
