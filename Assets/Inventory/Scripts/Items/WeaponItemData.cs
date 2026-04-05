@@ -19,7 +19,7 @@ namespace Items
         public override string GetString()
         {
             return $"Slot: {slot}\n" + 
-                    "Damage: {minDamage} - {maxDamage}";
+                   $"Damage: {minDamage} - {maxDamage}";
         }
     }
 }
