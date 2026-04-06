@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35039a82fd3748fb8f6593250e316b81, type: 3}
   m_Name: DurabilityData
   m_EditorClassIdentifier: 
-  maxDurability: 100
+  maxDurability: 30

@@ -20,3 +20,4 @@ MonoBehaviour:
   maxStack: 1
   typeDatas:
   - {fileID: 11400000, guid: fe62135b30599114c9a5d8fb3561e50f, type: 2}
+  - {fileID: 11400000, guid: b513b3213189ae14fb63d7d7d012ecae, type: 2}

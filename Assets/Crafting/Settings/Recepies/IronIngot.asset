@@ -12,7 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea44598e90bc4a0d84bd9e6fa91143d2, type: 3}
   m_Name: IronIngot
   m_EditorClassIdentifier: 
-  recipeId: recipe_000
+  recipeId: recipe_iron_ingot
   stationType: 0
-  materials: []
-  products: []
+  materials:
+  - itemId: item_iron_ore
+    amount: 2
+  products:
+  - itemId: item_iron_ingot
+    amount: 1

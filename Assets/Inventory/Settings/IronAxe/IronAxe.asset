@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2356f5a15271fbb43aa3de34bc9e4a8f, type: 3}
   m_Name: IronAxe
   m_EditorClassIdentifier: 
-  itemId: item_000
-  itemName: New Item
+  itemId: item_iron_axe
+  itemName: Iron Axe
   itemType: 1
-  description: Item description
-  icon: {fileID: 0}
+  description: Axe used for gathering wood
+  icon: {fileID: 21300000, guid: 48d91587d5506b543b9e925700490857, type: 3}
   maxStack: 1
-  typeDatas: []
+  typeDatas:
+  - {fileID: 11400000, guid: 8237893268411b74da29fa2ffea60a64, type: 2}
+  - {fileID: 11400000, guid: 8ddfa26a31286aa4c8c7679c062ec09f, type: 2}
