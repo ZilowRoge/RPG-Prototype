@@ -207,7 +207,12 @@ namespace Common.World.Loot
                     targetAmount = 1;
 
                 var instanceId = item.instance.InstanceId;
-                var copy = new ItemInstance(item.instance.Definition, targetAmount, instanceId, item.instance.Modifiers);
+                var copy = new ItemInstance(
+                    item.instance.Definition,
+                    targetAmount,
+                    instanceId,
+                    item.instance.Modifiers,
+                    item.instance.CurrentDurability);
                 inventoryController.TryAddItemInstance(copy);
             }
         }
@@ -229,7 +234,8 @@ namespace Common.World.Loot
             {
                 itemId = instance.Definition.Id,
                 stackCount = instance.StackCount,
-                instanceId = instance.InstanceId
+                instanceId = instance.InstanceId,
+                currentDurability = instance.CurrentDurability
             };
 
             if (instance.Modifiers != null)
@@ -261,7 +267,8 @@ namespace Common.World.Loot
             }
 
             var mods = DeserializeModifiers(serialized.modifiers);
-            return new ItemInstance(definition, serialized.stackCount, serialized.instanceId, mods);
+            int durability = serialized.currentDurability > 0 ? serialized.currentDurability : -1;
+            return new ItemInstance(definition, serialized.stackCount, serialized.instanceId, mods, durability);
         }
 
         private IEnumerable<ItemStatModifier> DeserializeModifiers(List<SerializedItemModifier> serialized)

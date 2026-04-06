@@ -380,7 +380,8 @@ namespace Player.Save
             {
                 itemId = instance.Definition.Id,
                 stackCount = instance.StackCount,
-                instanceId = instance.InstanceId
+                instanceId = instance.InstanceId,
+                currentDurability = instance.CurrentDurability
             };
 
             if (instance.Modifiers != null)
@@ -412,7 +413,8 @@ namespace Player.Save
             }
 
             var mods = DeserializeModifiers(serialized.modifiers);
-            return new ItemInstance(definition, serialized.stackCount, serialized.instanceId, mods);
+            int durability = serialized.currentDurability > 0 ? serialized.currentDurability : -1;
+            return new ItemInstance(definition, serialized.stackCount, serialized.instanceId, mods, durability);
         }
 
         private IEnumerable<ItemStatModifier> DeserializeModifiers(List<SerializedItemModifier> serialized)

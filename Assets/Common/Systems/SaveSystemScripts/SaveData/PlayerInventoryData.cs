@@ -31,6 +31,7 @@ namespace Systems.SaveSystem.SaveData
         public string itemId;
         public int stackCount;
         public string instanceId;
+        public int currentDurability = -1;
         public List<SerializedItemModifier> modifiers = new();
     }
 

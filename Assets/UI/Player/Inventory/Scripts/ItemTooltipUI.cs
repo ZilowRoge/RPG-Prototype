@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Items;
 using TMPro;
 using UnityEngine;
@@ -20,8 +19,8 @@ namespace UI.Player.Inventory
         [SerializeField] private Vector2 pointerOffset = new(18f, -18f);
 
         [Header("Content")]
-        [SerializeField] private string emptyDescriptionFallback = "Brak opisu.";
-        [SerializeField] private string unknownNameFallback = "Nieznany przedmiot";
+        [SerializeField] private string emptyDescriptionFallback = "No description.";
+        [SerializeField] private string unknownNameFallback = "Unknown item";
 
         private Canvas rootCanvas;
 
@@ -44,29 +43,25 @@ namespace UI.Player.Inventory
                 return;
             }
 
-            var definition = item.Definition;
+            ItemTooltipData tooltip = item.GetTooltip(unknownNameFallback, emptyDescriptionFallback);
+
             if (nameLabel != null)
             {
-                var label = definition != null && !string.IsNullOrWhiteSpace(definition.Name)
-                    ? definition.Name
-                    : unknownNameFallback;
-                nameLabel.text = label;
+                nameLabel.text = tooltip.Name;
             }
 
             if (descriptionLabel != null)
             {
-                var description = definition != null ? definition.Description : string.Empty;
-                descriptionLabel.text = string.IsNullOrWhiteSpace(description) ? emptyDescriptionFallback : description;
+                descriptionLabel.text = tooltip.Description;
             }
 
             if (statsLabel != null)
             {
-                var text = BuildStatsText(item);
-                bool hasText = !string.IsNullOrWhiteSpace(text);
+                bool hasText = !string.IsNullOrWhiteSpace(tooltip.StatsText);
                 statsLabel.gameObject.SetActive(hasText);
                 if (hasText)
                 {
-                    statsLabel.text = text;
+                    statsLabel.text = tooltip.StatsText;
                 }
             }
 
@@ -83,60 +78,6 @@ namespace UI.Player.Inventory
             if (container != null && container.gameObject.activeSelf)
             {
                 container.gameObject.SetActive(false);
-            }
-        }
-
-        private string BuildStatsText(ItemInstance item)
-        {
-            var definition = item != null ? item.Definition : null;
-            var lines = new List<string>();
-
-            if (definition != null)
-            {
-                foreach (var block in definition.GetAllStatBlocks())
-                {
-                    if (block == null)
-                        continue;
-
-                    var text = block.GetString();
-                    if (!string.IsNullOrWhiteSpace(text))
-                    {
-                        lines.Add(text);
-                    }
-                }
-            }
-
-            if (item != null && item.Modifiers != null)
-            {
-                foreach (var mod in item.Modifiers)
-                {
-                    var text = FormatModifier(mod);
-                    if (!string.IsNullOrWhiteSpace(text))
-                        lines.Add(text);
-                }
-            }
-
-            return lines.Count == 0 ? string.Empty : string.Join("\n", lines);
-        }
-
-        private string FormatModifier(ItemStatModifier modifier)
-        {
-            var statName = modifier.Stat.ToString();
-            switch (modifier.Mode)
-            {
-                case ModifierMode.Add:
-                    if (Mathf.Approximately(modifier.Value, 0f))
-                        return string.Empty;
-                    return $"{statName}: {(modifier.Value >= 0f ? "+" : string.Empty)}{modifier.Value:0.#}";
-                case ModifierMode.Multiply:
-                    var pct = modifier.Value * 100f;
-                    if (Mathf.Approximately(pct, 0f))
-                        return string.Empty;
-                    return $"{statName}: {(pct >= 0f ? "+" : string.Empty)}{pct:0.#}%";
-                case ModifierMode.Override:
-                    return $"{statName}: {modifier.Value:0.#}";
-                default:
-                    return string.Empty;
             }
         }
 

@@ -77,13 +77,15 @@ namespace Common.World.Harvesting
 
             nextAllowedHitTime = Time.time + hitCooldownSeconds;
             currentHits++;
-            var spawnPosition = dropPoint != null ? dropPoint.position : transform.position + dropOffset;
-            var spawnRotation = dropPoint != null ? dropPoint.rotation : Quaternion.identity;
 
             PlayInteractionSound();
+            ApplyToolDurabilityLoss(player);
 
             if (currentHits < hitsRequiredForNextExtraction)
                 return;
+
+            var spawnPosition = dropPoint != null ? dropPoint.position : transform.position + dropOffset;
+            var spawnRotation = dropPoint != null ? dropPoint.rotation : Quaternion.identity;
 
             currentHits = 0;
             int extractionAmount = Mathf.Min(dropAmountPerExtraction, remainingResourceAmount);
@@ -159,6 +161,21 @@ namespace Common.World.Harvesting
 
             return player.GetComponentInParent<EquipmentController>()
                 ?? player.GetComponentInChildren<EquipmentController>(true);
+        }
+
+        private void ApplyToolDurabilityLoss(GameObject player)
+        {
+            var equipmentController = ResolvePlayerEquipment(player);
+            if (equipmentController == null)
+                return;
+
+            var equippedItem = equipmentController.GetItem(EquipmentSlot.Weapon);
+            if (equippedItem == null || !equippedItem.HasDurability)
+                return;
+
+            bool stillUsable = equippedItem.ConsumeDurability();
+            if (!stillUsable)
+                equipmentController.ClearSlot(EquipmentSlot.Weapon);
         }
 
         private string GetMissingToolMessage()
