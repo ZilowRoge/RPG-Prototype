@@ -9,8 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0d9c21fda9272554ba51994b16505c35, type: 3}
-  m_Name: NoviceRobeData
+  m_Script: {fileID: 11500000, guid: 5ffa996994b29394f871ac1e6914ae9b, type: 3}
+  m_Name: ConsumableData
   m_EditorClassIdentifier: 
-  slot: 1
-  armorValue: 5
+  effectType: 0
+  effectValue: 20
+  effectDuration: 5
