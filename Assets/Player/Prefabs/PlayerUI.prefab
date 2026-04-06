@@ -12413,7 +12413,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Press [F] to open the  chest
+  m_text: Press [F] to talk
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -17784,7 +17784,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3360144758936107094}
-  - {fileID: 3476349901516178582}
+  - {fileID: 2371096712497459098}
   - {fileID: 5058133975479370024}
   - {fileID: 2133812542722321330}
   m_Father: {fileID: 6332703514892846784}
@@ -17847,7 +17847,7 @@ MonoBehaviour:
   stats: {fileID: 0}
   progress: {fileID: 0}
   healthBar: {fileID: 2249253853179507828}
-  manaBar: {fileID: 3476349901516178583}
+  manaBar: {fileID: 1256651944709481400}
   staminaBar: {fileID: 8621384617481456906}
   levelText: {fileID: 0}
   experienceText: {fileID: 0}
@@ -19272,7 +19272,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1791238680331783374}
-  - {fileID: 5987352408619573121}
+  - {fileID: 9025014332261463125}
   - {fileID: 5456358930225801360}
   - {fileID: 6829399621704880917}
   m_Father: {fileID: 4461174704110386600}
@@ -20004,7 +20004,7 @@ MonoBehaviour:
     tabButton: {fileID: 522708625633709909}
   - id: window_jobs
     window: {fileID: 816051410496513677}
-    tabButton: {fileID: 5987352408619573122}
+    tabButton: {fileID: 2646045977030879253}
   - id: window_jobs
     window: {fileID: 8416654939595873316}
     tabButton: {fileID: 1314787164179248336}
@@ -21560,12 +21560,7 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2a3401a9a08196d43abc2ed40d26b6b5, type: 3}
---- !u!224 &3476349901516178582 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 1214188717524642575, guid: 2a3401a9a08196d43abc2ed40d26b6b5, type: 3}
-  m_PrefabInstance: {fileID: 3476349901516178581}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &3476349901516178583 stripped
+--- !u!114 &1256651944709481400 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2400136679741482797, guid: 2a3401a9a08196d43abc2ed40d26b6b5, type: 3}
   m_PrefabInstance: {fileID: 3476349901516178581}
@@ -21576,6 +21571,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4788bf15c57b2a84c837f34c991b09e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!224 &2371096712497459098 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 1214188717524642575, guid: 2a3401a9a08196d43abc2ed40d26b6b5, type: 3}
+  m_PrefabInstance: {fileID: 3476349901516178581}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &3631013379480694867
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22203,12 +22203,7 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ee33d5cd95200024692412e08af472cd, type: 3}
---- !u!224 &5987352408619573121 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 3325930301684296661, guid: ee33d5cd95200024692412e08af472cd, type: 3}
-  m_PrefabInstance: {fileID: 5987352408619573120}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &5987352408619573122 stripped
+--- !u!114 &2646045977030879253 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8624390541605320597, guid: ee33d5cd95200024692412e08af472cd, type: 3}
   m_PrefabInstance: {fileID: 5987352408619573120}
@@ -22219,6 +22214,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!224 &9025014332261463125 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 3325930301684296661, guid: ee33d5cd95200024692412e08af472cd, type: 3}
+  m_PrefabInstance: {fileID: 5987352408619573120}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &6263293468544576039
 PrefabInstance:
   m_ObjectHideFlags: 0
