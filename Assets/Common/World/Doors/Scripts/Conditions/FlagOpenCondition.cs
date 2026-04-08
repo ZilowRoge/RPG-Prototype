@@ -23,7 +23,7 @@ namespace Common.Systems.SymbolTraining
             if (player != null)
                 progress = player.GetComponentInParent<ProgressController>();
             if (progress == null)
-                progress = FindFirstObjectByType<ProgressController>();
+                progress = FindAnyObjectByType<ProgressController>();
 
             if (progress == null)
                 return true; // cannot evaluate -> fail-open
@@ -34,3 +34,4 @@ namespace Common.Systems.SymbolTraining
         }
     }
 }
+

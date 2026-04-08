@@ -70,7 +70,8 @@ namespace Player.Save
 
             playerEvents = GetComponent<PlayerEventHub>()
                 ?? GetComponentInParent<PlayerEventHub>()
-                ?? FindFirstObjectByType<PlayerEventHub>();
+                ?? FindAnyObjectByType<PlayerEventHub>();
         }
     }
 }
+

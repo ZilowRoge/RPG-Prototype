@@ -165,10 +165,11 @@ namespace UI.Player.Statistics
         {
             controller = refs.Stats;
             if (controller == null)
-                controller = FindFirstObjectByType<StatsController>();
+                controller = FindAnyObjectByType<StatsController>();
 
             if (isActiveAndEnabled)
                 RefreshUI();
         }
     }
 }
+

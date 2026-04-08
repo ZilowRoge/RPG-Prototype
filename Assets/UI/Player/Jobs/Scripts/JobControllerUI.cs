@@ -187,7 +187,7 @@ namespace UI.Player.Jobs
             playerEvents = refs.EventHub;
 
             if (progressController == null)
-                progressController = FindFirstObjectByType<ProgressController>();
+                progressController = FindAnyObjectByType<ProgressController>();
 
             if (playerEvents == null && progressController != null)
                 playerEvents = progressController.EventHub;
@@ -201,3 +201,4 @@ namespace UI.Player.Jobs
         }
     }
 }
+

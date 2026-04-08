@@ -94,7 +94,7 @@ namespace Crafting
                 for (int i = 0; i < recipes.Count; i++)
                 {
                     var recipe = recipes[i];
-                    hash = (hash * 397) ^ (recipe != null ? recipe.GetInstanceID() : 0);
+                    hash = (hash * 397) ^ (recipe != null ? recipe.GetEntityId().GetHashCode() : 0);
                     hash = (hash * 397) ^ (recipe != null && !string.IsNullOrWhiteSpace(recipe.Id) ? recipe.Id.GetHashCode() : 0);
                 }
 

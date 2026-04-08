@@ -82,19 +82,19 @@ namespace Player.Save
         private void CacheReferences()
         {
             if (progressController == null)
-                progressController = GetComponentInParent<ProgressController>() ?? FindFirstObjectByType<ProgressController>();
+                progressController = GetComponentInParent<ProgressController>() ?? FindAnyObjectByType<ProgressController>();
 
             if (statsController == null)
-                statsController = GetComponentInParent<StatsController>() ?? FindFirstObjectByType<StatsController>();
+                statsController = GetComponentInParent<StatsController>() ?? FindAnyObjectByType<StatsController>();
 
             if (questManager == null)
-                questManager = progressController?.QuestManager ?? FindFirstObjectByType<QuestManager>();
+                questManager = progressController?.QuestManager ?? FindAnyObjectByType<QuestManager>();
 
             if (inventoryController == null)
-                inventoryController = GetComponentInParent<InventoryController>() ?? FindFirstObjectByType<InventoryController>();
+                inventoryController = GetComponentInParent<InventoryController>() ?? FindAnyObjectByType<InventoryController>();
 
             if (equipmentController == null)
-                equipmentController = GetComponentInParent<EquipmentController>() ?? FindFirstObjectByType<EquipmentController>();
+                equipmentController = GetComponentInParent<EquipmentController>() ?? FindAnyObjectByType<EquipmentController>();
         }
 
         private void WriteStats(PlayerStatisticsData snapshot)
@@ -630,3 +630,4 @@ namespace Player.Save
         }
     }
 }
+

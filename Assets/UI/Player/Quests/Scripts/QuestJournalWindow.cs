@@ -39,7 +39,7 @@ namespace UI.Player.Quests
                 Debug.LogWarning("[QuestJournalWindow] QuestInfoUI reference not assigned.", this);
 
             if (questManager == null)
-                questManager = FindFirstObjectByType<QuestManager>();
+                questManager = FindAnyObjectByType<QuestManager>();
             if (questDatabase == null && questManager != null)
                 questDatabase = questManager.Database;
 
@@ -195,3 +195,4 @@ namespace UI.Player.Quests
         }
     }
 }
+

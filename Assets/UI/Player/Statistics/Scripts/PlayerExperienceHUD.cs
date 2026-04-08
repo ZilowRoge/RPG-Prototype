@@ -133,7 +133,7 @@ namespace UI.Player.Statistics
             playerEvents = refs.EventHub;
 
             if (progress == null)
-                progress = FindFirstObjectByType<ProgressController>();
+                progress = FindAnyObjectByType<ProgressController>();
 
             CacheEventHub();
 
@@ -145,3 +145,4 @@ namespace UI.Player.Statistics
         }
     }
 }
+

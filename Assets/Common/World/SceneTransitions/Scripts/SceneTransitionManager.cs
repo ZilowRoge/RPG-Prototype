@@ -121,7 +121,7 @@ namespace Common.World.SceneTransitions
             if (string.IsNullOrWhiteSpace(spawnId))
                 return null;
 
-            var points = FindObjectsByType<SpawnPoint>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var points = FindObjectsByType<SpawnPoint>(FindObjectsInactive.Include);
             foreach (var point in points)
             {
                 if (point != null && string.Equals(point.SpawnId, spawnId, StringComparison.Ordinal))
@@ -133,7 +133,7 @@ namespace Common.World.SceneTransitions
 
         private static SpawnPoint FindAnySpawnPoint()
         {
-            var points = FindObjectsByType<SpawnPoint>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var points = FindObjectsByType<SpawnPoint>(FindObjectsInactive.Include);
             if (points != null && points.Length > 0)
                 return points[0];
 
@@ -221,7 +221,7 @@ namespace Common.World.SceneTransitions
             if (target == null)
                 return;
 
-            var cameras = FindObjectsByType<CinemachineCamera>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var cameras = FindObjectsByType<CinemachineCamera>(FindObjectsInactive.Include);
             if (cameras == null || cameras.Length == 0)
                 return;
 

@@ -31,7 +31,7 @@ namespace UI.Player.Target
         private void Awake()
         {
             if (targetSelector == null)
-                targetSelector = FindFirstObjectByType<TargetSelector>();
+                targetSelector = FindAnyObjectByType<TargetSelector>();
         }
 
         private void OnEnable()
@@ -132,7 +132,7 @@ namespace UI.Player.Target
         {
             targetSelector = refs.TargetSelector;
             if (targetSelector == null)
-                targetSelector = FindFirstObjectByType<TargetSelector>();
+                targetSelector = FindAnyObjectByType<TargetSelector>();
 
             SynchroniseTarget(targetSelector != null ? targetSelector.CurrentTarget : null);
             nextUpdateTime = 0f;
@@ -140,3 +140,4 @@ namespace UI.Player.Target
         }
     }
 }
+

@@ -421,7 +421,8 @@ namespace UI.NPC.Dialog
         {
             progressController = refs.Progress;
             if (progressController == null)
-                progressController = FindFirstObjectByType<ProgressController>();
+                progressController = FindAnyObjectByType<ProgressController>();
         }
     }
 }
+

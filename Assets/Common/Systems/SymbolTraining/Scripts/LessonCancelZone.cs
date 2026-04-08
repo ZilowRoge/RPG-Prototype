@@ -12,7 +12,7 @@ namespace Common.Systems.SymbolTraining
         private void Awake()
         {
             if (lessonConsumer == null)
-                lessonConsumer = FindFirstObjectByType<LessonSymbolConsumer>(FindObjectsInactive.Include);
+                lessonConsumer = FindAnyObjectByType<LessonSymbolConsumer>(FindObjectsInactive.Include);
 
             var col = GetComponent<Collider>();
             if (col != null) col.isTrigger = true;
@@ -27,4 +27,5 @@ namespace Common.Systems.SymbolTraining
         }
     }
 }
+
 

@@ -324,7 +324,7 @@ namespace Player.Progress
         private void CacheEventHub()
         {
             if (playerEvents == null)
-                playerEvents = GetComponent<PlayerEventHub>() ?? GetComponentInParent<PlayerEventHub>() ?? FindFirstObjectByType<PlayerEventHub>();
+                playerEvents = GetComponent<PlayerEventHub>() ?? GetComponentInParent<PlayerEventHub>() ?? FindAnyObjectByType<PlayerEventHub>();
         }
 
         private void CacheQuestManager()
@@ -346,3 +346,4 @@ namespace Player.Progress
         }
     }
 }
+

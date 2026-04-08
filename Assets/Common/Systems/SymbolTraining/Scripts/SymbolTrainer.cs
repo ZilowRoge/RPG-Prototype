@@ -159,15 +159,16 @@ namespace Common.Systems.SymbolTraining
         private bool EnsureDependencies()
         {
             if (progressController == null)
-                progressController = FindFirstObjectByType<ProgressController>();
+                progressController = FindAnyObjectByType<ProgressController>();
             if (playerEvents == null && progressController != null)
                 playerEvents = progressController.EventHub;
             if (inputManager == null)
-                inputManager = FindFirstObjectByType<SymbolInputManager>();
+                inputManager = FindAnyObjectByType<SymbolInputManager>();
             if (lessonConsumer == null)
-                lessonConsumer = FindFirstObjectByType<LessonSymbolConsumer>();
+                lessonConsumer = FindAnyObjectByType<LessonSymbolConsumer>();
 
             return progressController != null && inputManager != null && lessonConsumer != null;
         }
     }
 }
+

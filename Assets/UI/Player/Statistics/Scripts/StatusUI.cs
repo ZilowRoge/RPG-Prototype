@@ -77,10 +77,10 @@ public class PlayerStatusUI : MonoBehaviour, IPlayerReferenceReceiver
         playerEvents = refs.EventHub;
 
         if (stats == null)
-            stats = FindFirstObjectByType<StatsController>();
+            stats = FindAnyObjectByType<StatsController>();
 
         if (progress == null)
-            progress = FindFirstObjectByType<ProgressController>();
+            progress = FindAnyObjectByType<ProgressController>();
 
         CacheEventHub();
 
@@ -111,3 +111,4 @@ public class PlayerStatusUI : MonoBehaviour, IPlayerReferenceReceiver
 
 }
 }
+

@@ -332,7 +332,7 @@ namespace Player.Statistics
                 return;
             }
 
-            playerEvents = GetComponent<PlayerEventHub>() ?? GetComponentInParent<PlayerEventHub>() ?? FindFirstObjectByType<PlayerEventHub>();
+            playerEvents = GetComponent<PlayerEventHub>() ?? GetComponentInParent<PlayerEventHub>() ?? FindAnyObjectByType<PlayerEventHub>();
 
             if (playerEvents == null && !loggedMissingEventHub)
                 WarnMissingEventHub();
@@ -429,3 +429,4 @@ namespace Player.Statistics
         }
     }
 }
+

@@ -44,14 +44,14 @@ namespace Common.World.Orb
             if (requireKnownSymbol && !string.IsNullOrEmpty(requiredSymbolId))
             {
                 var progress = player.GetComponentInParent<ProgressController>() ??
-                               FindFirstObjectByType<ProgressController>();
+                               FindAnyObjectByType<ProgressController>();
                 if (progress == null || !progress.KnowsSymbol(requiredSymbolId))
                     return;
             }
 
             inputManager = player.GetComponentInChildren<SymbolInputManager>() ??
                            player.GetComponent<SymbolInputManager>() ??
-                           FindFirstObjectByType<SymbolInputManager>();
+                           FindAnyObjectByType<SymbolInputManager>();
             if (inputManager == null)
                 return;
 
@@ -166,3 +166,4 @@ namespace Common.World.Orb
         }
     }
 }
+

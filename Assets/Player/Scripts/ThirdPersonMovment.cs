@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using Player.Statistics;
 
@@ -26,7 +26,7 @@ namespace Player
             {
                 statsController = GetComponent<StatsController>();
                 if (statsController == null)
-                    statsController = FindFirstObjectByType<StatsController>();
+                    statsController = FindAnyObjectByType<StatsController>();
             }
         }
 
@@ -146,3 +146,4 @@ namespace Player
         }
     }
 }
+

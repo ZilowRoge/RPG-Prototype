@@ -44,7 +44,7 @@ namespace Player.FightSystem.Magic
             controls = new PlayerControlls();
             symbolRecognizer = new SymbolRecognizer(modelAsset);
             if (cameraSensitivityController == null)
-                cameraSensitivityController = FindFirstObjectByType<CinemachineSensitivityController>();
+                cameraSensitivityController = FindAnyObjectByType<CinemachineSensitivityController>();
             ResolveDrawingSpace();
 
             if (defaultCombatConsumerBehaviour != null)
@@ -302,3 +302,4 @@ namespace Player.FightSystem.Magic
         }
     }
 }
+

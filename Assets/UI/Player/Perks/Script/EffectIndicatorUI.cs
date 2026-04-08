@@ -26,7 +26,7 @@ namespace UI.Player.Perks
         private void OnEnable()
         {
             if (playerEvents == null)
-                playerEvents = FindFirstObjectByType<PlayerEventHub>();
+                playerEvents = FindAnyObjectByType<PlayerEventHub>();
 
             Subscribe();
         }
@@ -189,7 +189,7 @@ namespace UI.Player.Perks
 
             playerEvents = refs.EventHub;
             if (playerEvents == null)
-                playerEvents = FindFirstObjectByType<PlayerEventHub>();
+                playerEvents = FindAnyObjectByType<PlayerEventHub>();
 
             if (isActiveAndEnabled)
                 Subscribe();
@@ -242,4 +242,5 @@ namespace UI.Player.Perks
         float DurationSeconds { get; }
     }
 }
+
 

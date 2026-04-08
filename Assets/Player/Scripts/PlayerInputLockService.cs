@@ -145,7 +145,7 @@ namespace Player
             if (isApplicationQuitting)
                 return instance;
 
-            instance = FindFirstObjectByType<PlayerInputLockService>();
+            instance = FindAnyObjectByType<PlayerInputLockService>();
             if (instance != null)
                 return instance;
 
@@ -170,13 +170,13 @@ namespace Player
         private void EnsureReferences()
         {
             if (playerInput == null)
-                playerInput = FindFirstObjectByType<PlayerInput>();
+                playerInput = FindAnyObjectByType<PlayerInput>();
 
             if (movementController == null)
-                movementController = FindFirstObjectByType<ThirdPersonMovment>();
+                movementController = FindAnyObjectByType<ThirdPersonMovment>();
 
             if (cinemachineBrain == null)
-                cinemachineBrain = FindFirstObjectByType<CinemachineBrain>();
+                cinemachineBrain = FindAnyObjectByType<CinemachineBrain>();
         }
 
         private void DisableActions()
@@ -323,3 +323,4 @@ namespace Player
         private static string GetActionName(InputActionToBlock actionType) => actionType.ToString();
     }
 }
+

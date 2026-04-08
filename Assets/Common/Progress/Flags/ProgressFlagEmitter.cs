@@ -19,7 +19,7 @@ namespace Common.Progress
         private void Awake()
         {
             if (progressController == null)
-                progressController = FindFirstObjectByType<ProgressController>();
+                progressController = FindAnyObjectByType<ProgressController>();
         }
 
         private void OnEnable()
@@ -48,3 +48,4 @@ namespace Common.Progress
         }
     }
 }
+

@@ -234,8 +234,8 @@ namespace UI.Player.Perks
 
         private static string BuildEdgeKey(JobPerkNode a, JobPerkNode b)
         {
-            string idA = !string.IsNullOrEmpty(a.NodeId) ? a.NodeId : a.GetInstanceID().ToString();
-            string idB = !string.IsNullOrEmpty(b.NodeId) ? b.NodeId : b.GetInstanceID().ToString();
+            string idA = !string.IsNullOrEmpty(a.NodeId) ? a.NodeId : a.GetEntityId().ToString();
+            string idB = !string.IsNullOrEmpty(b.NodeId) ? b.NodeId : b.GetEntityId().ToString();
 
             return string.CompareOrdinal(idA, idB) <= 0 ? $"{idA}|{idB}" : $"{idB}|{idA}";
         }

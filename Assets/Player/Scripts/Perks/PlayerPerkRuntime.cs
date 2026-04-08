@@ -240,7 +240,7 @@ namespace Player.Perks
                 playerEvents = progressController.EventHub;
 
             if (playerEvents == null)
-                playerEvents = GetComponent<PlayerEventHub>() ?? GetComponentInParent<PlayerEventHub>() ?? FindFirstObjectByType<PlayerEventHub>();
+                playerEvents = GetComponent<PlayerEventHub>() ?? GetComponentInParent<PlayerEventHub>() ?? FindAnyObjectByType<PlayerEventHub>();
 
             if (playerEvents != null)
                 hasLoggedMissingEventHub = false;
@@ -326,3 +326,4 @@ namespace Player.Perks
         }
     }
 }
+

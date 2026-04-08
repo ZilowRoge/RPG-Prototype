@@ -86,7 +86,8 @@ namespace Common.World.Orb
         void EnsureQuestManagerReference()
         {
             if (questManager == null)
-                questManager = FindFirstObjectByType<QuestManager>();
+                questManager = FindAnyObjectByType<QuestManager>();
         }
     }
 }
+

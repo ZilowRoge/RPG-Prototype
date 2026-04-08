@@ -28,7 +28,7 @@ namespace UI.Player.Statistics
         private void Awake()
         {
             if (stats == null)
-                stats = FindFirstObjectByType<StatsController>();
+                stats = FindAnyObjectByType<StatsController>();
 
             RefreshAll();
         }
@@ -63,10 +63,11 @@ namespace UI.Player.Statistics
         {
             stats = refs.Stats;
             if (stats == null)
-                stats = FindFirstObjectByType<StatsController>();
+                stats = FindAnyObjectByType<StatsController>();
 
             if (isActiveAndEnabled)
                 RefreshAll();
         }
     }
 }
+
