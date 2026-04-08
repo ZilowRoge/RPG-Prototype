@@ -152,7 +152,7 @@ Transform:
   m_GameObject: {fileID: 2656166899128897839}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -31.33, y: 10.38, z: 2.76}
+  m_LocalPosition: {x: 0, y: 10.38, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -295,9 +295,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2e9fb8e79b62a84a9d0cbee0012ff7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxInteractDistance: 3
+  fieldOfViewAngle: 100
+  maxViewportRadius: 0.55
   interactableMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  viewCamera: {fileID: 0}
+  requireLineOfSight: 1
+  ignoredRaycastLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  enableTriggerFallback: 1
+  enableOutlineHighlight: 1
+  autoCreateOutlineTarget: 1
+  autoCreatedOutlineGroup: 2
 --- !u!114 &5389066240880142616
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -421,6 +433,9 @@ MonoBehaviour:
   debugRayColor: {r: 0, g: 1, b: 1, a: 0.7}
   debugHitColor: {r: 1, g: 0.92, b: 0.016, a: 0.9}
   debugHitMarkerSize: 0.2
+  enableOutlineHighlight: 1
+  autoCreateOutlineTarget: 1
+  autoCreatedOutlineGroup: 0
   viewCamera: {fileID: 0}
   logger:
     loggingEnabled: 1
@@ -455,15 +470,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerInput: {fileID: 6092186617432096350}
-  actionNamesToBlock:
-  - Move
-  - Look
-  - Sprint
+  actionsToBlock: 000000000100000002000000
   actionReferencesToBlock: []
   movementController: {fileID: 1054949118792941431}
-  componentsToDisable:
-  - {fileID: 0}
+  cinemachineBrain: {fileID: 0}
   persistAcrossScenes: 0
+  logDebug: 0
 --- !u!114 &4392185842679678629
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -512,11 +524,6 @@ MonoBehaviour:
   inventory:
     slots: []
   equipmentController: {fileID: 5891547832581636209}
-  debugItems:
-  - {fileID: 11400000, guid: fdbde0548e70f70459c2de1d2c8bfe5a, type: 2}
-  - {fileID: 11400000, guid: 1fb70fa6050f5704db2a92929785d511, type: 2}
-  - {fileID: 11400000, guid: 1fb70fa6050f5704db2a92929785d511, type: 2}
-  - {fileID: 11400000, guid: 1fb70fa6050f5704db2a92929785d511, type: 2}
   initializeOnAwake: 1
   initialSlotCount: 16
 --- !u!114 &5891547832581636209
@@ -537,66 +544,77 @@ MonoBehaviour:
       definition: {fileID: 0}
       stackCount: 0
       instanceId: 
+      currentDurability: 0
       modifiers: []
   - slot: 1
     itemInstance:
       definition: {fileID: 0}
       stackCount: 0
       instanceId: 
+      currentDurability: 0
       modifiers: []
   - slot: 2
     itemInstance:
       definition: {fileID: 0}
       stackCount: 0
       instanceId: 
+      currentDurability: 0
       modifiers: []
   - slot: 3
     itemInstance:
       definition: {fileID: 0}
       stackCount: 0
       instanceId: 
+      currentDurability: 0
       modifiers: []
   - slot: 4
     itemInstance:
       definition: {fileID: 0}
       stackCount: 0
       instanceId: 
+      currentDurability: 0
       modifiers: []
   - slot: 5
     itemInstance:
       definition: {fileID: 0}
       stackCount: 0
       instanceId: 
+      currentDurability: 0
       modifiers: []
   - slot: 6
     itemInstance:
       definition: {fileID: 0}
       stackCount: 0
       instanceId: 
+      currentDurability: 0
       modifiers: []
   - slot: 7
     itemInstance:
       definition: {fileID: 0}
       stackCount: 0
       instanceId: 
+      currentDurability: 0
       modifiers: []
   - slot: 8
     itemInstance:
       definition: {fileID: 0}
       stackCount: 0
       instanceId: 
+      currentDurability: 0
       modifiers: []
   - slot: 9
     itemInstance:
       definition: {fileID: 0}
       stackCount: 0
       instanceId: 
+      currentDurability: 0
       modifiers: []
   - slot: 10
     itemInstance:
       definition: {fileID: 0}
       stackCount: 0
       instanceId: 
+      currentDurability: 0
       modifiers: []
 --- !u!114 &8181679417693702848
 MonoBehaviour:
