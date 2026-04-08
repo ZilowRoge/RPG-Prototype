@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using NPC.Dialog;
@@ -35,9 +34,8 @@ namespace UI.NPC.Dialog
         private readonly List<PlayerResponseSlotUI> active = new();
 
         private DialogAsset currentDialog;
-        private string currentNodeId;
-
-        private List<DialogOption> scratchList = new();
+        private DialogNodeDefinition currentNode;
+        private readonly List<DialogChoiceRuntime> scratchList = new();
 
         public bool IsOpen
         {
@@ -67,8 +65,9 @@ namespace UI.NPC.Dialog
                 
             }
             EnsureVisible();
-            
-            ShowNode(currentDialog.StartNodeId);
+
+            var startNode = currentDialog.GetStartNode(progressController);
+            ShowNode(startNode);
         }
 
         public void Close()
@@ -77,34 +76,70 @@ namespace UI.NPC.Dialog
             ClearUI();
             Hide();
             currentDialog = null;
-            currentNodeId = null;
+            currentNode = null;
             // Restore gameplay cursor state when dialog closes
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
 
-        private void ShowNode(string nodeId)
+        private void ShowNode(DialogNodeDefinition node)
         {
-            
             if (currentDialog == null)
             {
-                
                 Close();
                 return;
             }
 
-            currentNodeId = nodeId;
-            var node = currentDialog.GetNode(nodeId) as NpcLineNode;
+            currentNode = node;
             if (node == null)
             {
-                
                 Close();
                 return;
             }
 
-            SetNpcLine(node.text);
-            var displayOptions = BuildUiOptionsFromNode(node);
-            
+            if (node is DialogEventNode eventNode)
+            {
+                RunActions(eventNode.Actions);
+                ShowNode(currentDialog.GetNode(eventNode.NextNodeGuid));
+                return;
+            }
+
+            if (node is DialogRerouteNode rerouteNode)
+            {
+                ShowNode(currentDialog.GetNode(rerouteNode.NextNodeGuid));
+                return;
+            }
+
+            if (node is DialogEndNode endNode)
+            {
+                if (!string.IsNullOrWhiteSpace(endNode.ClosingText))
+                    SetNpcLine(endNode.ClosingText);
+                else
+                    SetNpcLine(string.Empty);
+
+                BuildOptions(new[]
+                {
+                    CreateCloseChoice()
+                });
+                return;
+            }
+
+            if (node is not DialogLineNode lineNode)
+            {
+                Close();
+                return;
+            }
+
+            SetNpcLine(lineNode.Text);
+            var displayOptions = BuildUiOptionsFromNode(lineNode);
+            if (displayOptions.Count == 0)
+            {
+                BuildOptions(new[]
+                {
+                    CreateCloseChoice()
+                });
+            }
+            else
             BuildOptions(displayOptions);
 
             if (scrollRect != null)
@@ -127,83 +162,63 @@ namespace UI.NPC.Dialog
                 if (slot != null) slot.SetInteractable(value);
         }
 
-        private IReadOnlyList<DialogOption> BuildUiOptionsFromNode(NpcLineNode node)
+        private IReadOnlyList<DialogChoiceRuntime> BuildUiOptionsFromNode(DialogLineNode node)
         {
             scratchList.Clear();
-            
-            if (node.options != null)
+
+            if (node.Choices != null)
             {
-                foreach (var opt in node.options)
+                foreach (var opt in node.Choices)
                 {
                     if (opt == null) continue;
-                    bool allOk = true;
-                    if (opt.conditions != null && progressController != null)
-                    {
-                        for (int i = 0; i < opt.conditions.Count; i++)
-                        {
-                            var c = opt.conditions[i];
-                            if (c == null) continue;
-                            if (!c.Evaluate(progressController))
-                            {
-                                allOk = false;
-                                break;
-                            }
-                        }
-                    }
+                    var allOk = opt.AreConditionsMet(progressController);
 
-                    var uiOpt = new DialogOption
+                    if (!allOk && opt.LockMode == DialogChoiceLockMode.Hide)
+                        continue;
+
+                    var uiOpt = new DialogChoiceRuntime
                     {
-                        text = allOk ? opt.text : $"<color=#888888>{opt.text}</color>",
-                        nextNodeId = opt.nextNodeId,
-                        conditions = opt.conditions,
-                        onSelect = opt.onSelect,
-                        HideIfLocked = opt.HideIfLocked
+                        text = allOk ? opt.Text : $"<color=#888888>{opt.Text}</color>",
+                        nextNodeGuid = opt.NextNodeGuid,
+                        conditionsMet = allOk,
+                        lockMode = opt.LockMode
                     };
-
-                    if (!allOk && opt.HideIfLocked) { continue; }
                     scratchList.Add(uiOpt);
                 }
             }
-            
+
             return scratchList;
         }
 
-        private void BuildOptions(IReadOnlyList<DialogOption> options)
+        private void BuildOptions(IReadOnlyList<DialogChoiceRuntime> options)
         {
             ReleaseActiveSlots();
             if (options == null || options.Count == 0) return;
-            
 
             for (int i = 0; i < options.Count; i++)
             {
                 var opt = options[i];
                 var slot = AcquireSlot();
                 var displayText = BuildOptionDisplayText(opt.text, i);
-                var nextId = opt.nextNodeId;
-                var actions = opt.onSelect;
+                var nextId = opt.nextNodeGuid;
                 var isLocked = IsOptionLocked(opt);
 
                 slot.Initialize(displayText, () =>
                 {
-                    
                     SetResponsesInteractable(false);
                     if (isLocked)
                     {
-                        
                         SetResponsesInteractable(true);
                         return;
                     }
-                    if (actions != null)
-                        foreach (var a in actions) a?.Run(progressController);
+
                     if (string.IsNullOrEmpty(nextId))
                     {
-                        
                         Close();
                     }
                     else
                     {
-                        
-                        ShowNode(nextId);
+                        ShowNode(currentDialog.GetNode(nextId));
                     }
                 });
 
@@ -234,18 +249,10 @@ namespace UI.NPC.Dialog
             return prefix + optionText;
         }
 
-        private bool IsOptionLocked(DialogOption opt)
+        private bool IsOptionLocked(DialogChoiceRuntime opt)
         {
             if (opt == null) return true;
-            if (opt.conditions == null || progressController == null) return false;
-            bool allOk = true;
-            for (int i = 0; i < opt.conditions.Count; i++)
-            {
-                var c = opt.conditions[i];
-                if (c == null) continue;
-                if (!c.Evaluate(progressController)) { allOk = false; break; }
-            }
-            return !allOk && !opt.HideIfLocked;
+            return !opt.conditionsMet && opt.lockMode == DialogChoiceLockMode.Disable;
         }
 
         private PlayerResponseSlotUI AcquireSlot()
@@ -422,6 +429,36 @@ namespace UI.NPC.Dialog
             progressController = refs.Progress;
             if (progressController == null)
                 progressController = FindAnyObjectByType<ProgressController>();
+        }
+
+        private void RunActions(IReadOnlyList<DialogueActionDefinition> actions)
+        {
+            if (actions == null)
+                return;
+
+            for (var index = 0; index < actions.Count; index++)
+            {
+                actions[index]?.Execute(progressController);
+            }
+        }
+
+        private static DialogChoiceRuntime CreateCloseChoice()
+        {
+            return new DialogChoiceRuntime
+            {
+                text = "Close.",
+                nextNodeGuid = string.Empty,
+                conditionsMet = true,
+                lockMode = DialogChoiceLockMode.Hide
+            };
+        }
+
+        private sealed class DialogChoiceRuntime
+        {
+            public string text;
+            public string nextNodeGuid;
+            public bool conditionsMet;
+            public DialogChoiceLockMode lockMode;
         }
     }
 }

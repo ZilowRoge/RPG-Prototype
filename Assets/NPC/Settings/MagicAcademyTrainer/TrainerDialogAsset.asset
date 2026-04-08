@@ -13,7 +13,218 @@ MonoBehaviour:
   m_Name: TrainerDialogAsset
   m_EditorClassIdentifier: 
   dialogId: npc_ma_trainer
-  startNodeId: npc_ma_trainer_greeting
+  graphVersion: 1
+  editorPan: {x: 0, y: 0}
   nodes:
-  - {fileID: 11400000, guid: ee1f704a7df196644966d0f85fa4343a, type: 2}
-  - {fileID: 11400000, guid: 9ece9d71982c8be4f9b96ad29aa57d27, type: 2}
+  - rid: 1001
+  - rid: 1002
+  - rid: 7769315407300395083
+  - rid: 7769315407300395084
+  - rid: 7769315407300395086
+  - rid: 7769315407300395087
+  - rid: 7769315407300395089
+  - rid: 7769315407300395099
+  - rid: 7769315407300395101
+  entryPoints:
+  - id: ep_trainer_default
+    name: Default
+    priority: 0
+    weight: 1
+    position: {x: -203, y: 2}
+    targetNodeGuid: trainer_greeting
+    conditions: []
+  - id: 9debf8aa81984079bd7fbef3d1b960d1
+    name: Symbol6LessonFinish
+    priority: 1
+    weight: 1
+    position: {x: -236, y: 276}
+    targetNodeGuid: 949a9d3a922a4448b3dad4a28c4843ad
+    conditions:
+    - rid: 7769315407300395090
+    - rid: 7769315407300395097
+  - id: 010acd88e92d412abbdb36e6d0b6ec85
+    name: Symbol9LessonFinish
+    priority: 1
+    weight: 1
+    position: {x: -237, y: 377}
+    targetNodeGuid: 08fa32a0278345efb063d3e0fb2a0eed
+    conditions:
+    - rid: 7769315407300395103
+    - rid: 7769315407300395098
+  references:
+    version: 2
+    RefIds:
+    - rid: 1001
+      type: {class: DialogLineNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: trainer_greeting
+        position: {x: 0, y: 0}
+        title: TrainerGreeting
+        text: 'Hello,
+
+          I''m a teacher in this Magic Academy, what does
+          bring you to me?'
+        choices:
+        - id: trainer_greeting_1
+          text: I'm new here, can you teach me a symbol?
+          nextNodeGuid: trainer_lesson_start
+          lockMode: 0
+          conditions: []
+        - id: trainer_greeting_4
+          text: Maybe later. I need some time to prepare.
+          nextNodeGuid: 
+          lockMode: 0
+          conditions: []
+    - rid: 1002
+      type: {class: DialogLineNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: trainer_lesson_start
+        position: {x: 341, y: -173}
+        title: TrainerLessonStart
+        text: 'Ah, a new student of the arcane script.
+
+          Which symbol do
+          you want to learn?'
+        choices:
+        - id: trainer_lesson_start_1
+          text: Magic Missile symbol
+          nextNodeGuid: 90b81002a0b64d39b2fcca8d259854e4
+          lockMode: 0
+          conditions:
+          - rid: 7769315410981158988
+        - id: trainer_lesson_start_2
+          text: Magic Shield symbol
+          nextNodeGuid: 25bc3cb728424f529c9222e4e9119260
+          lockMode: 0
+          conditions:
+          - rid: 1205
+        - id: trainer_lesson_start_3
+          text: I have something other to do
+          nextNodeGuid: 
+          lockMode: 0
+          conditions: []
+    - rid: 1205
+      type: {class: FlagConditionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        flagKey: entrance_exam_passed
+        expectedValue: 1
+    - rid: 7769315407300395083
+      type: {class: DialogLineNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: a3c4a9bc0af54d868e1a0ac134c9d4c9
+        position: {x: 275, y: 320}
+        title: NPC Line
+        text: 'Congratulations, you have compleated the lesson, you can use '
+        choices:
+        - id: 35914c189bec460a96cdb8ff98f7d714
+          text: Thank you.
+          nextNodeGuid: 
+          lockMode: 0
+          conditions: []
+    - rid: 7769315407300395084
+      type: {class: DialogEventNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: 90b81002a0b64d39b2fcca8d259854e4
+        position: {x: 628, y: -261}
+        title: Symbol9Start
+        nextNodeGuid: 
+        actions:
+        - rid: 7769315407300395085
+    - rid: 7769315407300395085
+      type: {class: SetFlagActionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        flagKey: sym_9_lesson_start
+        value: 1
+    - rid: 7769315407300395086
+      type: {class: DialogEventNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: 25bc3cb728424f529c9222e4e9119260
+        position: {x: 627, y: -149}
+        title: Symbol6Start
+        nextNodeGuid: 
+        actions:
+        - rid: 7769315410981158982
+    - rid: 7769315407300395087
+      type: {class: DialogEventNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: 949a9d3a922a4448b3dad4a28c4843ad
+        position: {x: -33, y: 277}
+        title: AddSymbol6
+        nextNodeGuid: 078fa28848f24b4da15f2b3940ba019c
+        actions:
+        - rid: 7769315407300395088
+    - rid: 7769315407300395088
+      type: {class: LearnSymbolActionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        symbolKey: sym_6
+    - rid: 7769315407300395089
+      type: {class: DialogEventNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: 08fa32a0278345efb063d3e0fb2a0eed
+        position: {x: -32, y: 377}
+        title: AddSymbol9
+        nextNodeGuid: cb79c4a77e8c4b05a04db9651978f455
+        actions:
+        - rid: 7769315410981158981
+    - rid: 7769315407300395090
+      type: {class: FlagConditionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        flagKey: sym_6_lesson_finished
+        expectedValue: 1
+    - rid: 7769315407300395097
+      type: {class: KnowsSymbolConditionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        symbolKey: sym_6
+        expectedValue: 0
+    - rid: 7769315407300395098
+      type: {class: KnowsSymbolConditionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        symbolKey: sym_9
+        expectedValue: 0
+    - rid: 7769315407300395099
+      type: {class: DialogEventNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: 078fa28848f24b4da15f2b3940ba019c
+        position: {x: 120, y: 273}
+        title: Lesson6Finished
+        nextNodeGuid: a3c4a9bc0af54d868e1a0ac134c9d4c9
+        actions:
+        - rid: 7769315407300395100
+    - rid: 7769315407300395100
+      type: {class: SetFlagActionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        flagKey: sym_6_lesson_finished
+        value: 1
+    - rid: 7769315407300395101
+      type: {class: DialogEventNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: cb79c4a77e8c4b05a04db9651978f455
+        position: {x: 121, y: 387}
+        title: Leson9Finished
+        nextNodeGuid: a3c4a9bc0af54d868e1a0ac134c9d4c9
+        actions:
+        - rid: 7769315410981158983
+    - rid: 7769315407300395103
+      type: {class: FlagConditionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        flagKey: sym_9_lesson_finished
+        expectedValue: 1
+    - rid: 7769315410981158981
+      type: {class: LearnSymbolActionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        symbolKey: sym_9
+    - rid: 7769315410981158982
+      type: {class: SetFlagActionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        flagKey: sym_6_lesson_start
+        value: 1
+    - rid: 7769315410981158983
+      type: {class: SetFlagActionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        flagKey: sym_9_lesson_finished
+        value: 1
+    - rid: 7769315410981158988
+      type: {class: KnowsSymbolConditionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        symbolKey: sym_9
+        expectedValue: 0

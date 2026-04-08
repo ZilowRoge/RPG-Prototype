@@ -13,10 +13,268 @@ MonoBehaviour:
   m_Name: ClerkDialog
   m_EditorClassIdentifier: 
   dialogId: npc_ma_clerk_dialog
-  startNodeId: npc_ma_clerk_greeting
+  graphVersion: 1
+  editorPan: {x: 0, y: 0}
   nodes:
-  - {fileID: 11400000, guid: aa2293bb15fd28f4fb2dc3df4bd51bde, type: 2}
-  - {fileID: 11400000, guid: d58a42acfdac8694eaad586c0bd304d3, type: 2}
-  - {fileID: 11400000, guid: 81153c870a547894ca756c243b128119, type: 2}
-  - {fileID: 11400000, guid: df892dd1f797f92438aec09a47c1c9bb, type: 2}
-  - {fileID: 11400000, guid: 221b285bfd3f213469c73801fb1a8d76, type: 2}
+  - rid: 3001
+  - rid: 3002
+  - rid: 3003
+  - rid: 3004
+  - rid: 7769315388327723095
+  - rid: 7769315388327723097
+  - rid: 7769315388327723098
+  - rid: 7769315388327723104
+  - rid: 7769315388327723108
+  - rid: 7769315388327723112
+  - rid: 7769315410981159004
+  entryPoints:
+  - id: ep_clerk_default
+    name: Entry 1
+    priority: 1
+    weight: 1
+    position: {x: -763, y: -237}
+    targetNodeGuid: clerk_greeting
+    conditions: []
+  - id: c2f0403ab6b94dff8b0bff901f3f11be
+    name: Entry 2
+    priority: 1
+    weight: 1
+    position: {x: -675, y: 19}
+    targetNodeGuid: a81a4e3c96b54d57868d373244bad1c3
+    conditions:
+    - rid: 7769315388327723109
+  references:
+    version: 2
+    RefIds:
+    - rid: 3001
+      type: {class: DialogLineNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: clerk_greeting
+        position: {x: -582, y: -235}
+        title: ClerkGreeting
+        text: Welcome, stranger. How can I help you?
+        choices:
+        - id: clerk_greeting_1
+          text: I want to register for the entrance exam.
+          nextNodeGuid: 63d5b1a661cc4887a6873af345067ba2
+          lockMode: 1
+          conditions: []
+        - id: clerk_greeting_3
+          text: No. Bye
+          nextNodeGuid: 
+          lockMode: 0
+          conditions: []
+    - rid: 3002
+      type: {class: DialogLineNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: clerk_exam_req
+        position: {x: -14, y: -242}
+        title: ClerkExamRequirements
+        text: To be eligible for the exam, you must know at least one magic symbol
+          and possess the official job of Wizard. Once you achieve these, return
+          to me and I will issue your exam voucher.
+        choices:
+        - id: clerk_exam_req_1
+          text: How do I become a Wizard?
+          nextNodeGuid: clerk_wizard_job_info
+          lockMode: 0
+          conditions:
+          - rid: 7769315388327723079
+          - rid: 7769315406136737877
+        - id: clerk_exam_req_2
+          text: Where can I learn a magic symbol?
+          nextNodeGuid: clerk_symbol_info
+          lockMode: 0
+          conditions: []
+        - id: clerk_exam_req_3
+          text: I'm ready for the exam
+          nextNodeGuid: 11630bd0acba42e181ee7ac39fce4213
+          lockMode: 0
+          conditions:
+          - rid: 7769315410981158999
+          - rid: 7769315410981159000
+          - rid: 7769315410981159001
+        - id: 39bc8c726a6c476f8f977790c54285c3
+          text: Thank you, I'll return when I'm ready.
+          nextNodeGuid: 
+          lockMode: 0
+          conditions: []
+    - rid: 3003
+      type: {class: DialogLineNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: clerk_wizard_job_info
+        position: {x: 757, y: -295}
+        title: ClerkWizardJobInfo
+        text: To become a Wizard, you must first declare your path and accept the
+          responsibilities that come with wielding magic.If you are certain, I can
+          grant you the official status of Wizard right now.
+        choices:
+        - id: clerk_job_info_1
+          text: Yes, I am ready to become a Wizard
+          nextNodeGuid: 2c05bd6b303040c380e32e02c7c09421
+          lockMode: 0
+          conditions: []
+        - id: clerk_job_info_2
+          text: No, I don't want to be a Wizard
+          nextNodeGuid: 
+          lockMode: 0
+          conditions: []
+    - rid: 3004
+      type: {class: DialogLineNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: clerk_symbol_info
+        position: {x: 755, y: -56}
+        title: ClerkSymbolInfo
+        text: 'To learn your first symbol, you must seek out one of our Academy teachers.
+          Each of them can guide you through the process of mastering a basic rune.
+
+          However,
+          be warned: it is not enough to simply watch. You will need to go through
+          the learning process yourself practice, focus, and prove that you can draw
+          the symbol correctly.
+
+          Only then will the knowledge truly be
+          yours'
+        choices:
+        - id: clerk_symbol_info_1
+          text: Thank you, I'll go find a teacher.
+          nextNodeGuid: 
+          lockMode: 0
+          conditions: []
+    - rid: 7769315388327723079
+      type: {class: HasJobConditionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        jobId: wizad_job
+        expectedValue: 0
+    - rid: 7769315388327723095
+      type: {class: DialogRerouteNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: 265d02e999b140daa195f7f0b25beb17
+        position: {x: 1204, y: -437}
+        nextNodeGuid: 0689f629dd344c46b70fbf0f8689bb71
+    - rid: 7769315388327723097
+      type: {class: DialogRerouteNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: 0689f629dd344c46b70fbf0f8689bb71
+        position: {x: -105, y: -394}
+        nextNodeGuid: clerk_exam_req
+    - rid: 7769315388327723098
+      type: {class: DialogEventNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: 2c05bd6b303040c380e32e02c7c09421
+        position: {x: 1048, y: -296}
+        title: Add Wizard Job
+        nextNodeGuid: 265d02e999b140daa195f7f0b25beb17
+        actions:
+        - rid: 7769315388327723099
+    - rid: 7769315388327723099
+      type: {class: AddJobActionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        jobId: job_wizard
+    - rid: 7769315388327723104
+      type: {class: DialogEventNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: 63d5b1a661cc4887a6873af345067ba2
+        position: {x: -241, y: -234}
+        title: Start exam prep quest
+        nextNodeGuid: clerk_exam_req
+        actions:
+        - rid: 7769315388327723105
+    - rid: 7769315388327723105
+      type: {class: StartQuestActionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        questId: q_exam_prep
+    - rid: 7769315388327723108
+      type: {class: DialogLineNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: a81a4e3c96b54d57868d373244bad1c3
+        position: {x: -412, y: 34}
+        title: ClerkExamPrepStartedGreeting
+        text: Greetings. Have you come to register for the entrance exam of the Magic
+          Academy?
+        choices:
+        - id: 1e5f43aba8054427be561f8d88ab4c98
+          text: I'm still missing some requirements, can you help with it?
+          nextNodeGuid: clerk_exam_req
+          lockMode: 0
+          conditions: []
+        - id: 139d154326674c9599bcb426b04bc581
+          text: I'm ready to start the exam.
+          nextNodeGuid: 11630bd0acba42e181ee7ac39fce4213
+          lockMode: 0
+          conditions:
+          - rid: 7769315406136737879
+          - rid: 7769315406136737880
+        - id: 07c60f3459fb489fb14b684bbd8e7f8b
+          text: Not yet. I need to prepare myself.
+          nextNodeGuid: 
+          lockMode: 0
+          conditions: []
+    - rid: 7769315388327723109
+      type: {class: QuestStartedConditionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        questId: q_exam_prep
+        expectedValue: 1
+    - rid: 7769315388327723112
+      type: {class: DialogEventNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: 242f7004ad3446f1a51f1065912841a4
+        position: {x: 497, y: 250}
+        title: Start entrance exam
+        nextNodeGuid: 
+        actions:
+        - rid: 7769315388327723113
+        - rid: 7769315410981159003
+    - rid: 7769315388327723113
+      type: {class: StartQuestActionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        questId: q_magic_entrance_exam
+    - rid: 7769315406136737877
+      type: {class: HasJobConditionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        jobId: job_wizard
+        expectedValue: 0
+    - rid: 7769315406136737879
+      type: {class: HasJobConditionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        jobId: job_wizard
+        expectedValue: 1
+    - rid: 7769315406136737880
+      type: {class: KnowsSymbolConditionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        symbolKey: sym_6
+        expectedValue: 1
+    - rid: 7769315410981158999
+      type: {class: KnowsSymbolConditionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        symbolKey: sym_9
+        expectedValue: 1
+    - rid: 7769315410981159000
+      type: {class: QuestStartedConditionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        questId: q_exam_prep
+        expectedValue: 1
+    - rid: 7769315410981159001
+      type: {class: HasJobConditionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        jobId: job_wizard
+        expectedValue: 1
+    - rid: 7769315410981159003
+      type: {class: SetFlagActionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        flagKey: exam_prep_finished
+        value: 1
+    - rid: 7769315410981159004
+      type: {class: DialogLineNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: 11630bd0acba42e181ee7ac39fce4213
+        position: {x: 316, y: 251}
+        title: NPC Line
+        text: For the exam you need to go to the Magic Arena and find Viggo, he will
+          perform the entrance exam.
+        choices:
+        - id: 106b38d63d3646c4992e69ccda9bb316
+          text: Thank you
+          nextNodeGuid: 242f7004ad3446f1a51f1065912841a4
+          lockMode: 0
+          conditions: []

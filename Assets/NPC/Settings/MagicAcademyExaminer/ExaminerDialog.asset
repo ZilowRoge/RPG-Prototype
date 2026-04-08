@@ -13,7 +13,80 @@ MonoBehaviour:
   m_Name: ExaminerDialog
   m_EditorClassIdentifier: 
   dialogId: npc_ma_exaniner_dialog
-  startNodeId: ma_exeminer_greeting
+  graphVersion: 1
+  editorPan: {x: 0, y: 0}
   nodes:
-  - {fileID: 11400000, guid: a294e77b14d05eb40b5124b8666d0f77, type: 2}
-  - {fileID: 11400000, guid: d35ea0f6e179bde4cae302cea82fa4cd, type: 2}
+  - rid: 2001
+  - rid: 2002
+  - rid: 2003
+  entryPoints:
+  - id: ep_examiner_default
+    name: Default
+    priority: 0
+    weight: 1
+    targetNodeGuid: examiner_greeting
+    conditions: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 2001
+      type: {class: DialogLineNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: examiner_greeting
+        position: {x: 0, y: 0}
+        title: Greetings
+        text: Hello, do you want to start the exam?
+        choices:
+        - id: examiner_greeting_1
+          text: Yes, I would like to start the exam
+          nextNodeGuid: examiner_exam_details
+          lockMode: 0
+          conditions:
+          - rid: 2201
+        - id: examiner_greeting_2
+          text: No, I don't have time
+          nextNodeGuid: 
+          lockMode: 0
+          conditions: []
+    - rid: 2002
+      type: {class: DialogLineNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: examiner_exam_details
+        position: {x: 360, y: 0}
+        title: ExamDetails
+        text: "First, Control. Approach the focus orb and channel your symbol into it. Let's see if you can keep your mana steady.\n\nSecond, Pressure. When you're ready, step onto the marked seal. You'll face a test of reflex and focus, destroy the targets before they vanish.\n\nAnd finally, Combat. Move to the central arena and declare your readiness. The constructs of the Academy will test your skill in real confrontation.\n\nEach test will push you further. Few make it through all three, fewer still with their confidence intact."
+        choices:
+        - id: examiner_details_1
+          text: I'm ready.
+          nextNodeGuid: examiner_start_exam_event
+          lockMode: 0
+          conditions: []
+        - id: examiner_details_2
+          text: I'm not ready.
+          nextNodeGuid: 
+          lockMode: 0
+          conditions: []
+    - rid: 2003
+      type: {class: DialogEventNode, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        guid: examiner_start_exam_event
+        position: {x: 686, y: 0}
+        title: StartExam
+        nextNodeGuid: 
+        actions:
+        - rid: 2101
+        - rid: 2102
+    - rid: 2101
+      type: {class: StartQuestActionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        questId: q_magic_entrance_exam
+    - rid: 2102
+      type: {class: SetFlagActionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        flagKey: entrance_exam_started
+        value: 1
+    - rid: 2201
+      type: {class: FlagConditionDefinition, ns: NPC.Dialog, asm: Assembly-CSharp}
+      data:
+        flagKey: exam_prep_finished
+        expectedValue: 1
