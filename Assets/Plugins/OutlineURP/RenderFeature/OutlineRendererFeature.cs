@@ -73,18 +73,6 @@ namespace OutlineURP
             };
         }
 
-        public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
-        {
-            _ = renderer;
-            OutlineDebugStats.LastSetupRenderPassesFrame = Time.frameCount;
-            if (!CanRender(in renderingData))
-            {
-                return;
-            }
-
-            ConfigurePasses();
-        }
-
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
             OutlineDebugStats.LastAddRenderPassesFrame = Time.frameCount;
@@ -169,7 +157,7 @@ namespace OutlineURP
             }
 
             [System.Obsolete("Compatibility mode only (Render Graph disabled).", false)]
-            public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+            public void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
             {
                 if (material == null || profile == null)
                 {
@@ -237,7 +225,7 @@ namespace OutlineURP
             }
 
             [System.Obsolete("Compatibility mode only (Render Graph disabled).", false)]
-            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+            public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
                 OutlineDebugStats.LastMaskExecuteCompatFrame = Time.frameCount;
                 if (material == null || profile == null || maskTexture == null)
@@ -254,16 +242,15 @@ namespace OutlineURP
                 var commandBuffer = CommandBufferPool.Get("OutlineMaskPass");
                 using (new ProfilingScope(commandBuffer, sampler))
                 {
-                    #pragma warning disable CS0618
-                    var cameraDepthTarget = renderingData.cameraData.renderer.cameraDepthTargetHandle;
-                    #pragma warning restore CS0618
                     var occlusionMode = OutlineController.ResolveOcclusionMode(profile.DefaultOcclusionMode);
                     var zTestValue = occlusionMode == OutlineOcclusionMode.RespectDepth
                         ? (int)CompareFunction.LessEqual
                         : (int)CompareFunction.Always;
 
                     material.SetInt(ZTest, zTestValue);
-                    CoreUtils.SetRenderTarget(commandBuffer, maskTexture, cameraDepthTarget, ClearFlag.Color, Color.clear);
+                    // URP 17+ no longer exposes camera depth/color target handles in this path.
+                    // Keep compatibility mode functional by rendering mask color only.
+                    CoreUtils.SetRenderTarget(commandBuffer, maskTexture, ClearFlag.Color, Color.clear);
 
                     for (var i = 0; i < entries.Count; i++)
                     {
@@ -427,7 +414,7 @@ namespace OutlineURP
             }
 
             [System.Obsolete("Compatibility mode only (Render Graph disabled).", false)]
-            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+            public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
                 OutlineDebugStats.LastCompositeExecuteCompatFrame = Time.frameCount;
                 var maskTexture = maskPass?.MaskTexture;
@@ -441,10 +428,6 @@ namespace OutlineURP
                     return;
                 }
 
-                #pragma warning disable CS0618
-                var cameraColorTarget = renderingData.cameraData.renderer.cameraColorTargetHandle;
-                #pragma warning restore CS0618
-
                 var commandBuffer = CommandBufferPool.Get("OutlineCompositePass");
                 using (new ProfilingScope(commandBuffer, sampler))
                 {
@@ -455,12 +438,15 @@ namespace OutlineURP
 
                     if (debugForceFullscreenTint)
                     {
-                        CoreUtils.SetRenderTarget(commandBuffer, cameraColorTarget);
+                        commandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
                         commandBuffer.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Triangles, 3, 1);
                     }
                     else
                     {
-                        Blitter.BlitCameraTexture(commandBuffer, maskTexture, cameraColorTarget, material, 0);
+                        commandBuffer.SetGlobalTexture(BlitTextureId, maskTexture);
+                        commandBuffer.SetGlobalVector(BlitScaleBiasId, new Vector4(1f, 1f, 0f, 0f));
+                        commandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+                        commandBuffer.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Triangles, 3, 1);
                     }
                 }
 
