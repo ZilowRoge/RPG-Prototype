@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2490661384341237833}
   - component: {fileID: 2129210017478590088}
   - component: {fileID: 1961475879911448156}
+  - component: {fileID: 2192338293160615163}
   m_Layer: 5
   m_Name: ObjectiveItem
   m_TagString: Untagged
@@ -104,6 +105,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -152,3 +154,23 @@ MonoBehaviour:
   descriptionLabel: {fileID: 2129210017478590088}
   incompletePrefix: '[ ] '
   completedPrefix: '[x] '
+--- !u!114 &2192338293160615163
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3022818197904992543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: -1
+  m_PreferredHeight: 20
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
