@@ -9,6 +9,7 @@ namespace Common.World.SceneTransitions
         [SerializeField] private string targetSceneName = "Kampus_Akademii";
         [SerializeField] private string targetSpawnId = "Spawn_01";
         [SerializeField] private bool captureStateOnExit = true;
+        
         [SerializeField] private InteractionMode supportedModes = InteractionMode.Both;
         [SerializeField] private InteractionTooltip tooltip;
 

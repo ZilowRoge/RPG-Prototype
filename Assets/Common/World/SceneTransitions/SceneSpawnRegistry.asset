@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: SceneSpawnRegistry
   m_EditorClassIdentifier: 
   scenes:
-  - sceneName: ExamBuilding
-    spawnIds:
-    - exam_spawn_1
   - sceneName: AcademyGrounds
     spawnIds:
-    - ag_exam_exit_1
+    - ag_grand_arcanum_exit_1
     - ag_dormitory_exit_1
   - sceneName: DormitoryBuilding
     spawnIds:
     - dormitory_spawn_1
+  - sceneName: GrandArcanum
+    spawnIds:
+    - grand_arcanum_spawn_1

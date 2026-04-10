@@ -68,8 +68,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetSceneName: AcademyGrounds
-  targetSpawnId: ag_dormitory_exit
+  targetSpawnId: ag_exam_exit_1
   captureStateOnExit: 1
+  supportedModes: 3
+  tooltip: {fileID: 0}
 --- !u!114 &1486456660616292409
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -85,3 +87,7 @@ MonoBehaviour:
   tooltipRoot: {fileID: 0}
   tooltipLabel: {fileID: 0}
   message: Press [F] to interact
+  normalTextColor: {r: 1, g: 1, b: 1, a: 1}
+  blockedTextColor: {r: 1, g: 0.55, b: 0.55, a: 1}
+  logDebug: 0
+  logWarnings: 1
