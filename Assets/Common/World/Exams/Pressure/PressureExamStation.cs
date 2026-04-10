@@ -12,11 +12,15 @@ namespace Common.World.Exams.Pressure
         [Header("References")]
         [SerializeField] private PressureExamController controller;
         [SerializeField] private Collider stationTrigger;
+        [SerializeField] private InteractionMode supportedModes = InteractionMode.Both;
+        [SerializeField] private InteractionTooltip tooltip;
 
         [Header("Behaviour")]
         [SerializeField] private bool allowRepeatAfterCompletion = true;
 
         private GameObject currentParticipant;
+        public InteractionMode SupportedModes => supportedModes;
+        public InteractionTooltip Tooltip => tooltip = InteractionTooltipResolver.Resolve(this, tooltip);
 
         private void Awake()
         {

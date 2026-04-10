@@ -18,12 +18,16 @@ namespace Common.World.Orb
         [SerializeField] private bool requireKnownSymbol = true;
         [SerializeField] private bool autoCancelOnPlayerExit = true;
         [SerializeField] private UnityEvent onSymbolMatched;
+        [SerializeField] private InteractionMode supportedModes = InteractionMode.Both;
+        [SerializeField] private InteractionTooltip tooltip;
 
         private SymbolInputManager inputManager;
         private bool awaiting;
         private Interactor activeInteractor;
         private string pendingSymbolId;
         public string LastRecognizedSymbol { get; private set; }
+        public InteractionMode SupportedModes => supportedModes;
+        public InteractionTooltip Tooltip => tooltip = InteractionTooltipResolver.Resolve(this, tooltip);
 
         public void Interact(GameObject player)
         {

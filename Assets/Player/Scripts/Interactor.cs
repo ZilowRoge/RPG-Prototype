@@ -1,18 +1,28 @@
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.InputSystem;
 using Common.World.Interaction;
 using OutlineURP;
+using Player.Interfaces;
+using Player.Targeting;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
-namespace Player {
+namespace Player
+{
     public class Interactor : MonoBehaviour
     {
-        [Header("Field Of View")]
+        private enum InteractionSelectionSource
+        {
+            None,
+            Target,
+            Trigger
+        }
+
+        [Header("Interaction")]
         [SerializeField, Min(0.1f)] private float maxInteractDistance = 3f;
-        [SerializeField, Range(1f, 180f)] private float fieldOfViewAngle = 100f;
-        [SerializeField, Range(0.01f, 1f)] private float maxViewportRadius = 0.55f;
-        [SerializeField] private LayerMask interactableMask = ~0;
         [SerializeField] private Camera viewCamera;
+
+        [Header("Target Selection")]
+        [SerializeField] private TargetSelector targetSelector;
 
         [Header("Raycast Filtering")]
         [SerializeField] private bool requireLineOfSight = true;
@@ -26,41 +36,52 @@ namespace Player {
         [SerializeField] private bool autoCreateOutlineTarget = true;
         [SerializeField] private OutlineGroup autoCreatedOutlineGroup = OutlineGroup.Custom1;
 
-        private readonly Collider[] overlapBuffer = new Collider[64];
+        [Header("Debug")]
+        [SerializeField] private bool debugInteractionSelection;
+
         private readonly List<IInteractable> triggerCandidates = new();
         private readonly Dictionary<IInteractable, int> triggerCandidateCounts = new();
         private OutlineTarget outlinedInteractable;
+        private IInteractable presentedInteractable;
+        private InteractionTooltip activeTooltip;
+        private InteractionSelectionSource currentSelectionSource;
 
         private void Awake()
         {
             if (viewCamera == null)
                 viewCamera = Camera.main;
+
+            if (targetSelector == null)
+            {
+                targetSelector = GetComponent<TargetSelector>()
+                    ?? GetComponentInParent<TargetSelector>()
+                    ?? GetComponentInChildren<TargetSelector>(true);
+            }
         }
 
         private void OnDisable()
         {
             ClearInteractableOutline();
+            ClearTooltipPresentation();
+            currentSelectionSource = InteractionSelectionSource.None;
             triggerCandidates.Clear();
             triggerCandidateCounts.Clear();
         }
 
         private void Update()
         {
-            SyncInteractableOutline();
+            SyncInteractionPresentation();
         }
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!enableTriggerFallback)
-                return;
-
-            if (other == null || !other.isTrigger)
+            if (!enableTriggerFallback || other == null || !other.isTrigger)
                 return;
 
             if (!TryGetInteractable(other.transform, out var interactable))
                 return;
 
-            if (!UsesTriggerInteraction(interactable))
+            if (!SupportsMode(interactable, InteractionMode.Trigger))
                 return;
 
             if (triggerCandidateCounts.TryGetValue(interactable, out var currentCount))
@@ -76,10 +97,7 @@ namespace Player {
 
         private void OnTriggerExit(Collider other)
         {
-            if (!enableTriggerFallback)
-                return;
-
-            if (other == null || !other.isTrigger)
+            if (!enableTriggerFallback || other == null || !other.isTrigger)
                 return;
 
             if (!TryGetInteractable(other.transform, out var interactable))
@@ -98,9 +116,10 @@ namespace Player {
             triggerCandidateCounts[interactable] = currentCount - 1;
         }
 
-        public void OnInteract(InputValue v)
+        public void OnInteract(InputValue value)
         {
-            if (!v.isPressed) return;
+            if (!value.isPressed)
+                return;
 
             if (!TryResolveInteractable(out var interactable))
                 return;
@@ -108,85 +127,108 @@ namespace Player {
             if (IsInteractionBlocked(interactable))
                 return;
 
-            var tooltip = FindTooltip(interactable);
             interactable.Interact(gameObject);
-            tooltip?.HideAfterInteraction();
+            activeTooltip?.HideAfterInteraction();
         }
 
         private bool TryResolveInteractable(out IInteractable interactable)
         {
-            if (enableTriggerFallback && TryResolveFromTriggerCandidates(out interactable))
-                return true;
+            currentSelectionSource = InteractionSelectionSource.None;
 
-            if (TryResolveFromFieldOfView(out interactable))
+            if (TryResolveFromTargetSelection(out interactable))
+            {
+                currentSelectionSource = InteractionSelectionSource.Target;
                 return true;
+            }
+
+            if (enableTriggerFallback && TryResolveFromTriggerCandidates(out interactable))
+            {
+                currentSelectionSource = InteractionSelectionSource.Trigger;
+                return true;
+            }
 
             interactable = null;
             return false;
         }
 
-        private bool TryResolveFromFieldOfView(out IInteractable interactable)
+        private bool TryResolveFromTargetSelection(out IInteractable interactable)
         {
             interactable = null;
 
-            var cam = viewCamera != null ? viewCamera : Camera.main;
-            if (cam == null)
+            var target = targetSelector != null ? targetSelector.CurrentInteractionTarget : null;
+            if (target == null)
                 return false;
 
-            var origin = cam.transform.position;
-            var forward = cam.transform.forward;
-            float halfFov = fieldOfViewAngle * 0.5f;
-            int count = Physics.OverlapSphereNonAlloc(
-                origin,
-                maxInteractDistance,
-                overlapBuffer,
-                interactableMask,
-                QueryTriggerInteraction.Collide);
-
-            if (count <= 0)
+            if (!TryGetInteractable(target, out interactable))
                 return false;
+
+            if (!SupportsMode(interactable, InteractionMode.Target))
+                return false;
+
+            if (interactable is not Component component || component == null)
+                return false;
+
+            var interactionOrigin = GetInteractionOrigin();
+            var targetPoint = target.position;
+            if (!IsWithinInteractionDistance(interactionOrigin, targetPoint))
+                return false;
+
+            var lineOfSightOrigin = GetLineOfSightOrigin();
+            if (requireLineOfSight && !HasLineOfSight(lineOfSightOrigin, targetPoint, interactable))
+                return false;
+
+            return true;
+        }
+
+        private bool TryResolveFromTriggerCandidates(out IInteractable interactable)
+        {
+            interactable = null;
+
+            if (triggerCandidates.Count == 0)
+                return false;
+
+            var interactionOrigin = GetInteractionOrigin();
+            var facingForward = GetInteractionForward();
 
             float bestCenterDistance = float.MaxValue;
             float bestWorldDistance = float.MaxValue;
 
-            for (int i = 0; i < count; i++)
+            for (int i = triggerCandidates.Count - 1; i >= 0; i--)
             {
-                var hitCollider = overlapBuffer[i];
-                if (hitCollider == null)
+                var candidate = triggerCandidates[i];
+                if (candidate is not Component component || component == null)
+                {
+                    if (!ReferenceEquals(candidate, null))
+                        triggerCandidateCounts.Remove(candidate);
+
+                    triggerCandidates.RemoveAt(i);
+                    continue;
+                }
+
+                if (!triggerCandidateCounts.ContainsKey(candidate))
+                {
+                    triggerCandidates.RemoveAt(i);
+                    continue;
+                }
+
+                if (!SupportsMode(candidate, InteractionMode.Trigger))
                     continue;
 
-                if (!TryGetInteractable(hitCollider.transform, out var candidate))
-                    continue;
-
-                if (candidate is not Component candidateComponent || candidateComponent == null)
-                    continue;
-
-                if (UsesTriggerInteraction(candidate))
-                    continue;
-
-                var targetPoint = hitCollider.bounds.center;
-                var toTarget = targetPoint - origin;
-                float worldDistance = toTarget.magnitude;
+                var targetPoint = GetInteractionReferencePoint(component);
+                var toTarget = targetPoint - interactionOrigin;
+                var flatDirection = FlattenDirection(toTarget);
+                float worldDistance = GetInteractionDistance(interactionOrigin, targetPoint);
                 if (worldDistance <= 0.001f || worldDistance > maxInteractDistance)
                     continue;
 
-                float angle = Vector3.Angle(forward, toTarget);
-                if (angle > halfFov)
+                if (flatDirection == Vector3.zero)
                     continue;
 
-                var viewport = cam.WorldToViewportPoint(targetPoint);
-                if (viewport.z <= 0f)
+                float facingDot = Vector3.Dot(facingForward, flatDirection);
+                if (facingDot <= 0f)
                     continue;
 
-                float dx = viewport.x - 0.5f;
-                float dy = viewport.y - 0.5f;
-                float centerDistance = Mathf.Sqrt(dx * dx + dy * dy);
-                if (centerDistance > maxViewportRadius)
-                    continue;
-
-                if (requireLineOfSight && !HasLineOfSight(origin, targetPoint, candidate))
-                    continue;
-
+                float centerDistance = Vector3.Angle(facingForward, flatDirection);
                 if (!IsBetterCandidate(centerDistance, worldDistance, bestCenterDistance, bestWorldDistance))
                     continue;
 
@@ -198,104 +240,46 @@ namespace Player {
             return interactable != null;
         }
 
-        private bool TryResolveFromTriggerCandidates(out IInteractable interactable)
+        private void SyncInteractionPresentation()
         {
-            interactable = null;
-
-            if (triggerCandidates.Count == 0)
-                return false;
-
-            for (int i = triggerCandidates.Count - 1; i >= 0; i--)
-            {
-                var candidate = triggerCandidates[i];
-                if (candidate is not Component component || component == null)
-                {
-                    if (!ReferenceEquals(candidate, null))
-                        triggerCandidateCounts.Remove(candidate);
-                    triggerCandidates.RemoveAt(i);
-                    continue;
-                }
-
-                if (!triggerCandidateCounts.ContainsKey(candidate))
-                {
-                    triggerCandidates.RemoveAt(i);
-                    continue;
-                }
-
-                interactable = candidate;
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool HasLineOfSight(Vector3 origin, Vector3 targetPoint, IInteractable candidate)
-        {
-            var direction = targetPoint - origin;
-            float distance = direction.magnitude;
-            if (distance <= 0.001f)
-                return true;
-
-            direction /= distance;
-            int raycastMask = ~ignoredRaycastLayers.value;
-
-            if (!Physics.Raycast(origin, direction, out var hit, distance, raycastMask, QueryTriggerInteraction.Collide))
-                return true;
-
-            if (!TryGetInteractable(hit.collider.transform, out var firstHitInteractable))
-                return false;
-
-            return ReferenceEquals(firstHitInteractable, candidate);
-        }
-
-        private static bool IsBetterCandidate(float centerDistance, float worldDistance, float bestCenterDistance, float bestWorldDistance)
-        {
-            if (centerDistance < bestCenterDistance - 0.0001f)
-                return true;
-
-            if (Mathf.Abs(centerDistance - bestCenterDistance) <= 0.0001f && worldDistance < bestWorldDistance)
-                return true;
-
-            return false;
-        }
-
-        private static bool TryGetInteractable(Transform from, out IInteractable interactable)
-        {
-            interactable = null;
-            if (from == null)
-                return false;
-
-            interactable = from.GetComponent<IInteractable>()
-                ?? from.GetComponentInParent<IInteractable>()
-                ?? from.GetComponentInChildren<IInteractable>(true);
-
-            return interactable != null;
-        }
-
-        private static bool UsesTriggerInteraction(IInteractable interactable)
-        {
-            if (interactable is not Component component || component == null)
-                return false;
-
-            var colliders = component.GetComponentsInChildren<Collider>(true);
-            for (int i = 0; i < colliders.Length; i++)
-            {
-                if (colliders[i] != null && colliders[i].isTrigger)
-                    return true;
-            }
-
-            return false;
-        }
-
-        private void SyncInteractableOutline()
-        {
-            if (!enableOutlineHighlight)
+            if (!TryResolvePresentationInteractable(out var interactable))
             {
                 ClearInteractableOutline();
+                ClearTooltipPresentation();
+                currentSelectionSource = InteractionSelectionSource.None;
                 return;
             }
 
-            if (!TryResolveInteractable(out var interactable))
+            SyncInteractableOutline(interactable);
+            SyncTooltipPresentation(interactable);
+        }
+
+        private bool TryResolvePresentationInteractable(out IInteractable interactable)
+        {
+            interactable = null;
+            currentSelectionSource = InteractionSelectionSource.None;
+
+            var target = targetSelector != null ? targetSelector.CurrentInteractionTarget : null;
+            if (target != null &&
+                TryGetInteractable(target, out interactable) &&
+                SupportsMode(interactable, InteractionMode.Target))
+            {
+                currentSelectionSource = InteractionSelectionSource.Target;
+                return true;
+            }
+
+            if (enableTriggerFallback && TryResolveFromTriggerCandidates(out interactable))
+            {
+                currentSelectionSource = InteractionSelectionSource.Trigger;
+                return true;
+            }
+
+            return false;
+        }
+
+        private void SyncInteractableOutline(IInteractable interactable)
+        {
+            if (!enableOutlineHighlight)
             {
                 ClearInteractableOutline();
                 return;
@@ -306,6 +290,7 @@ namespace Player {
             {
                 if (newOutlineTarget != null)
                     OutlineController.SetHovered(newOutlineTarget, true);
+
                 return;
             }
 
@@ -315,6 +300,63 @@ namespace Player {
             outlinedInteractable = newOutlineTarget;
             if (outlinedInteractable != null)
                 OutlineController.SetHovered(outlinedInteractable, true);
+        }
+
+        private void SyncTooltipPresentation(IInteractable interactable)
+        {
+            if (presentedInteractable != null && !ReferenceEquals(presentedInteractable, interactable))
+            {
+                LogTooltipDebug($"Switching tooltip from '{GetInteractableName(presentedInteractable)}' to '{GetInteractableName(interactable)}'.");
+                ClearTooltipPresentation();
+            }
+
+            var tooltip = interactable.Tooltip;
+            if (tooltip == null)
+            {
+                presentedInteractable = interactable;
+                activeTooltip = null;
+                LogTooltipDebug($"No tooltip assigned/resolved for '{GetInteractableName(interactable)}'.");
+                return;
+            }
+
+            if (!ReferenceEquals(activeTooltip, tooltip))
+            {
+                ClearTooltipPresentation();
+                activeTooltip = tooltip;
+                activeTooltip.ShowFor(gameObject);
+                LogTooltipDebug($"Tooltip show requested for '{GetInteractableName(interactable)}' from {currentSelectionSource} selection.");
+            }
+            else
+            {
+                if (currentSelectionSource == InteractionSelectionSource.Target)
+                    activeTooltip.ShowFor(gameObject);
+
+                activeTooltip.RefreshFor(gameObject);
+                LogTooltipDebug($"Tooltip refresh requested for '{GetInteractableName(interactable)}' from {currentSelectionSource} selection.");
+            }
+
+            presentedInteractable = interactable;
+        }
+
+        private void ClearInteractableOutline()
+        {
+            if (outlinedInteractable == null)
+                return;
+
+            OutlineController.SetHovered(outlinedInteractable, false);
+            outlinedInteractable = null;
+        }
+
+        private void ClearTooltipPresentation()
+        {
+            if (activeTooltip != null)
+            {
+                LogTooltipDebug($"Hiding tooltip for '{GetInteractableName(presentedInteractable)}'.");
+                activeTooltip.HideFor(gameObject);
+            }
+
+            activeTooltip = null;
+            presentedInteractable = null;
         }
 
         private OutlineTarget ResolveOutlineTarget(IInteractable interactable)
@@ -341,21 +383,156 @@ namespace Player {
             return createdOutline;
         }
 
-        private void ClearInteractableOutline()
+        private bool HasLineOfSight(Vector3 origin, Vector3 targetPoint, IInteractable candidate)
         {
-            if (outlinedInteractable == null)
-                return;
+            var direction = targetPoint - origin;
+            float distance = direction.magnitude;
+            if (distance <= 0.001f)
+                return true;
 
-            OutlineController.SetHovered(outlinedInteractable, false);
-            outlinedInteractable = null;
+            direction /= distance;
+            int raycastMask = ~ignoredRaycastLayers.value;
+            var hits = Physics.RaycastAll(origin, direction, distance, raycastMask, QueryTriggerInteraction.Collide);
+            if (hits == null || hits.Length == 0)
+                return true;
+
+            System.Array.Sort(hits, static (left, right) => left.distance.CompareTo(right.distance));
+
+            for (int i = 0; i < hits.Length; i++)
+            {
+                var hit = hits[i];
+                if (hit.collider == null)
+                    continue;
+
+                var hitInteractor = hit.collider.GetComponentInParent<Interactor>();
+                if (hitInteractor == this)
+                    continue;
+
+                if (!TryGetInteractable(hit.collider.transform, out var firstHitInteractable))
+                    return false;
+
+                return ReferenceEquals(firstHitInteractable, candidate);
+            }
+
+            return true;
         }
 
-        private static InteractionTooltip FindTooltip(IInteractable interactable)
+        private static Vector3 GetTargetPoint(Component candidateComponent, Collider sourceCollider, Vector3 origin)
         {
-            if (interactable is not Component component) return null;
-            return component.GetComponent<InteractionTooltip>()
-                ?? component.GetComponentInParent<InteractionTooltip>()
-                ?? component.GetComponentInChildren<InteractionTooltip>(true);
+            if (sourceCollider != null)
+            {
+                var closestPoint = sourceCollider.ClosestPoint(origin);
+                if ((closestPoint - origin).sqrMagnitude > 0.0001f)
+                    return closestPoint;
+
+                return sourceCollider.bounds.center;
+            }
+
+            var colliders = candidateComponent.GetComponentsInChildren<Collider>(true);
+            var bestPoint = candidateComponent.transform.position;
+            var bestDistanceSqr = float.MaxValue;
+
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                var collider = colliders[i];
+                if (collider == null)
+                    continue;
+
+                var point = collider.ClosestPoint(origin);
+                var distanceSqr = (point - origin).sqrMagnitude;
+                if (distanceSqr <= 0.0001f)
+                {
+                    point = collider.bounds.center;
+                    distanceSqr = (point - origin).sqrMagnitude;
+                }
+
+                if (distanceSqr >= bestDistanceSqr)
+                    continue;
+
+                bestDistanceSqr = distanceSqr;
+                bestPoint = point;
+            }
+
+            return bestPoint;
+        }
+
+        private static Vector3 GetInteractionReferencePoint(Component interactableComponent)
+        {
+            if (interactableComponent == null)
+                return Vector3.zero;
+
+            var targetable = interactableComponent.GetComponent<ITargetable>()
+                ?? interactableComponent.GetComponentInChildren<ITargetable>(true)
+                ?? interactableComponent.GetComponentInParent<ITargetable>();
+
+            if (targetable?.TargetTransform != null)
+                return targetable.TargetTransform.position;
+
+            return interactableComponent.transform.position;
+        }
+
+
+        private Vector3 GetInteractionOrigin()
+        {
+            return transform.position;
+        }
+
+        private Vector3 GetInteractionForward()
+        {
+            var forward = transform.forward;
+            forward.y = 0f;
+            if (forward.sqrMagnitude <= 0.0001f)
+                return Vector3.forward;
+
+            return forward.normalized;
+        }
+
+        private Vector3 GetLineOfSightOrigin()
+        {
+            var cam = viewCamera != null ? viewCamera : Camera.main;
+            return cam != null ? cam.transform.position : transform.position;
+        }
+
+        private bool IsWithinInteractionDistance(Vector3 origin, Vector3 targetPoint)
+        {
+            return GetInteractionDistance(origin, targetPoint) <= maxInteractDistance;
+        }
+
+        private float GetInteractionDistance(Vector3 origin, Vector3 targetPoint)
+        {
+            var delta = targetPoint - origin;
+            delta.y = 0f;
+            return delta.magnitude;
+        }
+
+        private static Vector3 FlattenDirection(Vector3 direction)
+        {
+            direction.y = 0f;
+            return direction.sqrMagnitude <= 0.0001f ? Vector3.zero : direction.normalized;
+        }
+
+        private static bool IsBetterCandidate(float centerDistance, float worldDistance, float bestCenterDistance, float bestWorldDistance)
+        {
+            if (centerDistance < bestCenterDistance - 0.0001f)
+                return true;
+
+            if (Mathf.Abs(centerDistance - bestCenterDistance) <= 0.0001f && worldDistance < bestWorldDistance)
+                return true;
+
+            return false;
+        }
+
+        private static bool TryGetInteractable(Transform from, out IInteractable interactable)
+        {
+            interactable = null;
+            if (from == null)
+                return false;
+
+            interactable = from.GetComponent<IInteractable>()
+                ?? from.GetComponentInParent<IInteractable>()
+                ?? from.GetComponentInChildren<IInteractable>(true);
+
+            return interactable != null;
         }
 
         private bool IsInteractionBlocked(IInteractable interactable)
@@ -371,6 +548,27 @@ namespace Player {
                 return false;
 
             return provider.GetTooltipState(gameObject).IsBlocked;
+        }
+
+        private static bool SupportsMode(IInteractable interactable, InteractionMode mode)
+        {
+            return interactable != null && (interactable.SupportedModes & mode) != 0;
+        }
+
+        private void LogTooltipDebug(string message)
+        {
+            if (!debugInteractionSelection)
+                return;
+
+            Debug.Log($"[Interactor][Tooltip] {message}", this);
+        }
+
+        private static string GetInteractableName(IInteractable interactable)
+        {
+            if (interactable is Component component && component != null)
+                return component.name;
+
+            return interactable?.GetType().Name ?? "null";
         }
     }
 }

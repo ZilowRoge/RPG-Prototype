@@ -13,6 +13,8 @@ namespace Crafting
         [Header("Station")]
         [SerializeField] private string stationId = "crafting_station_001";
         [SerializeField] private CraftingStationType stationType = CraftingStationType.Any;
+        [SerializeField] private InteractionMode supportedModes = InteractionMode.Both;
+        [SerializeField] private InteractionTooltip tooltip;
 
         [Header("Data")]
         [SerializeField] private CraftingRecipeDatabase recipeDatabase;
@@ -26,6 +28,8 @@ namespace Crafting
         public string StationId => stationId;
         public CraftingStationType StationType => stationType;
         public Items.ItemDefinitionDatabase ItemDatabase => itemDatabase;
+        public InteractionMode SupportedModes => supportedModes;
+        public InteractionTooltip Tooltip => tooltip = InteractionTooltipResolver.Resolve(this, tooltip);
 
         private void Reset()
         {

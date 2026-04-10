@@ -13,6 +13,8 @@ namespace Common.World.Harvesting
         [Header("Resource")]
         [SerializeField, Min(1)] private int totalResourceAmount = 6;
         [SerializeField, Min(1)] private int dropAmountPerExtraction = 1;
+        [SerializeField] private InteractionMode supportedModes = InteractionMode.Both;
+        [SerializeField] private InteractionTooltip tooltip;
 
         [Header("Tool Requirement")]
         [SerializeField] private GatheringToolType requiredToolType = GatheringToolType.Pickaxe;
@@ -39,6 +41,9 @@ namespace Common.World.Harvesting
         private int hitsRequiredForNextExtraction;
         private float nextAllowedHitTime;
         private bool isDepleted;
+
+        public InteractionMode SupportedModes => supportedModes;
+        public InteractionTooltip Tooltip => tooltip = InteractionTooltipResolver.Resolve(this, tooltip);
 
         private void Reset()
         {

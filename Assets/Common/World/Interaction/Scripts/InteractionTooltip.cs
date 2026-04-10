@@ -1,11 +1,9 @@
-using Player;
 using TMPro;
 using UnityEngine;
 
 namespace Common.World.Interaction
 {
     [AddComponentMenu("Game/World/Interaction/Interaction Tooltip")]
-    [RequireComponent(typeof(Collider))]
     public class InteractionTooltip : MonoBehaviour
     {
         private const string TooltipTag = "Tooltip";
@@ -19,27 +17,19 @@ namespace Common.World.Interaction
         [SerializeField] private bool logDebug;
         [SerializeField] private bool logWarnings = true;
 
-        private int activeInteractors;
         private GameObject currentPlayer;
+        private bool isVisible;
         private bool loggedMissingTooltipTag;
         private bool loggedMissingTooltipLabel;
 
         private void Reset()
         {
-            var col = GetComponent<Collider>();
-            if (col != null)
-                col.isTrigger = true;
-
             AutoAssignTooltipReferences();
         }
 
         private void Awake()
         {
             AutoAssignTooltipReferences();
-
-            var col = GetComponent<Collider>();
-            if (col != null && !col.isTrigger)
-                col.isTrigger = true;
 
             HideTooltip();
         }
@@ -51,57 +41,72 @@ namespace Common.World.Interaction
 
         private void OnDisable()
         {
-            activeInteractors = 0;
             currentPlayer = null;
+            isVisible = false;
             HideTooltip();
         }
 
         private void Update()
         {
-            if (activeInteractors <= 0 || !IsTooltipVisible())
+            if (!isVisible || !IsTooltipVisible())
                 return;
 
             RefreshTooltipState();
         }
 
-        public void HideAfterInteraction()
+        public void ShowFor(GameObject player)
         {
-            HideTooltip();
-        }
-
-        private void OnTriggerEnter(Collider other)
-        {
-            if (!IsPlayer(other))
-            {
-                LogDebug($"OnTriggerEnter ignored: {other.name}");
-                return;
-            }
-            activeInteractors++;
-            currentPlayer = ResolvePlayer(other);
-            LogDebug($"OnTriggerEnter player: {other.name}, activeInteractors={activeInteractors}");
+            currentPlayer = player;
+            isVisible = true;
+            LogDebug($"ShowFor called. player={(player != null ? player.name : "null")}, hasRoot={tooltipRoot != null}, hasLabel={tooltipLabel != null}");
             ShowTooltip();
         }
 
-        private void OnTriggerExit(Collider other)
+        public void RefreshFor(GameObject player)
         {
-            if (!IsPlayer(other))
+            currentPlayer = player;
+            if (!isVisible)
             {
-                LogDebug($"OnTriggerExit ignored: {other.name}");
+                LogDebug("RefreshFor ignored because tooltip is not marked visible.");
                 return;
             }
-            activeInteractors = Mathf.Max(0, activeInteractors - 1);
-            LogDebug($"OnTriggerExit player: {other.name}, activeInteractors={activeInteractors}");
-            if (activeInteractors == 0)
+
+            LogDebug($"RefreshFor called. player={(player != null ? player.name : "null")}, rootActive={(tooltipRoot != null && tooltipRoot.activeSelf)}, labelEnabled={(tooltipLabel != null && tooltipLabel.enabled)}");
+            RefreshTooltipState();
+        }
+
+        public void HideFor(GameObject player = null)
+        {
+            if (player != null && currentPlayer != null && !ReferenceEquals(player, currentPlayer))
             {
-                currentPlayer = null;
-                HideTooltip();
+                LogDebug($"HideFor ignored due to player mismatch. requested={(player != null ? player.name : "null")}, current={(currentPlayer != null ? currentPlayer.name : "null")}");
+                return;
             }
+
+            currentPlayer = null;
+            isVisible = false;
+            LogDebug("HideFor accepted.");
+            HideTooltip();
+        }
+
+        public void HideAfterInteraction()
+        {
+            HideFor();
         }
 
         private void ShowTooltip()
         {
             EnsureTooltipReferences();
             RefreshTooltipState();
+            EnsureParentChainIsActive();
+
+            var canvasGroup = tooltipRoot != null ? tooltipRoot.GetComponent<CanvasGroup>() : null;
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = 1f;
+                canvasGroup.interactable = false;
+                canvasGroup.blocksRaycasts = false;
+            }
 
             if (tooltipLabel != null)
                 tooltipLabel.enabled = true;
@@ -109,13 +114,13 @@ namespace Common.World.Interaction
             if (tooltipRoot != null)
             {
                 tooltipRoot.SetActive(true);
-                LogDebug("ShowTooltip: tooltipRoot active.");
+                LogDebug($"ShowTooltip: tooltipRoot active. root={tooltipRoot.name}, activeSelf={tooltipRoot.activeSelf}, activeInHierarchy={tooltipRoot.activeInHierarchy}, label={(tooltipLabel != null ? tooltipLabel.name : "null")}");
                 return;
             }
 
             if (tooltipLabel != null)
             {
-                LogDebug("ShowTooltip: tooltipLabel enabled.");
+                LogDebug($"ShowTooltip: tooltipLabel enabled. label={tooltipLabel.name}");
                 return;
             }
 
@@ -125,19 +130,28 @@ namespace Common.World.Interaction
         private void HideTooltip()
         {
             EnsureTooltipReferences();
+
+            var canvasGroup = tooltipRoot != null ? tooltipRoot.GetComponent<CanvasGroup>() : null;
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = 0f;
+                canvasGroup.interactable = false;
+                canvasGroup.blocksRaycasts = false;
+            }
+
             if (tooltipLabel != null)
                 tooltipLabel.enabled = false;
 
             if (tooltipRoot != null)
             {
                 tooltipRoot.SetActive(false);
-                LogDebug("HideTooltip: tooltipRoot inactive.");
+                LogDebug($"HideTooltip: tooltipRoot inactive. root={tooltipRoot.name}, activeSelf={tooltipRoot.activeSelf}, activeInHierarchy={tooltipRoot.activeInHierarchy}");
                 return;
             }
 
             if (tooltipLabel != null)
             {
-                LogDebug("HideTooltip: tooltipLabel disabled.");
+                LogDebug($"HideTooltip: tooltipLabel disabled. label={tooltipLabel.name}");
                 return;
             }
 
@@ -154,6 +168,11 @@ namespace Common.World.Interaction
             {
                 tooltipLabel.text = resolvedMessage;
                 tooltipLabel.color = state.IsBlocked ? blockedTextColor : normalTextColor;
+                LogDebug($"RefreshTooltipState: message='{resolvedMessage}', blocked={state.IsBlocked}");
+            }
+            else
+            {
+                LogDebug("RefreshTooltipState: tooltipLabel is null.");
             }
         }
 
@@ -207,23 +226,22 @@ namespace Common.World.Interaction
                 AutoAssignTooltipReferences();
         }
 
-        private static bool IsPlayer(Component c)
+        private void EnsureParentChainIsActive()
         {
-            if (c == null) return false;
-            if (c.GetComponentInParent<Interactor>() != null) return true;
-            return string.Equals(c.gameObject.name, "Player");
-        }
+            if (tooltipRoot == null)
+                return;
 
-        private GameObject ResolvePlayer(Component component)
-        {
-            if (component == null)
-                return currentPlayer;
+            var current = tooltipRoot.transform;
+            while (current != null)
+            {
+                if (!current.gameObject.activeSelf)
+                    current.gameObject.SetActive(true);
 
-            var interactor = component.GetComponentInParent<Interactor>();
-            if (interactor != null)
-                return interactor.gameObject;
+                if (current.GetComponent<Canvas>() != null)
+                    break;
 
-            return IsPlayer(component) ? component.gameObject : currentPlayer;
+                current = current.parent;
+            }
         }
 
         private static GameObject ResolveRootFromLabel(TMP_Text label)

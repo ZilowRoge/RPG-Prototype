@@ -8,6 +8,12 @@ namespace Common.World.Save
     [RequireComponent(typeof(Collider))]
     public class SavePoint : MonoBehaviour, IInteractable
     {
+        [SerializeField] private InteractionMode supportedModes = InteractionMode.Both;
+        [SerializeField] private InteractionTooltip tooltip;
+
+        public InteractionMode SupportedModes => supportedModes;
+        public InteractionTooltip Tooltip => tooltip = InteractionTooltipResolver.Resolve(this, tooltip);
+
         private void Awake()
         {
             var collider = GetComponent<Collider>();

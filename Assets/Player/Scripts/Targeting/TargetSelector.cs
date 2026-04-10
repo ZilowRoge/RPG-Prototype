@@ -2,6 +2,7 @@ using UnityEngine;
 using Player.Interfaces;
 using Systems.Debugging;
 using OutlineURP;
+using Common.World.Interaction;
 
 namespace Player.Targeting
 {
@@ -47,6 +48,8 @@ namespace Player.Targeting
         private OutlineTarget outlinedTarget;
 
         public Transform CurrentTarget { get; private set; }
+        public Transform CurrentCombatTarget => IsCombatTarget(CurrentTarget) ? CurrentTarget : null;
+        public Transform CurrentInteractionTarget => IsInteractionTarget(CurrentTarget) ? CurrentTarget : null;
 
         private void Awake()
         {
@@ -251,34 +254,13 @@ namespace Player.Targeting
             if (col == null) return null;
             var t = col.transform;
             if (IsSelf(t)) return null;
-            // Look for damageable actors and prefer their explicit target marker if present
-            var damageable = t.GetComponentInParent<IDamageable>();
-            if (damageable is Component damageComponent)
-            {
-                if (IsSelf(damageComponent.transform))
-                    return null;
 
-                if (damageable is IHealthProvider healthProvider)
-                {
-                    if (healthProvider.CurrentHealth <= 0f)
-                        return null;
-                }
+            if (TryGetCombatTargetTransform(t, out var combatTarget))
+                return combatTarget;
 
-                if (damageable is Enemies.Controllers.StatsController enemyStats && enemyStats.IsDead)
-                    return null;
+            if (TryGetInteractionTargetTransform(t, out var interactionTarget))
+                return interactionTarget;
 
-                Transform candidate = null;
-                var targetable = damageComponent.GetComponent<ITargetable>() ??
-                                 damageComponent.GetComponentInChildren<ITargetable>();
-                if (targetable != null)
-                    candidate = targetable.TargetTransform;
-
-                if (candidate == null)
-                    candidate = damageComponent.transform;
-
-                if (candidate != null && !(selfRoot != null && candidate.IsChildOf(selfRoot)))
-                    return candidate;
-            }
             return null;
         }
 
@@ -298,7 +280,7 @@ namespace Player.Targeting
             if (enemyStats != null && enemyStats.IsDead)
                 return false;
 
-            return !IsSelf(target);
+            return !IsSelf(target) && (IsCombatTarget(target) || IsInteractionTarget(target));
         }
         
         public void ClearTarget()
@@ -320,6 +302,105 @@ namespace Player.Targeting
         private bool IsSelf(Transform t)
         {
             return selfRoot != null && t != null && t.IsChildOf(selfRoot);
+        }
+
+        private bool TryGetCombatTargetTransform(Transform source, out Transform target)
+        {
+            target = null;
+
+            var damageable = source.GetComponentInParent<IDamageable>();
+            if (damageable is not Component damageComponent)
+                return false;
+
+            if (IsSelf(damageComponent.transform))
+                return false;
+
+            if (damageable is IHealthProvider healthProvider && healthProvider.CurrentHealth <= 0f)
+                return false;
+
+            if (damageable is Enemies.Controllers.StatsController enemyStats && enemyStats.IsDead)
+                return false;
+
+            target = ResolveTargetTransform(damageComponent.transform);
+            return target != null && !(selfRoot != null && target.IsChildOf(selfRoot));
+        }
+
+        private bool TryGetInteractionTargetTransform(Transform source, out Transform target)
+        {
+            target = null;
+
+            var interactable = source.GetComponent<IInteractable>()
+                ?? source.GetComponentInParent<IInteractable>()
+                ?? source.GetComponentInChildren<IInteractable>(true);
+
+            if (interactable is not Component interactableComponent || interactableComponent == null)
+                return false;
+
+            if ((interactable.SupportedModes & InteractionMode.Target) == 0)
+                return false;
+
+            if (IsSelf(interactableComponent.transform))
+                return false;
+
+            target = ResolveTargetTransform(interactableComponent.transform);
+            return target != null &&
+                   !(selfRoot != null && target.IsChildOf(selfRoot)) &&
+                   IsWithinInteractionFacing(target.position);
+        }
+
+        private static Transform ResolveTargetTransform(Transform root)
+        {
+            if (root == null)
+                return null;
+
+            var targetable = root.GetComponent<ITargetable>() ?? root.GetComponentInChildren<ITargetable>();
+            return targetable != null ? targetable.TargetTransform : root;
+        }
+
+        private bool IsCombatTarget(Transform target)
+        {
+            return target != null && target.GetComponentInParent<IDamageable>() != null;
+        }
+
+        private bool IsInteractionTarget(Transform target)
+        {
+            if (target == null)
+                return false;
+
+            var interactable = target.GetComponent<IInteractable>()
+                ?? target.GetComponentInParent<IInteractable>()
+                ?? target.GetComponentInChildren<IInteractable>(true);
+
+            return interactable != null &&
+                   (interactable.SupportedModes & InteractionMode.Target) != 0 &&
+                   IsWithinInteractionFacing(target.position);
+        }
+
+        private bool IsWithinInteractionFacing(Vector3 targetPosition)
+        {
+            var facingRoot = selfRoot != null ? selfRoot : transform;
+            if (facingRoot == null)
+                return true;
+
+            var origin = facingRoot.position;
+            var forward = facingRoot.forward;
+            var toTarget = targetPosition - origin;
+
+            toTarget.y = 0f;
+            forward.y = 0f;
+
+            if (toTarget.sqrMagnitude <= 0.0001f)
+                return true;
+
+            if (forward.sqrMagnitude <= 0.0001f)
+                forward = transform.forward;
+
+            forward.Normalize();
+            toTarget.Normalize();
+
+            float halfFov = Mathf.Clamp(fovAngle * 0.5f, 0f, 180f);
+            float minDot = Mathf.Cos(halfFov * Mathf.Deg2Rad);
+            return Vector3.Dot(forward, toTarget) >= minDot;
         }
 
         private void InitializeLogger()

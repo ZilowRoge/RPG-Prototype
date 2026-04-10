@@ -195,7 +195,7 @@ namespace Player.FightSystem.Magic
                 }
                 else
                 {
-                    effectiveTarget = targetSelector.CurrentTarget;
+                    effectiveTarget = targetSelector.CurrentCombatTarget;
                 }
             }
             logger.Log(ComponentLogger.LogFlag.Events,

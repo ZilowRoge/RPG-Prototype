@@ -7,6 +7,11 @@ namespace NPC {
     {
         [SerializeField] private UI.NPC.Dialog.DialogControllerUI dialogUI;
         [SerializeField] private Dialog.DialogAsset dialogAsset;
+        [SerializeField] private InteractionMode supportedModes = InteractionMode.Both;
+        [SerializeField] private InteractionTooltip tooltip;
+
+        public InteractionMode SupportedModes => supportedModes;
+        public InteractionTooltip Tooltip => tooltip = InteractionTooltipResolver.Resolve(this, tooltip);
 
         private void Awake()
         {

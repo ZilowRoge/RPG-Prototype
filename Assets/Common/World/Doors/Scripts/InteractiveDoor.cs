@@ -9,8 +9,13 @@ namespace Common.Systems.SymbolTraining
     {
         [Header("Door Components")]
         [SerializeField] private DoorController door;
+        [SerializeField] private InteractionMode supportedModes = InteractionMode.Both;
+        [SerializeField] private InteractionTooltip tooltip;
         [Header("Open Condition (Strategy)")]
         private IDoorOpenCondition openCondition;
+
+        public InteractionMode SupportedModes => supportedModes;
+        public InteractionTooltip Tooltip => tooltip = InteractionTooltipResolver.Resolve(this, tooltip);
 
         public void Interact(GameObject player)
         {

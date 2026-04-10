@@ -17,6 +17,8 @@ namespace Common.World.Loot
         [Header("Container")]
         [SerializeField] private string containerId = "container_001";
         [SerializeField] private string containerName = "Container";
+        [SerializeField] private InteractionMode supportedModes = InteractionMode.Both;
+        [SerializeField] private InteractionTooltip tooltip;
         [SerializeField] private InventoryController inventoryController;
         [SerializeField, Min(1)] private int slotCount = 6;
         [SerializeField] private bool initializeOnAwake = true;
@@ -28,6 +30,9 @@ namespace Common.World.Loot
 
         [Header("UI")]
         [SerializeField] private LootContainerWindow containerWindowOverride;
+
+        public InteractionMode SupportedModes => supportedModes;
+        public InteractionTooltip Tooltip => tooltip = InteractionTooltipResolver.Resolve(this, tooltip);
 
         private void Awake()
         {

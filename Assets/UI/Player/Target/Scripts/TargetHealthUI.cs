@@ -36,14 +36,14 @@ namespace UI.Player.Target
 
         private void OnEnable()
         {
-            SynchroniseTarget(targetSelector != null ? targetSelector.CurrentTarget : null);
+            SynchroniseTarget(targetSelector != null ? targetSelector.CurrentCombatTarget : null);
             nextUpdateTime = 0f;
             hasTarget = currentHealth != null;
         }
 
         private void Update()
         {
-            var selected = targetSelector != null ? targetSelector.CurrentTarget : null;
+            var selected = targetSelector != null ? targetSelector.CurrentCombatTarget : null;
             if (selected == null && hasTarget)
             {
                 SynchroniseTarget(null);
@@ -70,10 +70,6 @@ namespace UI.Player.Target
             {
                 currentHealth = target.GetComponentInParent<IHealthProvider>();
                 currentHealthComponent = currentHealth as Component;
-                if (currentHealth == null)
-                {
-                    Debug.LogWarning($"[TargetHealthUI] Target '{target.name}' is missing IHealthProvider in parent chain.", this);
-                }
             }
             else
             {
@@ -134,7 +130,7 @@ namespace UI.Player.Target
             if (targetSelector == null)
                 targetSelector = FindAnyObjectByType<TargetSelector>();
 
-            SynchroniseTarget(targetSelector != null ? targetSelector.CurrentTarget : null);
+            SynchroniseTarget(targetSelector != null ? targetSelector.CurrentCombatTarget : null);
             nextUpdateTime = 0f;
             hasTarget = currentHealth != null;
         }
