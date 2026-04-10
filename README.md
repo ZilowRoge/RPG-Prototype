@@ -37,17 +37,15 @@ The project follows the standard Unity folder structure:
 
     Select the root project folder (where the Assets folder is located).
 
-    Replace Assets Folder (Optional)
-    If you have your own assets, you can:
+    Replace Assets Folder .
 
-    Delete the existing Assets folder.
+    Open Project via Unity Hub
 
-    Copy your own Assets folder into the project.
+    When you first open your project it will contain some Errors due to not installed packages.
+    Open the editor in Safe Mode
 
-    Play the Project
+    To install the missing packages go to Window->Packet Manager.
+    Find the Unity Registry tab download: Cinemachine
+    Install Baracuda from git URL "com.unity.barracuda".
 
-    Press the Play button in the Unity Editor.
-
-    If Unity prompts to install missing packages (e.g., Input System, URP), allow it.
-
-    Open scene AcademyPatio
+    
