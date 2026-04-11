@@ -1,4 +1,5 @@
 using System.Linq;
+using Common.Editor;
 using Common.Progress;
 using Common.Systems.SymbolTraining;
 using UnityEditor;
@@ -20,17 +21,11 @@ namespace Common.World.Doors.Editor
             EditorGUILayout.Space(6);
 
             // Try find any FlagRegistry in project (Editor-only)
-            FlagRegistry registry = null;
-            string[] guids = AssetDatabase.FindAssets("t:FlagRegistry");
-            if (guids.Length > 0)
-            {
-                var path = AssetDatabase.GUIDToAssetPath(guids[0]);
-                registry = AssetDatabase.LoadAssetAtPath<FlagRegistry>(path);
-            }
+            var registry = ProjectAssetCache.GetFlagRegistry();
 
             if (registry != null && registry.Flags != null && registry.Flags.Count > 0)
             {
-                var keys = registry.GetKeys().ToArray();
+                var keys = ProjectAssetCache.GetFlagKeys();
                 int currentIndex = Mathf.Max(0, System.Array.IndexOf(keys, idProp.stringValue));
                 int newIndex = EditorGUILayout.Popup("Flag Id", currentIndex, keys);
                 if (newIndex >= 0 && newIndex < keys.Length)
@@ -52,6 +47,9 @@ namespace Common.World.Doors.Editor
                 EditorGUILayout.PropertyField(idProp, new GUIContent("Flag Id"));
                 EditorGUILayout.HelpBox("Create a FlagRegistry asset to get a dropdown of known flags.", MessageType.Info);
             }
+
+            if (GUILayout.Button("Refresh Flags"))
+                ProjectAssetCache.GetFlagKeys(forceRefresh: true);
 
             serializedObject.ApplyModifiedProperties();
         }

@@ -1,4 +1,5 @@
 using System.Linq;
+using Common.Editor;
 using Common.Progress;
 using UnityEditor;
 using UnityEngine;
@@ -8,6 +9,9 @@ namespace Quests.Editor
     [CustomEditor(typeof(QuestAsset))]
     public class QuestAssetEditor : UnityEditor.Editor
     {
+        private static string[] cachedKeys = System.Array.Empty<string>();
+        private static FlagRegistry cachedRegistry;
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -32,10 +36,8 @@ namespace Quests.Editor
             int newSize = Mathf.Max(0, EditorGUILayout.IntField("Size", stagesProp.arraySize));
             if (newSize != stagesProp.arraySize) stagesProp.arraySize = newSize;
 
-            var registry = FindRegistry();
-            string[] keys = registry != null && registry.Flags != null && registry.Flags.Count > 0
-                ? registry.GetKeys().ToArray()
-                : null;
+            var registry = cachedRegistry ??= ProjectAssetCache.GetFlagRegistry();
+            string[] keys = cachedKeys.Length > 0 ? cachedKeys : (cachedKeys = ProjectAssetCache.GetFlagKeys());
 
             for (int i = 0; i < stagesProp.arraySize; i++)
             {
@@ -123,15 +125,13 @@ namespace Quests.Editor
                 stagesProp.InsertArrayElementAtIndex(stagesProp.arraySize);
             }
 
-            serializedObject.ApplyModifiedProperties();
-        }
+            if (GUILayout.Button("Refresh Flags"))
+            {
+                cachedRegistry = ProjectAssetCache.GetFlagRegistry(forceRefresh: true);
+                cachedKeys = ProjectAssetCache.GetFlagKeys(forceRefresh: true);
+            }
 
-        private static FlagRegistry FindRegistry()
-        {
-            string[] guids = AssetDatabase.FindAssets("t:FlagRegistry");
-            if (guids.Length == 0) return null;
-            var path = AssetDatabase.GUIDToAssetPath(guids[0]);
-            return AssetDatabase.LoadAssetAtPath<FlagRegistry>(path);
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }

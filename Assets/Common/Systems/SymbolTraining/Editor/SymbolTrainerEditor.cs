@@ -1,4 +1,5 @@
 using System.Linq;
+using Common.Editor;
 using Common.Progress;
 using UnityEditor;
 using UnityEngine;
@@ -8,6 +9,9 @@ namespace Common.Systems.SymbolTraining.Editor
     [CustomEditor(typeof(SymbolTrainer), true)]
     public class SymbolTrainerEditor : UnityEditor.Editor
     {
+        private static string[] cachedKeys = System.Array.Empty<string>();
+        private static FlagRegistry cachedRegistry;
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -25,10 +29,8 @@ namespace Common.Systems.SymbolTraining.Editor
             int newSize = Mathf.Max(0, EditorGUILayout.IntField("Size", triggersProp.arraySize));
             if (newSize != triggersProp.arraySize) triggersProp.arraySize = newSize;
 
-            var registry = FindRegistry();
-            var keys = registry != null && registry.Flags != null && registry.Flags.Count > 0
-                ? registry.GetKeys().ToArray()
-                : null;
+            var registry = cachedRegistry ??= ProjectAssetCache.GetFlagRegistry();
+            var keys = cachedKeys.Length > 0 ? cachedKeys : (cachedKeys = ProjectAssetCache.GetFlagKeys());
 
             for (int i = 0; i < triggersProp.arraySize; i++)
             {
@@ -73,16 +75,13 @@ namespace Common.Systems.SymbolTraining.Editor
                 triggersProp.InsertArrayElementAtIndex(triggersProp.arraySize);
             }
 
-            serializedObject.ApplyModifiedProperties();
-        }
+            if (GUILayout.Button("Refresh Flags"))
+            {
+                cachedRegistry = ProjectAssetCache.GetFlagRegistry(forceRefresh: true);
+                cachedKeys = ProjectAssetCache.GetFlagKeys(forceRefresh: true);
+            }
 
-        private static FlagRegistry FindRegistry()
-        {
-            string[] guids = AssetDatabase.FindAssets("t:FlagRegistry");
-            if (guids.Length == 0) return null;
-            var path = AssetDatabase.GUIDToAssetPath(guids[0]);
-            return AssetDatabase.LoadAssetAtPath<FlagRegistry>(path);
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }
-

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Common.Editor;
 using Items;
 using UnityEditor;
 using UnityEngine;
@@ -31,7 +32,6 @@ namespace Crafting.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            LoadItemOptions();
 
             EditorGUILayout.LabelField("Identity", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(recipeIdProp);
@@ -59,7 +59,7 @@ namespace Crafting.Editor
                 EditorGUI.EndDisabledGroup();
 
                 if (GUILayout.Button("Refresh Item Ids"))
-                    LoadItemOptions();
+                    LoadItemOptions(forceRefresh: true);
 
                 return;
             }
@@ -67,7 +67,7 @@ namespace Crafting.Editor
             EditorGUILayout.HelpBox("No ItemDefinitionDatabase with items was found. You can still type item IDs manually.", MessageType.Info);
 
             if (GUILayout.Button("Refresh Item Ids"))
-                LoadItemOptions();
+                LoadItemOptions(forceRefresh: true);
         }
 
         private void DrawItemList(SerializedProperty listProp, string header, string entryLabel, string addButtonLabel)
@@ -156,9 +156,9 @@ namespace Crafting.Editor
             return itemIdOptions.Length > 0 ? itemIdOptions[0] : string.Empty;
         }
 
-        private void LoadItemOptions()
+        private void LoadItemOptions(bool forceRefresh = false)
         {
-            cachedDatabase = FindItemDatabase();
+            cachedDatabase = ProjectAssetCache.GetItemDatabase(forceRefresh);
 
             if (cachedDatabase == null || cachedDatabase.Definitions == null || cachedDatabase.Definitions.Count == 0)
             {
@@ -184,28 +184,6 @@ namespace Crafting.Editor
 
             itemIdOptions = ids.ToArray();
             itemDisplayOptions = labels.ToArray();
-        }
-
-        private static ItemDefinitionDatabase FindItemDatabase()
-        {
-            var loadedDatabases = Resources.FindObjectsOfTypeAll<ItemDefinitionDatabase>();
-            for (int i = 0; i < loadedDatabases.Length; i++)
-            {
-                var database = loadedDatabases[i];
-                if (database != null && database.Definitions != null && database.Definitions.Count > 0)
-                    return database;
-            }
-
-            string[] databaseGuids = AssetDatabase.FindAssets("t:ItemDefinitionDatabase");
-            for (int i = 0; i < databaseGuids.Length; i++)
-            {
-                var databasePath = AssetDatabase.GUIDToAssetPath(databaseGuids[i]);
-                var database = AssetDatabase.LoadAssetAtPath<ItemDefinitionDatabase>(databasePath);
-                if (database != null && database.Definitions != null && database.Definitions.Count > 0)
-                    return database;
-            }
-
-            return null;
         }
     }
 }

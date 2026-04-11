@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Common.World.Interaction;
-using OutlineURP;
 using Player.Interfaces;
 using Player.Targeting;
 using UnityEngine;
@@ -31,17 +30,11 @@ namespace Player
         [Header("Trigger Fallback")]
         [SerializeField] private bool enableTriggerFallback = true;
 
-        [Header("Outline")]
-        [SerializeField] private bool enableOutlineHighlight = true;
-        [SerializeField] private bool autoCreateOutlineTarget = true;
-        [SerializeField] private OutlineGroup autoCreatedOutlineGroup = OutlineGroup.Custom1;
-
         [Header("Debug")]
         [SerializeField] private bool debugInteractionSelection;
 
         private readonly List<IInteractable> triggerCandidates = new();
         private readonly Dictionary<IInteractable, int> triggerCandidateCounts = new();
-        private OutlineTarget outlinedInteractable;
         private IInteractable presentedInteractable;
         private InteractionTooltip activeTooltip;
         private InteractionSelectionSource currentSelectionSource;
@@ -61,7 +54,6 @@ namespace Player
 
         private void OnDisable()
         {
-            ClearInteractableOutline();
             ClearTooltipPresentation();
             currentSelectionSource = InteractionSelectionSource.None;
             triggerCandidates.Clear();
@@ -244,13 +236,11 @@ namespace Player
         {
             if (!TryResolvePresentationInteractable(out var interactable))
             {
-                ClearInteractableOutline();
                 ClearTooltipPresentation();
                 currentSelectionSource = InteractionSelectionSource.None;
                 return;
             }
 
-            SyncInteractableOutline(interactable);
             SyncTooltipPresentation(interactable);
         }
 
@@ -275,31 +265,6 @@ namespace Player
             }
 
             return false;
-        }
-
-        private void SyncInteractableOutline(IInteractable interactable)
-        {
-            if (!enableOutlineHighlight)
-            {
-                ClearInteractableOutline();
-                return;
-            }
-
-            var newOutlineTarget = ResolveOutlineTarget(interactable);
-            if (outlinedInteractable == newOutlineTarget)
-            {
-                if (newOutlineTarget != null)
-                    OutlineController.SetHovered(newOutlineTarget, true);
-
-                return;
-            }
-
-            if (outlinedInteractable != null)
-                OutlineController.SetHovered(outlinedInteractable, false);
-
-            outlinedInteractable = newOutlineTarget;
-            if (outlinedInteractable != null)
-                OutlineController.SetHovered(outlinedInteractable, true);
         }
 
         private void SyncTooltipPresentation(IInteractable interactable)
@@ -338,15 +303,6 @@ namespace Player
             presentedInteractable = interactable;
         }
 
-        private void ClearInteractableOutline()
-        {
-            if (outlinedInteractable == null)
-                return;
-
-            OutlineController.SetHovered(outlinedInteractable, false);
-            outlinedInteractable = null;
-        }
-
         private void ClearTooltipPresentation()
         {
             if (activeTooltip != null)
@@ -357,30 +313,6 @@ namespace Player
 
             activeTooltip = null;
             presentedInteractable = null;
-        }
-
-        private OutlineTarget ResolveOutlineTarget(IInteractable interactable)
-        {
-            if (interactable is not Component component || component == null)
-                return null;
-
-            var existingOutline = component.GetComponent<OutlineTarget>()
-                ?? component.GetComponentInParent<OutlineTarget>()
-                ?? component.GetComponentInChildren<OutlineTarget>(true);
-
-            if (existingOutline != null)
-                return existingOutline;
-
-            if (!autoCreateOutlineTarget)
-                return null;
-
-            var createdOutline = component.GetComponent<OutlineTarget>();
-            if (createdOutline != null)
-                return createdOutline;
-
-            createdOutline = component.gameObject.AddComponent<OutlineTarget>();
-            createdOutline.SetGroup(autoCreatedOutlineGroup);
-            return createdOutline;
         }
 
         private bool HasLineOfSight(Vector3 origin, Vector3 targetPoint, IInteractable candidate)

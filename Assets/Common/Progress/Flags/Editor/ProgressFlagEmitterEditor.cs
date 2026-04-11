@@ -1,3 +1,4 @@
+using Common.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -35,43 +36,23 @@ namespace Common.Progress.Editor
             EditorGUILayout.PropertyField(emitOnEnableProp);
             EditorGUILayout.PropertyField(emitOnceProp);
 
-            LoadFlagOptions();
             DrawFlagSelector();
 
             serializedObject.ApplyModifiedProperties();
         }
 
-        void LoadFlagOptions()
+        void LoadFlagOptions(bool forceRefresh = false)
         {
+            if (forceRefresh)
+            {
+                cachedRegistry = null;
+                flagOptions = null;
+            }
+
             flagOptions = null;
 
             if (cachedRegistry == null)
-            {
-                var registries = Resources.FindObjectsOfTypeAll<FlagRegistry>();
-                if (registries != null && registries.Length > 0)
-                {
-                    for (int i = 0; i < registries.Length; i++)
-                    {
-                        var candidate = registries[i];
-                        if (candidate != null && candidate.Flags != null && candidate.Flags.Count > 0)
-                        {
-                            cachedRegistry = candidate;
-                            break;
-                        }
-                    }
-                }
-
-                if (cachedRegistry == null)
-                {
-                    string[] guids = AssetDatabase.FindAssets("t:FlagRegistry");
-                    for (int i = 0; i < guids.Length; i++)
-                    {
-                        cachedRegistry = AssetDatabase.LoadAssetAtPath<FlagRegistry>(AssetDatabase.GUIDToAssetPath(guids[i]));
-                        if (cachedRegistry != null && cachedRegistry.Flags != null && cachedRegistry.Flags.Count > 0)
-                            break;
-                    }
-                }
-            }
+                cachedRegistry = ProjectAssetCache.GetFlagRegistry(forceRefresh);
 
             if (cachedRegistry == null || cachedRegistry.Flags == null || cachedRegistry.Flags.Count == 0)
             {
@@ -94,7 +75,7 @@ namespace Common.Progress.Editor
                 EditorGUILayout.PropertyField(flagKeyProp);
                 EditorGUILayout.HelpBox("No FlagRegistry found or registry has no flags.", MessageType.Info);
                 if (GUILayout.Button("Refresh Flags"))
-                    LoadFlagOptions();
+                    LoadFlagOptions(forceRefresh: true);
                 return;
             }
 
@@ -104,7 +85,7 @@ namespace Common.Progress.Editor
                 flagKeyProp.stringValue = flagOptions[newIndex];
 
             if (GUILayout.Button("Refresh Flags"))
-                LoadFlagOptions();
+                LoadFlagOptions(forceRefresh: true);
         }
     }
 }

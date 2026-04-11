@@ -1,7 +1,6 @@
 using UnityEngine;
 using Player.Interfaces;
 using Systems.Debugging;
-using OutlineURP;
 using Common.World.Interaction;
 
 namespace Player.Targeting
@@ -34,18 +33,12 @@ namespace Player.Targeting
         [SerializeField] private Color debugHitColor = new Color(1f, 0.92f, 0.016f, 0.9f);
         [SerializeField] private float debugHitMarkerSize = 0.2f;
         
-        [Header("Target Highlight")]
-        [SerializeField] private bool enableOutlineHighlight = true;
-        [SerializeField] private bool autoCreateOutlineTarget = true;
-        [SerializeField] private OutlineGroup autoCreatedOutlineGroup = OutlineGroup.Enemy;
-
         [Header("References")] 
         [SerializeField] private Camera viewCamera;
         [SerializeField] private ComponentLogger logger = new ComponentLogger();
 
         private float nextUpdateTime;
         private readonly Collider[] overlapBuffer = new Collider[64];
-        private OutlineTarget outlinedTarget;
 
         public Transform CurrentTarget { get; private set; }
         public Transform CurrentCombatTarget => IsCombatTarget(CurrentTarget) ? CurrentTarget : null;
@@ -413,69 +406,6 @@ namespace Player.Targeting
         private void SetCurrentTarget(Transform target)
         {
             CurrentTarget = target;
-            SyncTargetOutline(target);
-        }
-
-        private void SyncTargetOutline(Transform target)
-        {
-            if (!enableOutlineHighlight)
-            {
-                ClearTargetOutline();
-                return;
-            }
-
-            var newOutlineTarget = ResolveOutlineTarget(target);
-            if (outlinedTarget == newOutlineTarget)
-            {
-                if (newOutlineTarget != null)
-                    OutlineController.SetSelected(newOutlineTarget, true);
-                return;
-            }
-
-            if (outlinedTarget != null)
-                OutlineController.SetSelected(outlinedTarget, false);
-
-            outlinedTarget = newOutlineTarget;
-            if (outlinedTarget != null)
-                OutlineController.SetSelected(outlinedTarget, true);
-        }
-
-        private OutlineTarget ResolveOutlineTarget(Transform target)
-        {
-            if (target == null)
-                return null;
-
-            var existingOutline = target.GetComponentInParent<OutlineTarget>();
-            if (existingOutline != null)
-                return existingOutline;
-
-            if (!autoCreateOutlineTarget)
-                return null;
-
-            Transform outlineRoot = target;
-            var damageable = target.GetComponentInParent<IDamageable>();
-            if (damageable is Component damageableComponent)
-                outlineRoot = damageableComponent.transform;
-
-            if (outlineRoot == null)
-                return null;
-
-            var createdOutline = outlineRoot.GetComponent<OutlineTarget>();
-            if (createdOutline != null)
-                return createdOutline;
-
-            createdOutline = outlineRoot.gameObject.AddComponent<OutlineTarget>();
-            createdOutline.SetGroup(autoCreatedOutlineGroup);
-            return createdOutline;
-        }
-
-        private void ClearTargetOutline()
-        {
-            if (outlinedTarget == null)
-                return;
-
-            OutlineController.SetSelected(outlinedTarget, false);
-            outlinedTarget = null;
         }
 
     }
