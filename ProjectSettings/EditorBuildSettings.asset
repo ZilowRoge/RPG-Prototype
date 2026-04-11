@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 0
+    path: Assets/Scenes/SampleScene.unity
+    guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 0
+    path: Assets/Scenes/AcademyPatio.unity
+    guid: 8ea3464326287ff4aa72d3c707f2629b
+  - enabled: 0
+    path: Assets/Scenes/ExamBuilding.unity
+    guid: 515dfa18b399a4140a55c1649d420b74
+  - enabled: 1
+    path: Assets/Scenes/AcademyGrounds.unity
+    guid: 85d4b9d4e97e66d48b4cc2ae3fc1a727
+  - enabled: 1
+    path: Assets/Scenes/DormitoryBuilding.unity
+    guid: 5935fa4335220f640afeadcd9272bcae
+  m_configObjects: {}
