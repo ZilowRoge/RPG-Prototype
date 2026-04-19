@@ -1,15 +1,14 @@
 using Inventory;
-using Player;
+using Common.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UI.Player.Common;
 
 namespace UI.Player.Inventory
 {
     /// <summary>
     /// Displays a container inventory alongside the player's inventory and supports transferring items between them.
     /// </summary>
-    public class LootContainerWindow : MonoBehaviour, IPlayerReferenceReceiver
+    public class LootContainerWindow : MonoBehaviour, IInventoryReferenceReceiver, ILootContainerWindow
     {
 
         [Header("Root")]
@@ -44,7 +43,7 @@ namespace UI.Player.Inventory
         {
             if (isOpen)
             {
-                PlayerInputLockService.TryGetInstance()?.SetLock(this, false);
+                PlayerInputLocks.SetLock(this, false);
                 isOpen = false;
             }
         }
@@ -77,7 +76,7 @@ namespace UI.Player.Inventory
             isOpen = true;
             SetRootVisible(true);
             Refresh();
-            PlayerInputLockService.Instance?.SetLock(this, true);
+            PlayerInputLocks.SetLock(this, true);
             if (manageCursor)
                 CaptureCursor();
         }
@@ -87,7 +86,7 @@ namespace UI.Player.Inventory
             if (!isOpen)
                 return;
 
-            PlayerInputLockService.Instance?.SetLock(this, false);
+            PlayerInputLocks.SetLock(this, false);
             if (manageCursor)
                 ReleaseCursor();
             isOpen = false;
@@ -286,9 +285,9 @@ namespace UI.Player.Inventory
             Cursor.visible = previousCursorVisible;
         }
 
-        public void BindPlayerReferences(PlayerUIReferences refs)
+        public void BindInventoryReferences(InventoryController inventory, EquipmentController equipment)
         {
-            var newPlayerController = refs.Inventory;
+            var newPlayerController = inventory;
             if (newPlayerController == playerController)
                 return;
 

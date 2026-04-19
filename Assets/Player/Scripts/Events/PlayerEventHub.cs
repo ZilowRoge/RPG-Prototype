@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using Systems.Jobs;
 using Systems.Perks;
+using Player.Interfaces;
 
 namespace Player.Events
 {
@@ -9,7 +10,7 @@ namespace Player.Events
     /// Central hub for player-wide progress and perk notifications.
     /// </summary>
     [DisallowMultipleComponent]
-    public class PlayerEventHub : MonoBehaviour
+    public class PlayerEventHub : MonoBehaviour, IFlagChangeSource
     {
         public event Action<int> AvailableExperienceChanged;
         public event Action<JobInstance> JobExperienceChanged;

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using Common.UI;
 using TMPro;
 using UnityEngine;
 using Quests;
-using UI.Player.Common;
 using Items;
 
 namespace UI.Player.Quests

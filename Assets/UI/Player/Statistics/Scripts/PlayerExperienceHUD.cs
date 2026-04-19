@@ -11,7 +11,7 @@ namespace UI.Player.Statistics
     /// Displays the pool of spendable experience on the HUD
     /// and hides it until the player can afford at least one class level-up.
     /// </summary>
-    public class PlayerExperienceHUD : MonoBehaviour, IPlayerReferenceReceiver
+    public class PlayerExperienceHUD : MonoBehaviour, IProgressControllerReceiver, IPlayerEventHubReceiver
     {
         [SerializeField] private ProgressController progress;
         [SerializeField] private TextMeshProUGUI experienceText;
@@ -125,17 +125,25 @@ namespace UI.Player.Statistics
                 playerEvents = progress.EventHub;
         }
 
-        public void BindPlayerReferences(PlayerUIReferences refs)
+        public void BindProgressController(ProgressController progressController)
         {
             Unsubscribe();
 
-            progress = refs.Progress;
-            playerEvents = refs.EventHub;
+            progress = progressController;
 
             if (progress == null)
                 progress = FindAnyObjectByType<ProgressController>();
 
             CacheEventHub();
+        }
+
+        public void BindPlayerEventHub(PlayerEventHub eventHub)
+        {
+            Unsubscribe();
+            playerEvents = eventHub;
+
+            if (playerEvents == null)
+                CacheEventHub();
 
             if (isActiveAndEnabled)
             {

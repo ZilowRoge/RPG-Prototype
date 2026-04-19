@@ -1,0 +1,17 @@
+{
+  "name": "RPG.Common.World.Orb",
+  "rootNamespace": "",
+  "references": [
+    "RPG.Base",
+    "RPG.Quests"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

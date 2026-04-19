@@ -1,5 +1,4 @@
 using System.Linq;
-using Common.Editor;
 using Common.Progress;
 using UnityEditor;
 using UnityEngine;
@@ -36,8 +35,8 @@ namespace Quests.Editor
             int newSize = Mathf.Max(0, EditorGUILayout.IntField("Size", stagesProp.arraySize));
             if (newSize != stagesProp.arraySize) stagesProp.arraySize = newSize;
 
-            var registry = cachedRegistry ??= ProjectAssetCache.GetFlagRegistry();
-            string[] keys = cachedKeys.Length > 0 ? cachedKeys : (cachedKeys = ProjectAssetCache.GetFlagKeys());
+            var registry = cachedRegistry ??= FindFlagRegistry();
+            string[] keys = cachedKeys.Length > 0 ? cachedKeys : (cachedKeys = GetFlagKeys(registry));
 
             for (int i = 0; i < stagesProp.arraySize; i++)
             {
@@ -127,11 +126,32 @@ namespace Quests.Editor
 
             if (GUILayout.Button("Refresh Flags"))
             {
-                cachedRegistry = ProjectAssetCache.GetFlagRegistry(forceRefresh: true);
-                cachedKeys = ProjectAssetCache.GetFlagKeys(forceRefresh: true);
+                cachedRegistry = FindFlagRegistry();
+                cachedKeys = cachedRegistry != null ? GetFlagKeys(cachedRegistry) : System.Array.Empty<string>();
             }
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private static FlagRegistry FindFlagRegistry()
+        {
+            var guids = AssetDatabase.FindAssets("t:FlagRegistry");
+            for (int i = 0; i < guids.Length; i++)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                var registry = AssetDatabase.LoadAssetAtPath<FlagRegistry>(path);
+                if (registry != null)
+                    return registry;
+            }
+
+            return null;
+        }
+
+        private static string[] GetFlagKeys(FlagRegistry registry)
+        {
+            return registry != null && registry.Flags != null
+                ? registry.GetKeys().ToArray()
+                : System.Array.Empty<string>();
         }
     }
 }

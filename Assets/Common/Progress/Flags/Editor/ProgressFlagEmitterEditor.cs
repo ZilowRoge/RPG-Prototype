@@ -1,4 +1,3 @@
-using Common.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,7 +6,7 @@ namespace Common.Progress.Editor
     [CustomEditor(typeof(ProgressFlagEmitter))]
     public class ProgressFlagEmitterEditor : UnityEditor.Editor
     {
-        SerializedProperty progressControllerProp;
+        SerializedProperty progressSourceProp;
         SerializedProperty flagKeyProp;
         SerializedProperty flagValueProp;
         SerializedProperty emitOnEnableProp;
@@ -18,7 +17,7 @@ namespace Common.Progress.Editor
 
         void OnEnable()
         {
-            progressControllerProp = serializedObject.FindProperty("progressController");
+            progressSourceProp = serializedObject.FindProperty("progressSource");
             flagKeyProp = serializedObject.FindProperty("flagKey");
             flagValueProp = serializedObject.FindProperty("flagValue");
             emitOnEnableProp = serializedObject.FindProperty("emitOnEnable");
@@ -31,7 +30,7 @@ namespace Common.Progress.Editor
         {
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(progressControllerProp);
+            EditorGUILayout.PropertyField(progressSourceProp);
             EditorGUILayout.PropertyField(flagValueProp);
             EditorGUILayout.PropertyField(emitOnEnableProp);
             EditorGUILayout.PropertyField(emitOnceProp);
@@ -52,7 +51,7 @@ namespace Common.Progress.Editor
             flagOptions = null;
 
             if (cachedRegistry == null)
-                cachedRegistry = ProjectAssetCache.GetFlagRegistry(forceRefresh);
+                cachedRegistry = FindFlagRegistry();
 
             if (cachedRegistry == null || cachedRegistry.Flags == null || cachedRegistry.Flags.Count == 0)
             {
@@ -66,6 +65,20 @@ namespace Common.Progress.Editor
             {
                 flagOptions[i] = cachedRegistry.Flags[i]?.key ?? string.Empty;
             }
+        }
+
+        private static FlagRegistry FindFlagRegistry()
+        {
+            var guids = AssetDatabase.FindAssets("t:FlagRegistry");
+            for (int i = 0; i < guids.Length; i++)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                var registry = AssetDatabase.LoadAssetAtPath<FlagRegistry>(path);
+                if (registry != null)
+                    return registry;
+            }
+
+            return null;
         }
 
         void DrawFlagSelector()

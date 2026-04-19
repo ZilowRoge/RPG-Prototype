@@ -1,0 +1,19 @@
+{
+  "name": "RPG.UI.Player.Common",
+  "rootNamespace": "",
+  "references": [
+    "RPG.Base",
+    "RPG.Inventory",
+    "RPG.Player",
+    "Unity.InputSystem"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

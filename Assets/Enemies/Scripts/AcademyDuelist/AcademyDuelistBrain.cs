@@ -4,7 +4,7 @@ using Enemies.Interfaces;
 using Enemies.Combat;
 using Enemies.Config;
 using Enemies.Controllers;
-using PlayerStats = Player.Statistics.StatsController;
+using Player.Interfaces;
 using Systems.Debugging;
 using UnityEngine;
 using UnityEngine.AI;
@@ -24,7 +24,8 @@ namespace Enemies.AcademyDuelist
         }
 
         [Header("References")]
-        [SerializeField] private PlayerStats playerStats;
+        [SerializeField] private MonoBehaviour playerShieldSource;
+        private IShieldState playerShieldState;
 
         [Header("Movement")]
         [SerializeField] private AcademyDuelistMovement movement = new AcademyDuelistMovement();
@@ -53,8 +54,7 @@ namespace Enemies.AcademyDuelist
                     playerTarget = playerObject.transform;
             }
 
-            if (playerTarget != null && playerStats == null)
-                playerStats = playerTarget.GetComponent<PlayerStats>();
+            ResolvePlayerShieldState();
 
             movement.Initialize(new EnemyMovementContext(
                 transform,
@@ -111,13 +111,11 @@ namespace Enemies.AcademyDuelist
 
         private void UpdateShieldStatus()
         {
-            if (playerStats == null && playerTarget != null)
-                playerStats = playerTarget.GetComponent<PlayerStats>();
-
-            if (playerStats == null)
+            ResolvePlayerShieldState();
+            if (playerShieldState == null)
                 return;
 
-            bool shieldActive = playerStats.IsShieldActive();
+            bool shieldActive = playerShieldState.IsShieldActive();
             if (!shieldActive || currentState != DuelistState.Idle || quickBreakDelayTimer > 0f)
                 return;
 
@@ -430,6 +428,18 @@ namespace Enemies.AcademyDuelist
             }
 
             Destroy(instance, entry.chargingTime);
+        }
+
+        private void ResolvePlayerShieldState()
+        {
+            if (playerShieldState != null)
+                return;
+
+            if (playerShieldSource != null)
+                playerShieldState = playerShieldSource as IShieldState;
+
+            if (playerShieldState == null && playerTarget != null)
+                playerShieldState = playerTarget.GetComponent<IShieldState>();
         }
     }
 }

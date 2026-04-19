@@ -1,8 +1,2 @@
-namespace Items
-{
-    public enum GatheringToolType
-    {
-        Pickaxe = 0,
-        Axe = 1
-    }
-}
+// Moved to Assets/Base/Items/GatheringToolType.cs
+

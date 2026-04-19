@@ -1,8 +1,2 @@
+// Moved to Assets/Base/Systems/Jobs/Scripts/JobTier.cs
 
-namespace Systems.Jobs {
-public enum JobTier
-{
-    Basic,
-    Advanced
-}
-}

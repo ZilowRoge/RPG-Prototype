@@ -1,0 +1,19 @@
+{
+  "name": "RPG.UI.Player.Quests",
+  "rootNamespace": "",
+  "references": [
+    "RPG.Base",
+    "RPG.Quests",
+    "RPG.UI.Player.Common",
+    "Unity.TextMeshPro"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

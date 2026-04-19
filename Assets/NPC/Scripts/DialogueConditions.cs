@@ -1,23 +1,25 @@
 using System;
-using Player.Progress;
+using Player.Interfaces;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace NPC.Dialog
 {
     [Serializable]
     public abstract class DialogueConditionDefinition
     {
-        public abstract bool Evaluate(ProgressController progressController);
+        public abstract bool Evaluate(IDialogueProgressContext progressController);
         public abstract string GetSummary();
     }
 
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "NPC.Dialog", sourceAssembly: "Assembly-CSharp")]
     public sealed class FlagConditionDefinition : DialogueConditionDefinition
     {
         [SerializeField] private string flagKey;
         [SerializeField] private bool expectedValue = true;
 
-        public override bool Evaluate(ProgressController progressController)
+        public override bool Evaluate(IDialogueProgressContext progressController)
         {
             return progressController != null && progressController.GetFlag(flagKey) == expectedValue;
         }
@@ -26,12 +28,13 @@ namespace NPC.Dialog
     }
 
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "NPC.Dialog", sourceAssembly: "Assembly-CSharp")]
     public sealed class QuestStartedConditionDefinition : DialogueConditionDefinition
     {
         [SerializeField] private string questId;
         [SerializeField] private bool expectedValue = true;
 
-        public override bool Evaluate(ProgressController progressController)
+        public override bool Evaluate(IDialogueProgressContext progressController)
         {
             if (progressController == null)
                 return false;
@@ -44,12 +47,13 @@ namespace NPC.Dialog
     }
 
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "NPC.Dialog", sourceAssembly: "Assembly-CSharp")]
     public sealed class QuestActiveConditionDefinition : DialogueConditionDefinition
     {
         [SerializeField] private string questId;
         [SerializeField] private bool expectedValue = true;
 
-        public override bool Evaluate(ProgressController progressController)
+        public override bool Evaluate(IDialogueProgressContext progressController)
         {
             if (progressController == null)
                 return false;
@@ -62,12 +66,13 @@ namespace NPC.Dialog
     }
 
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "NPC.Dialog", sourceAssembly: "Assembly-CSharp")]
     public sealed class QuestCompletedConditionDefinition : DialogueConditionDefinition
     {
         [SerializeField] private string questId;
         [SerializeField] private bool expectedValue = true;
 
-        public override bool Evaluate(ProgressController progressController)
+        public override bool Evaluate(IDialogueProgressContext progressController)
         {
             if (progressController == null)
                 return false;
@@ -80,12 +85,13 @@ namespace NPC.Dialog
     }
 
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "NPC.Dialog", sourceAssembly: "Assembly-CSharp")]
     public sealed class HasJobConditionDefinition : DialogueConditionDefinition
     {
         [SerializeField] private string jobId;
         [SerializeField] private bool expectedValue = true;
 
-        public override bool Evaluate(ProgressController progressController)
+        public override bool Evaluate(IDialogueProgressContext progressController)
         {
             if (progressController == null)
                 return false;
@@ -98,12 +104,13 @@ namespace NPC.Dialog
     }
 
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "NPC.Dialog", sourceAssembly: "Assembly-CSharp")]
     public sealed class KnowsSymbolConditionDefinition : DialogueConditionDefinition
     {
         [SerializeField] private string symbolKey;
         [SerializeField] private bool expectedValue = true;
 
-        public override bool Evaluate(ProgressController progressController)
+        public override bool Evaluate(IDialogueProgressContext progressController)
         {
             if (progressController == null)
                 return false;

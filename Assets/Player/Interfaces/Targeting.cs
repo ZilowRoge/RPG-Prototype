@@ -1,9 +1,2 @@
-using UnityEngine;
+// Moved to Assets/Base/PlayerInterfaces/Targeting.cs
 
-namespace Player.Interfaces
-{
-    public interface ITargetable
-    {
-        Transform TargetTransform { get; }
-    }
-}

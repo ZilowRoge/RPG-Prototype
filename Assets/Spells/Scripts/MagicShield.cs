@@ -49,7 +49,7 @@ public class MagicShield : Spell
             return;
         }
 
-        Transform anchor = stats.transform;
+        Transform anchor = stats.Transform;
         Vector3 position = anchor.position;
         Quaternion rotation = anchor.rotation;
 

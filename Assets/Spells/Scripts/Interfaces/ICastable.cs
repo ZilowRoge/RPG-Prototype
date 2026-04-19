@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Player.Statistics;
 
 namespace Spells.Interfaces {
     public interface ICastable {

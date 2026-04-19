@@ -1,0 +1,18 @@
+{
+  "name": "RPG.Common.World.Doors",
+  "rootNamespace": "",
+  "references": [
+    "RPG.Base",
+    "RPG.Common.Progress",
+    "RPG.Systems.Save"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

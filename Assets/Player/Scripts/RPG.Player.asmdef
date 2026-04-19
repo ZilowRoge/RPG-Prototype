@@ -1,0 +1,24 @@
+{
+  "name": "RPG.Player",
+  "rootNamespace": "",
+  "references": [
+    "RPG.Base",
+    "RPG.Inventory",
+    "RPG.Quests",
+    "RPG.Spells",
+    "RPG.Systems.Save",
+    "RPG.Common.World.SceneTransitions",
+    "Unity.InputSystem",
+    "Unity.Barracuda",
+    "Unity.Cinemachine"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -1,0 +1,21 @@
+{
+    "name": "RPG.NPC.Editor",
+    "rootNamespace": "",
+    "references": [
+        "RPG.Base",
+        "RPG.Common.Progress",
+        "RPG.NPC",
+        "RPG.Quests"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

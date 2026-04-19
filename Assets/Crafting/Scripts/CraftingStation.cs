@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Common.World.Interaction;
 using Inventory;
-using UI.Player.Crafting;
 using UnityEngine;
 
 namespace Crafting
@@ -21,7 +20,7 @@ namespace Crafting
         [SerializeField] private Items.ItemDefinitionDatabase itemDatabase;
 
         [Header("UI")]
-        [SerializeField] private CraftingWindowUI craftingWindowOverride;
+        [SerializeField] private MonoBehaviour craftingWindowOverride;
 
         private readonly List<CraftingRecipe> filteredRecipes = new();
 
@@ -53,7 +52,7 @@ namespace Crafting
             var window = ResolveWindow();
             if (window == null)
             {
-                Debug.LogWarning("[CraftingStation] CraftingWindowUI not found on PlayerUI.", this);
+                Debug.LogWarning("[CraftingStation] Crafting presenter not found on PlayerUI.", this);
                 return;
             }
 
@@ -125,15 +124,26 @@ namespace Crafting
                 ?? player.GetComponentInChildren<InventoryController>(true);
         }
 
-        private CraftingWindowUI ResolveWindow()
+        private ICraftingWindow ResolveWindow()
         {
-            if (craftingWindowOverride != null)
-                return craftingWindowOverride;
+            if (craftingWindowOverride is ICraftingWindow craftingWindow)
+                return craftingWindow;
 
             var playerUi = GameObject.FindWithTag("PlayerUI");
-            return playerUi != null
-                ? playerUi.GetComponentInChildren<CraftingWindowUI>(true)
-                : null;
+            if (playerUi == null)
+                return null;
+
+            var behaviours = playerUi.GetComponentsInChildren<MonoBehaviour>(true);
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i] is ICraftingWindow candidate)
+                {
+                    craftingWindowOverride = behaviours[i];
+                    return candidate;
+                }
+            }
+
+            return null;
         }
 
         private static bool[] CreateFalseFlags(int count)

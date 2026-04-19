@@ -1,4 +1,4 @@
-using Player.Progress;
+using Player.Interfaces;
 using UnityEngine;
 
 namespace Common.Progress
@@ -8,18 +8,18 @@ namespace Common.Progress
     /// </summary>
     public class ProgressFlagEmitter : MonoBehaviour
     {
-        [SerializeField] private ProgressController progressController;
+        [SerializeField] private MonoBehaviour progressSource;
         [SerializeField] private string flagKey;
         [SerializeField] private bool flagValue = true;
         [SerializeField] private bool emitOnEnable;
         [SerializeField] private bool emitOnce = true;
 
         private bool emitted;
+        private IProgressFlagWriter progressController;
 
         private void Awake()
         {
-            if (progressController == null)
-                progressController = FindAnyObjectByType<ProgressController>();
+            CacheProgressController();
         }
 
         private void OnEnable()
@@ -33,6 +33,9 @@ namespace Common.Progress
             if (emitOnce && emitted)
                 return;
 
+            if (progressController == null)
+                CacheProgressController();
+
             if (progressController == null || string.IsNullOrEmpty(flagKey))
                 return;
 
@@ -45,6 +48,24 @@ namespace Common.Progress
             }
 
             emitted = true;
+        }
+
+        private void CacheProgressController()
+        {
+            progressController = progressSource as IProgressFlagWriter;
+            if (progressController != null)
+                return;
+
+            var candidates = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                if (candidates[i] is IProgressFlagWriter writer)
+                {
+                    progressSource = candidates[i];
+                    progressController = writer;
+                    return;
+                }
+            }
         }
     }
 }

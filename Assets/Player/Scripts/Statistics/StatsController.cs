@@ -10,7 +10,7 @@ using Items;
 
 namespace Player.Statistics
 {
-    public class StatsController : MonoBehaviour, IStatsReadOnly, IDamageable, IKnockbackable, IHealthProvider
+    public class StatsController : MonoBehaviour, IStatsReadOnly, IDamageable, IKnockbackable, IHealthProvider, IDeathState, IShieldState, ISpellCasterStats
     {
         [SerializeField] private StatsData statistics;
         [SerializeField] private PlayerPerkRuntime perkRuntime;
@@ -27,6 +27,7 @@ namespace Player.Statistics
         private bool isDead;
         private readonly System.Collections.Generic.Dictionary<ItemStatType, StatAccumulator> equipmentModifiers = new();
         public bool IsDead => isDead;
+        public Transform Transform => transform;
 
         public StatsData Statistics => statistics;
 

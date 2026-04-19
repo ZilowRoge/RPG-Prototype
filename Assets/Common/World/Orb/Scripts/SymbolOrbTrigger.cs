@@ -1,7 +1,6 @@
 using System;
-using Player;
-using Player.FightSystem.Magic;
-using Player.Progress;
+using Common.Symbols;
+using Player.Interfaces;
 using UnityEngine;
 using UnityEngine.Events;
 using Common.World.Interaction;
@@ -21,9 +20,12 @@ namespace Common.World.Orb
         [SerializeField] private InteractionMode supportedModes = InteractionMode.Both;
         [SerializeField] private InteractionTooltip tooltip;
 
-        private SymbolInputManager inputManager;
+        [SerializeField] private MonoBehaviour inputManagerSource;
+        [SerializeField] private MonoBehaviour progressSource;
+        private ISymbolInputRouter inputManager;
+        private IDialogueProgressContext progress;
         private bool awaiting;
-        private Interactor activeInteractor;
+        private GameObject activePlayer;
         private string pendingSymbolId;
         public string LastRecognizedSymbol { get; private set; }
         public InteractionMode SupportedModes => supportedModes;
@@ -47,19 +49,16 @@ namespace Common.World.Orb
 
             if (requireKnownSymbol && !string.IsNullOrEmpty(requiredSymbolId))
             {
-                var progress = player.GetComponentInParent<ProgressController>() ??
-                               FindAnyObjectByType<ProgressController>();
+                progress = ResolveProgress(player);
                 if (progress == null || !progress.KnowsSymbol(requiredSymbolId))
                     return;
             }
 
-            inputManager = player.GetComponentInChildren<SymbolInputManager>() ??
-                           player.GetComponent<SymbolInputManager>() ??
-                           FindAnyObjectByType<SymbolInputManager>();
+            inputManager = ResolveInputManager(player);
             if (inputManager == null)
                 return;
 
-            activeInteractor = player.GetComponentInParent<Interactor>();
+            activePlayer = player;
             awaiting = true;
             inputManager.SetActiveConsumer(this);
         }
@@ -130,7 +129,7 @@ namespace Common.World.Orb
             if (other == null)
                 return;
 
-            if (activeInteractor != null && other.GetComponentInParent<Interactor>() == activeInteractor)
+            if (activePlayer != null && other.GetComponentInParent<Transform>()?.gameObject == activePlayer)
                 Cancel();
         }
 
@@ -139,8 +138,71 @@ namespace Common.World.Orb
             if (inputManager != null)
                 inputManager.ResetToDefaultConsumer();
             inputManager = null;
-            activeInteractor = null;
+            progress = null;
+            activePlayer = null;
             pendingSymbolId = null;
+        }
+
+        private ISymbolInputRouter ResolveInputManager(GameObject player)
+        {
+            if (inputManagerSource is ISymbolInputRouter router)
+                return router;
+
+            if (player != null)
+            {
+                var playerComponents = player.GetComponentsInChildren<MonoBehaviour>(true);
+                for (int i = 0; i < playerComponents.Length; i++)
+                {
+                    if (playerComponents[i] is ISymbolInputRouter playerRouter)
+                    {
+                        inputManagerSource = playerComponents[i];
+                        return playerRouter;
+                    }
+                }
+            }
+
+            var candidates = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                if (candidates[i] is ISymbolInputRouter candidateRouter)
+                {
+                    inputManagerSource = candidates[i];
+                    return candidateRouter;
+                }
+            }
+
+            return null;
+        }
+
+        private IDialogueProgressContext ResolveProgress(GameObject player)
+        {
+            if (progressSource is IDialogueProgressContext progressContext)
+                return progressContext;
+
+            if (player != null)
+            {
+                var playerComponents = player.GetComponentsInParent<MonoBehaviour>(true);
+                for (int i = 0; i < playerComponents.Length; i++)
+                {
+                    if (playerComponents[i] is IDialogueProgressContext playerProgress)
+                    {
+                        progressSource = playerComponents[i];
+                        return playerProgress;
+                    }
+                }
+            }
+
+            var candidates = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                if (candidates[i] is IDialogueProgressContext candidateProgress)
+                {
+                    progressSource = candidates[i];
+                    return candidateProgress;
+                }
+            }
+
+            return null;
         }
 
         private static bool TryExtractNumericId(string value, out int numericId)

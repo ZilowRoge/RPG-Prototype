@@ -1,5 +1,4 @@
 using System.Linq;
-using Common.Editor;
 using Common.Progress;
 using Common.Systems.SymbolTraining;
 using UnityEditor;
@@ -21,11 +20,11 @@ namespace Common.World.Doors.Editor
             EditorGUILayout.Space(6);
 
             // Try find any FlagRegistry in project (Editor-only)
-            var registry = ProjectAssetCache.GetFlagRegistry();
+            var registry = FindFlagRegistry();
 
             if (registry != null && registry.Flags != null && registry.Flags.Count > 0)
             {
-                var keys = ProjectAssetCache.GetFlagKeys();
+                var keys = registry.GetKeys().ToArray();
                 int currentIndex = Mathf.Max(0, System.Array.IndexOf(keys, idProp.stringValue));
                 int newIndex = EditorGUILayout.Popup("Flag Id", currentIndex, keys);
                 if (newIndex >= 0 && newIndex < keys.Length)
@@ -49,9 +48,23 @@ namespace Common.World.Doors.Editor
             }
 
             if (GUILayout.Button("Refresh Flags"))
-                ProjectAssetCache.GetFlagKeys(forceRefresh: true);
+                _ = FindFlagRegistry();
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private static FlagRegistry FindFlagRegistry()
+        {
+            var guids = AssetDatabase.FindAssets("t:FlagRegistry");
+            for (int i = 0; i < guids.Length; i++)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                var registry = AssetDatabase.LoadAssetAtPath<FlagRegistry>(path);
+                if (registry != null)
+                    return registry;
+            }
+
+            return null;
         }
     }
 }

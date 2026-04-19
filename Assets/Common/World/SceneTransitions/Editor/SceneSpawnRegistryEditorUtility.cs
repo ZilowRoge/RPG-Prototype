@@ -1,4 +1,4 @@
-using Common.Editor;
+using UnityEditor;
 
 namespace Common.World.SceneTransitions.Editor
 {
@@ -6,7 +6,16 @@ namespace Common.World.SceneTransitions.Editor
     {
         public static SceneSpawnRegistry FindRegistry()
         {
-            return ProjectAssetCache.GetSceneSpawnRegistry();
+            var guids = AssetDatabase.FindAssets("t:SceneSpawnRegistry");
+            for (var index = 0; index < guids.Length; index++)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guids[index]);
+                var registry = AssetDatabase.LoadAssetAtPath<SceneSpawnRegistry>(path);
+                if (registry != null)
+                    return registry;
+            }
+
+            return null;
         }
     }
 }

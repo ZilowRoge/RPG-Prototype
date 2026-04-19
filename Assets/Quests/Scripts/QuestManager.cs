@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Player.Progress;
+using Player.Interfaces;
 using Inventory;
 using Items;
 
@@ -82,7 +82,7 @@ namespace Quests
         public bool IsQuestCompleted(string questId) => activeQuests.Exists(q => q.questId == questId && q.state == QuestState.Completed);
         public QuestProgress GetProgress(string questId) => activeQuests.Find(q => q.questId == questId);
 
-        public void EvaluateAll(ProgressController progress)
+        public void EvaluateAll(IQuestProgressContext progress)
         {
             for (int i = 0; i < activeQuests.Count; i++)
             {
@@ -130,7 +130,7 @@ namespace Quests
             return qp;
         }
 
-        bool IsObjectiveSatisfied(ObjectiveDef def, ObjectiveProgress op, ProgressController progress)
+        bool IsObjectiveSatisfied(ObjectiveDef def, ObjectiveProgress op, IQuestProgressContext progress)
         {
             switch (def.type)
             {
@@ -152,7 +152,7 @@ namespace Quests
             }
         }
 
-        public void ReportElimination(ProgressController progress, string targetId, string extraId = null, int count = 1)
+        public void ReportElimination(IQuestProgressContext progress, string targetId, string extraId = null, int count = 1)
         {
             if (count <= 0 || activeQuests.Count == 0)
                 return;
@@ -225,7 +225,7 @@ namespace Quests
                 EvaluateAll(progress);
         }
 
-        void TryAdvanceStage(QuestAsset asset, QuestProgress qp, ProgressController progress)
+        void TryAdvanceStage(QuestAsset asset, QuestProgress qp, IQuestProgressContext progress)
         {
             var sp = qp.stages[qp.stageIndex];
             bool allDone = true;
@@ -319,7 +319,7 @@ namespace Quests
             return clone;
         }
 
-        void GrantRewards(QuestAsset asset, ProgressController progress)
+        void GrantRewards(QuestAsset asset, IQuestProgressContext progress)
         {
             if (asset == null)
                 return;
@@ -352,14 +352,14 @@ namespace Quests
             }
         }
 
-        InventoryController ResolveInventory(ProgressController progress)
+        InventoryController ResolveInventory(IQuestProgressContext progress)
         {
             if (playerInventory != null)
                 return playerInventory;
 
-            if (progress != null)
+            if (progress is Component progressComponent)
             {
-                var ownedInventory = progress.GetComponent<InventoryController>() ?? progress.GetComponentInParent<InventoryController>();
+                var ownedInventory = progressComponent.GetComponent<InventoryController>() ?? progressComponent.GetComponentInParent<InventoryController>();
                 if (ownedInventory != null)
                 {
                     playerInventory = ownedInventory;

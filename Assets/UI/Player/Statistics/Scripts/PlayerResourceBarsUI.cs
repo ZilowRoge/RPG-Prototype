@@ -9,7 +9,7 @@ namespace UI.Player.Statistics
     /// <summary>
     /// Handles the player HUD resource bars (health / mana / stamina).
     /// </summary>
-    public class PlayerResourceBarsUI : MonoBehaviour, IPlayerReferenceReceiver
+    public class PlayerResourceBarsUI : MonoBehaviour, IStatsControllerReceiver
     {
         [SerializeField] private StatsController stats;
 
@@ -59,9 +59,9 @@ namespace UI.Player.Statistics
                 label.text = $"{Mathf.FloorToInt(clamped)} / {Mathf.FloorToInt(max)}";
         }
 
-        public void BindPlayerReferences(PlayerUIReferences refs)
+        public void BindStatsController(StatsController statsController)
         {
-            stats = refs.Stats;
+            stats = statsController;
             if (stats == null)
                 stats = FindAnyObjectByType<StatsController>();
 

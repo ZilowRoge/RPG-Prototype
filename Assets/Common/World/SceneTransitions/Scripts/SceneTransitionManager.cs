@@ -1,13 +1,12 @@
 using System;
 using System.Collections;
 using Systems.SaveSystem;
+using Common.Runtime;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Player;
 using Unity.Cinemachine;
-using UI.Player.Common;
-using Player.Save;
+using Common.UI;
 
 namespace Common.World.SceneTransitions
 {
@@ -104,7 +103,7 @@ namespace Common.World.SceneTransitions
                 ? SpawnPlayer(spawn.transform)
                 : PlacePlayer(spawn.transform);
 
-            PlayerInputLockService.TryGetInstance()?.ClearAllLocks();
+            PlayerInputLocks.ClearAllLocks();
             if (rebindCinemachineOnSpawn)
                 RebindCinemachineCameras(player != null ? player.transform : null);
 
@@ -150,7 +149,7 @@ namespace Common.World.SceneTransitions
 
             DestroyExistingPlayers();
 
-            SaveState.SuppressNextTransformRestore = true;
+            SaveRuntimeState.SuppressNextTransformRestore = true;
             var playerInstance = Instantiate(playerPrefab);
             EnsurePlayerTag(playerInstance);
             ResetPlayerTransform(playerInstance, spawn);
@@ -276,7 +275,7 @@ namespace Common.World.SceneTransitions
 
             fadeRoutine = null;
             isTransitioning = false;
-            SaveState.SuppressNextTransformRestore = false;
+            SaveRuntimeState.SuppressNextTransformRestore = false;
         }
 
         private CanvasGroup EnsureFadeCanvas()
@@ -347,11 +346,15 @@ namespace Common.World.SceneTransitions
         private static void BindPlayerUiReferences(GameObject player)
         {
             var playerUi = GameObject.FindWithTag("PlayerUI");
-            var binder = playerUi != null
-                ? playerUi.GetComponentInChildren<PlayerUIReferenceBinder>(true)
-                : null;
-            if (binder != null)
-                binder.BindPlayer(player);
+            if (playerUi == null)
+                return;
+
+            var binders = playerUi.GetComponentsInChildren<MonoBehaviour>(true);
+            for (int i = 0; i < binders.Length; i++)
+            {
+                if (binders[i] is IPlayerUiBinder binder)
+                    binder.BindPlayer(player);
+            }
         }
     }
 }

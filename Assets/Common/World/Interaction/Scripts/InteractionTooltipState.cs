@@ -1,14 +1,2 @@
-namespace Common.World.Interaction
-{
-    public readonly struct InteractionTooltipState
-    {
-        public InteractionTooltipState(string message, bool isBlocked)
-        {
-            Message = message ?? string.Empty;
-            IsBlocked = isBlocked;
-        }
+// Moved to Assets/Base/World/Interaction/Scripts/InteractionTooltipState.cs
 
-        public string Message { get; }
-        public bool IsBlocked { get; }
-    }
-}

@@ -1,26 +1,29 @@
 using UnityEngine;
 using Common.World.Interaction;
-using Player;
 
 namespace NPC {
     public class DialogUIEnabler : MonoBehaviour, IInteractable
     {
-        [SerializeField] private UI.NPC.Dialog.DialogControllerUI dialogUI;
+        [SerializeField] private MonoBehaviour dialogPresenterSource;
         [SerializeField] private Dialog.DialogAsset dialogAsset;
         [SerializeField] private InteractionMode supportedModes = InteractionMode.Both;
         [SerializeField] private InteractionTooltip tooltip;
+
+        private Dialog.IDialogPresenter dialogUI;
 
         public InteractionMode SupportedModes => supportedModes;
         public InteractionTooltip Tooltip => tooltip = InteractionTooltipResolver.Resolve(this, tooltip);
 
         private void Awake()
         {
-            if (dialogUI)
+            CachePresenter();
+            if (dialogUI != null)
                 dialogUI.Close();
         }
 
         public void Interact(GameObject gameObject)
         {
+            CachePresenter();
             if (dialogUI == null)
                 return;
             // Toggle using DialogControllerUI state (parent-managed)
@@ -37,11 +40,17 @@ namespace NPC {
 
         private void OnTriggerExit(Collider other)
         {
+            CachePresenter();
             if (dialogUI == null) return;
-            var isPlayer = other != null && other.GetComponentInParent<Interactor>() != null;
+            var isPlayer = other != null && other.GetComponentInParent<Transform>()?.CompareTag("Player") == true;
             if (!isPlayer) return;
             if (dialogUI.IsOpen)
                 dialogUI.Close();
+        }
+
+        private void CachePresenter()
+        {
+            dialogUI = dialogPresenterSource as Dialog.IDialogPresenter;
         }
     }
 }

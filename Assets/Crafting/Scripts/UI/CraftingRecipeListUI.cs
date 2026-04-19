@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UI.Player.Common;
+using Common.UI;
 using UnityEngine;
 using UnityEngine.Serialization;
 using CraftingData = global::Crafting;

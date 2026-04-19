@@ -217,7 +217,7 @@ namespace Inventory
             return false;
         }
 
-        internal static bool IsConsumableSlot(EquipmentSlot slot)
+        public static bool IsConsumableSlot(EquipmentSlot slot)
         {
             return slot == EquipmentSlot.Consumable1 ||
                    slot == EquipmentSlot.Consumable2 ||

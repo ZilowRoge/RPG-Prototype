@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Player.Events;
+using Player.Interfaces;
 using Player.Progress;
 using Systems.Jobs;
 using Systems.Perks;
@@ -16,7 +17,7 @@ namespace Player.Perks
     /// explicitly via <see cref="PrepareForCast"/> so callers can apply their rewards to the
     /// current spell before it resolves.
     /// </summary>
-    public class PlayerPerkRuntime : MonoBehaviour
+    public class PlayerPerkRuntime : MonoBehaviour, ISpellPowerProvider
     {
         [Header("References")]
         [SerializeField] private ProgressController progressController;

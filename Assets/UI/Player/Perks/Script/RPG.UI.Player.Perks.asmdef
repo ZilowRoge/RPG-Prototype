@@ -1,0 +1,19 @@
+{
+  "name": "RPG.UI.Player.Perks",
+  "rootNamespace": "",
+  "references": [
+    "RPG.Base",
+    "RPG.Player",
+    "RPG.UI.Player.Common",
+    "Unity.TextMeshPro"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

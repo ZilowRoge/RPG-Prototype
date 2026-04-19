@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Items;
-using Player;
-using UI.Player.Common;
+using Common.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
@@ -12,7 +11,7 @@ using InventorySystem = global::Inventory;
 
 namespace UI.Player.Crafting
 {
-    public class CraftingWindowUI : MonoBehaviour, IPlayerReferenceReceiver
+    public class CraftingWindowUI : MonoBehaviour, InventorySystem.IInventoryReferenceReceiver, CraftingData.ICraftingWindow
     {
         [Header("Root")]
         [FormerlySerializedAs("windowRootObject")]
@@ -81,7 +80,7 @@ namespace UI.Player.Crafting
 
             if (isOpen)
             {
-                PlayerInputLockService.TryGetInstance()?.SetLock(this, false);
+                PlayerInputLocks.SetLock(this, false);
                 isOpen = false;
             }
 
@@ -127,7 +126,7 @@ namespace UI.Player.Crafting
             {
                 isOpen = true;
                 SetRootVisible(true);
-                PlayerInputLockService.Instance?.SetLock(this, true);
+                PlayerInputLocks.SetLock(this, true);
                 if (manageCursor)
                     CaptureCursor();
             }
@@ -166,7 +165,7 @@ namespace UI.Player.Crafting
                 return;
             }
 
-            PlayerInputLockService.Instance?.SetLock(this, false);
+            PlayerInputLocks.SetLock(this, false);
             if (manageCursor)
                 ReleaseCursor();
 
@@ -183,9 +182,9 @@ namespace UI.Player.Crafting
                 Open();
         }
 
-        public void BindPlayerReferences(PlayerUIReferences refs)
+        public void BindInventoryReferences(InventorySystem.InventoryController inventory, InventorySystem.EquipmentController equipment)
         {
-            inventoryController = refs.Inventory;
+            inventoryController = inventory;
 
             if (isOpen)
                 Refresh();

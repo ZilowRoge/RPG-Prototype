@@ -11,7 +11,7 @@ namespace UI.Player.Perks
     /// Manages a layout-based list of active effect icons.
     /// Adds an entry when an interval perk triggers and removes it after its lifetime.
     /// </summary>
-    public class EffectIndicatorUI : MonoBehaviour, IPlayerReferenceReceiver
+    public class EffectIndicatorUI : MonoBehaviour, IPlayerEventHubReceiver
     {
         [Header("References")]
         [SerializeField] private PlayerEventHub playerEvents;
@@ -183,11 +183,11 @@ namespace UI.Player.Perks
             entries.Clear();
         }
 
-        public void BindPlayerReferences(PlayerUIReferences refs)
+        public void BindPlayerEventHub(PlayerEventHub eventHub)
         {
             Unsubscribe();
 
-            playerEvents = refs.EventHub;
+            playerEvents = eventHub;
             if (playerEvents == null)
                 playerEvents = FindAnyObjectByType<PlayerEventHub>();
 

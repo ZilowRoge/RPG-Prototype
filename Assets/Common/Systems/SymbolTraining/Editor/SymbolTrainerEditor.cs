@@ -1,5 +1,4 @@
 using System.Linq;
-using Common.Editor;
 using Common.Progress;
 using UnityEditor;
 using UnityEngine;
@@ -17,8 +16,9 @@ namespace Common.Systems.SymbolTraining.Editor
             serializedObject.Update();
 
             // Draw known refs first
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("progressController"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("inputManager"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("progressSource"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("progressEventsSource"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("inputManagerSource"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("lessonConsumer"));
 
             // Lesson triggers with dropdown for startFlag
@@ -29,8 +29,8 @@ namespace Common.Systems.SymbolTraining.Editor
             int newSize = Mathf.Max(0, EditorGUILayout.IntField("Size", triggersProp.arraySize));
             if (newSize != triggersProp.arraySize) triggersProp.arraySize = newSize;
 
-            var registry = cachedRegistry ??= ProjectAssetCache.GetFlagRegistry();
-            var keys = cachedKeys.Length > 0 ? cachedKeys : (cachedKeys = ProjectAssetCache.GetFlagKeys());
+            var registry = cachedRegistry ??= FindFlagRegistry();
+            var keys = cachedKeys.Length > 0 ? cachedKeys : (cachedKeys = GetFlagKeys(registry));
 
             for (int i = 0; i < triggersProp.arraySize; i++)
             {
@@ -77,11 +77,32 @@ namespace Common.Systems.SymbolTraining.Editor
 
             if (GUILayout.Button("Refresh Flags"))
             {
-                cachedRegistry = ProjectAssetCache.GetFlagRegistry(forceRefresh: true);
-                cachedKeys = ProjectAssetCache.GetFlagKeys(forceRefresh: true);
+                cachedRegistry = FindFlagRegistry();
+                cachedKeys = cachedRegistry != null ? GetFlagKeys(cachedRegistry) : System.Array.Empty<string>();
             }
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private static FlagRegistry FindFlagRegistry()
+        {
+            var guids = AssetDatabase.FindAssets("t:FlagRegistry");
+            for (int i = 0; i < guids.Length; i++)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                var registry = AssetDatabase.LoadAssetAtPath<FlagRegistry>(path);
+                if (registry != null)
+                    return registry;
+            }
+
+            return null;
+        }
+
+        private static string[] GetFlagKeys(FlagRegistry registry)
+        {
+            return registry != null && registry.Flags != null
+                ? registry.GetKeys().ToArray()
+                : System.Array.Empty<string>();
         }
     }
 }

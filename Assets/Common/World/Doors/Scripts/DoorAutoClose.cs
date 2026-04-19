@@ -1,7 +1,6 @@
 using System.Collections;
+using Common.Runtime;
 using UnityEngine;
-using Player; // For Interactor detection
-using Player.Save;
 
 namespace Common.Systems.SymbolTraining
 {
@@ -31,12 +30,12 @@ namespace Common.Systems.SymbolTraining
 
         private void OnEnable()
         {
-            Player.Save.SaveState.PlayerLoadedFromSave += OnPlayerLoadedFromSave;
+            SaveRuntimeState.PlayerLoadedFromSave += OnPlayerLoadedFromSave;
         }
 
         private void OnDisable()
         {
-            Player.Save.SaveState.PlayerLoadedFromSave -= OnPlayerLoadedFromSave;
+            SaveRuntimeState.PlayerLoadedFromSave -= OnPlayerLoadedFromSave;
         }
 
         private void OnTriggerEnter(Collider other)
@@ -75,9 +74,9 @@ namespace Common.Systems.SymbolTraining
         private static bool IsPlayer(Component c)
         {
             if (c == null) return false;
-            // Prefer Interactor component, fallback to name check used elsewhere in repo
-            if (c.GetComponentInParent<Interactor>() != null) return true;
-            return string.Equals(c.gameObject.name, "Player");
+            if (c.CompareTag("Player")) return true;
+            var root = c.GetComponentInParent<Transform>();
+            return root != null && root.CompareTag("Player");
         }
 
         private void OnPlayerLoadedFromSave()
@@ -88,4 +87,3 @@ namespace Common.Systems.SymbolTraining
         }
     }
 }
-

@@ -1,9 +1,2 @@
-using UnityEngine;
+// Moved to Assets/Base/Items/ItemTypeData.cs
 
-namespace Items
-{
-    public abstract class ItemTypeData : ScriptableObject
-    {
-        public abstract string GetString();
-    }
-}

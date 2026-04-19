@@ -10,7 +10,7 @@ using UnityEngine.AI;
 namespace Enemies.Controllers
 {
     [DisallowMultipleComponent]
-    public class StatsController : MonoBehaviour, IResourceStatsReadOnly, IDamageable, IKnockbackable, IHealthProvider
+    public class StatsController : MonoBehaviour, IResourceStatsReadOnly, IDamageable, IKnockbackable, IHealthProvider, IDeathState
     {
         [SerializeField] private StatsConfig statsConfig;
         [SerializeField] private StatsRuntime runtime = new();

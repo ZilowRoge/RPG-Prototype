@@ -9,7 +9,7 @@ using Player.Events;
 
 namespace Player.Progress
 {
-    public class ProgressController : MonoBehaviour, IProgressReadOnly
+    public class ProgressController : MonoBehaviour, IQuestProgressContext, IDialogueProgressContext
     {
         [SerializeField] private QuestManager questManager;
         [SerializeField] private JobDatabase jobDatabase;

@@ -1,9 +1,2 @@
-using UnityEngine;
+// Moved to Assets/Base/World/Interaction/Scripts/IInteractionTooltipProvider.cs
 
-namespace Common.World.Interaction
-{
-    public interface IInteractionTooltipProvider
-    {
-        InteractionTooltipState GetTooltipState(GameObject player);
-    }
-}

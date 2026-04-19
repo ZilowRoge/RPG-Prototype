@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Common.Editor;
 using Common.Progress;
-using Common.Systems.SymbolTraining;
 using Quests;
 using Systems.Jobs;
 using UnityEditor;
@@ -961,27 +959,75 @@ namespace NPC.Dialog.Editor
 
         private static IReadOnlyList<string> GetFlagKeys()
         {
-            return ProjectAssetCache.GetFlagKeys();
+            var registry = LoadFirstAsset<FlagRegistry>();
+            return registry != null && registry.Flags != null
+                ? registry.GetKeys().ToArray()
+                : Array.Empty<string>();
         }
 
         private static IReadOnlyList<string> GetQuestIds()
         {
-            return ProjectAssetCache.GetQuestIds();
+            var database = LoadFirstAsset<QuestDatabase>();
+            return database?.All == null
+                ? Array.Empty<string>()
+                : database.All
+                    .Where(asset => asset != null && !string.IsNullOrWhiteSpace(asset.questId))
+                    .Select(asset => asset.questId)
+                    .Distinct()
+                    .ToArray();
         }
 
         private static IReadOnlyList<string> GetSymbolKeys()
         {
-            return ProjectAssetCache.GetSymbolIds();
+            var result = new List<string>();
+            var guids = AssetDatabase.FindAssets("t:SymbolLesson");
+            for (int i = 0; i < guids.Length; i++)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                var lesson = AssetDatabase.LoadAssetAtPath<ScriptableObject>(path);
+                if (lesson == null)
+                    continue;
+
+                var serializedLesson = new SerializedObject(lesson);
+                var symbolId = serializedLesson.FindProperty("symbolId")?.stringValue;
+                if (string.IsNullOrWhiteSpace(symbolId) || result.Contains(symbolId))
+                    continue;
+
+                result.Add(symbolId);
+            }
+
+            return result;
         }
 
         private static IReadOnlyList<string> GetJobIds()
         {
-            return ProjectAssetCache.GetJobIds();
+            var result = new List<string>();
+            var guids = AssetDatabase.FindAssets("t:JobData");
+            for (int i = 0; i < guids.Length; i++)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                var job = AssetDatabase.LoadAssetAtPath<JobData>(path);
+                if (job == null || string.IsNullOrWhiteSpace(job.id) || result.Contains(job.id))
+                    continue;
+
+                result.Add(job.id);
+            }
+
+            return result;
         }
 
         private static T LoadFirstAsset<T>() where T : UnityEngine.Object
         {
-            return ProjectAssetCache.LoadFirstAsset<T>();
+            var guids = AssetDatabase.FindAssets($"t:{typeof(T).Name}");
+            for (int i = 0; i < guids.Length; i++)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                var asset = AssetDatabase.LoadAssetAtPath<T>(path);
+                if (asset != null)
+                    return asset;
+            }
+
+            return null;
         }
     }
 }

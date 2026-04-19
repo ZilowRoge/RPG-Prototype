@@ -1,12 +1,12 @@
 using System;
-using Player.FightSystem.Magic;
+using Common.Symbols;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace Common.Systems.SymbolTraining
 {
     [MovedFrom("Player.FightSystem.Magic")]
-    public class LessonSymbolConsumer : MonoBehaviour, ISymbolConsumer, Player.FightSystem.Magic.ICancelableSymbolFlow
+    public class LessonSymbolConsumer : MonoBehaviour, ISymbolConsumer, ICancelableSymbolFlow
     {
         [SerializeField] private SymbolLessonUI lessonUI;
 

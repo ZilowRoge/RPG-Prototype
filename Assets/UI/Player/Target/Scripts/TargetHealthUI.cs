@@ -10,7 +10,7 @@ namespace UI.Player.Target
     /// <summary>
     /// Displays the currently selected target's name and health using a fill image.
     /// </summary>
-    public class TargetHealthUI : MonoBehaviour, IPlayerReferenceReceiver
+    public class TargetHealthUI : MonoBehaviour, ITargetSelectorReceiver
     {
         [Header("References")]
         [SerializeField] private TargetSelector targetSelector;
@@ -124,9 +124,9 @@ namespace UI.Player.Target
                 label.text = $"{displayName}";
         }
 
-        public void BindPlayerReferences(PlayerUIReferences refs)
+        public void BindTargetSelector(TargetSelector selector)
         {
-            targetSelector = refs.TargetSelector;
+            targetSelector = selector;
             if (targetSelector == null)
                 targetSelector = FindAnyObjectByType<TargetSelector>();
 

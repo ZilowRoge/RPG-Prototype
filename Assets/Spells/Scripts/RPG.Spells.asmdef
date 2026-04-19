@@ -1,0 +1,16 @@
+{
+    "name": "RPG.Spells",
+    "rootNamespace": "",
+    "references": [
+        "RPG.Base"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

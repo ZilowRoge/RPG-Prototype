@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Common.World.Interaction;
 using Inventory;
 using Items;
-using UI.Player.Inventory;
 using Systems.SaveSystem;
 using Systems.SaveSystem.SaveData;
 using UnityEngine;
@@ -29,7 +28,7 @@ namespace Common.World.Loot
         [SerializeField] private ItemDefinitionDatabase itemDatabase;
 
         [Header("UI")]
-        [SerializeField] private LootContainerWindow containerWindowOverride;
+        [SerializeField] private MonoBehaviour containerWindowOverride;
 
         public InteractionMode SupportedModes => supportedModes;
         public InteractionTooltip Tooltip => tooltip = InteractionTooltipResolver.Resolve(this, tooltip);
@@ -77,7 +76,7 @@ namespace Common.World.Loot
             var window = ResolveWindow();
             if (window == null)
             {
-                Debug.LogWarning("[LootContainer] LootContainerWindow not found in the scene.", this);
+                Debug.LogWarning("[LootContainer] Loot container presenter not found in the scene.", this);
                 return;
             }
 
@@ -139,15 +138,26 @@ namespace Common.World.Loot
             return player.GetComponentInParent<InventoryController>();
         }
 
-        private LootContainerWindow ResolveWindow()
+        private ILootContainerWindow ResolveWindow()
         {
-            if (containerWindowOverride != null)
-                return containerWindowOverride;
+            if (containerWindowOverride is ILootContainerWindow lootWindow)
+                return lootWindow;
 
             var playerUi = GameObject.FindWithTag("PlayerUI");
-            return playerUi != null
-                ? playerUi.GetComponentInChildren<LootContainerWindow>(true)
-                : null;
+            if (playerUi == null)
+                return null;
+
+            var behaviours = playerUi.GetComponentsInChildren<MonoBehaviour>(true);
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i] is ILootContainerWindow candidate)
+                {
+                    containerWindowOverride = behaviours[i];
+                    return candidate;
+                }
+            }
+
+            return null;
         }
 
         private string ResolveSceneId()

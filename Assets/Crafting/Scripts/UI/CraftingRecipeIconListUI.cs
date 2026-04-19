@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Common.UI;
 using Items;
-using UI.Player.Common;
 using UnityEngine;
 using CraftingData = global::Crafting;
 

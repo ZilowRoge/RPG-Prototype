@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Common.Editor;
 using Items;
 using UnityEditor;
 using UnityEngine;
@@ -158,7 +157,7 @@ namespace Crafting.Editor
 
         private void LoadItemOptions(bool forceRefresh = false)
         {
-            cachedDatabase = ProjectAssetCache.GetItemDatabase(forceRefresh);
+            cachedDatabase = FindItemDatabase();
 
             if (cachedDatabase == null || cachedDatabase.Definitions == null || cachedDatabase.Definitions.Count == 0)
             {
@@ -184,6 +183,20 @@ namespace Crafting.Editor
 
             itemIdOptions = ids.ToArray();
             itemDisplayOptions = labels.ToArray();
+        }
+
+        private static ItemDefinitionDatabase FindItemDatabase()
+        {
+            var guids = AssetDatabase.FindAssets("t:ItemDefinitionDatabase");
+            for (int i = 0; i < guids.Length; i++)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                var database = AssetDatabase.LoadAssetAtPath<ItemDefinitionDatabase>(path);
+                if (database != null && database.Definitions != null && database.Definitions.Count > 0)
+                    return database;
+            }
+
+            return null;
         }
     }
 }

@@ -1,5 +1,5 @@
 using Common.World.Exams.Pressure;
-using Player.Save;
+using Common.Runtime;
 using UnityEngine;
 
 namespace Common.World.Exams
@@ -31,7 +31,7 @@ namespace Common.World.Exams
             if (pressureExam != null)
                 pressureExam.StateChanged += OnPressureExamStateChanged;
 
-            SaveState.PlayerLoadedFromSave += OnSaveLoaded;
+            SaveRuntimeState.PlayerLoadedFromSave += OnSaveLoaded;
             UpdateActiveStations();
         }
 
@@ -45,7 +45,7 @@ namespace Common.World.Exams
             if (pressureExam != null)
                 pressureExam.StateChanged -= OnPressureExamStateChanged;
 
-            SaveState.PlayerLoadedFromSave -= OnSaveLoaded;
+            SaveRuntimeState.PlayerLoadedFromSave -= OnSaveLoaded;
         }
 
         private void OnPressureExamStateChanged(PressureExamController.ExamState state)

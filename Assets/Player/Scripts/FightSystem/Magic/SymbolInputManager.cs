@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using Common.Symbols;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Barracuda;
@@ -11,7 +12,7 @@ using Systems.Debugging;
 
 namespace Player.FightSystem.Magic
 {
-    public class SymbolInputManager : MonoBehaviour
+    public class SymbolInputManager : MonoBehaviour, Common.Symbols.ISymbolInputRouter
     {
         [SerializeField] private SymbolDrawUI symbolDrawUI;
         [SerializeField, Tooltip("Save symbol input textures for dataset building.")]
@@ -27,16 +28,16 @@ namespace Player.FightSystem.Magic
 
         private PlayerControlls controls;
         private SymbolRecognizer symbolRecognizer;
-        private ISymbolConsumer activeConsumer;
-        private ISymbolConsumer defaultCombatConsumer;
+        private Common.Symbols.ISymbolConsumer activeConsumer;
+        private Common.Symbols.ISymbolConsumer defaultCombatConsumer;
         private bool isDrawing;
         private bool hasPendingSymbols;
         private Coroutine pendingFinishRoutine;
         private const float RecognitionThreshold = 0.8f;
         private const string PlayerUiTag = "PlayerUI";
 
-        public ISymbolConsumer ActiveConsumer => activeConsumer;
-        public ISymbolConsumer DefaultCombatConsumer => defaultCombatConsumer;
+        public Common.Symbols.ISymbolConsumer ActiveConsumer => activeConsumer;
+        public Common.Symbols.ISymbolConsumer DefaultCombatConsumer => defaultCombatConsumer;
 
         private void Awake()
         {
@@ -49,7 +50,7 @@ namespace Player.FightSystem.Magic
 
             if (defaultCombatConsumerBehaviour != null)
             {
-                defaultCombatConsumer = defaultCombatConsumerBehaviour as ISymbolConsumer;
+                defaultCombatConsumer = defaultCombatConsumerBehaviour as Common.Symbols.ISymbolConsumer;
                 if (defaultCombatConsumer == null)
                 {
                     logger.LogWarning(ComponentLogger.LogFlag.Events,
@@ -68,7 +69,7 @@ namespace Player.FightSystem.Magic
             controls.Player.Attack.canceled += _ => OnFireCanceled();
         }
 
-        public ISymbolConsumer SetActiveConsumer(ISymbolConsumer consumer)
+        public Common.Symbols.ISymbolConsumer SetActiveConsumer(Common.Symbols.ISymbolConsumer consumer)
         {
             var previous = activeConsumer;
             activeConsumer = consumer;
@@ -96,7 +97,7 @@ namespace Player.FightSystem.Magic
             {
                 if (isDrawing)
                     FinishDrawing(notifyConsumer: false);
-                (activeConsumer as ICancelableSymbolFlow)?.CancelSymbolFlow();
+                (activeConsumer as Common.Symbols.ICancelableSymbolFlow)?.CancelSymbolFlow();
             }
         }
 

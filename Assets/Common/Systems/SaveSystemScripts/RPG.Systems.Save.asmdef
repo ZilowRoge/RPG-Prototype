@@ -1,0 +1,17 @@
+{
+  "name": "RPG.Systems.Save",
+  "rootNamespace": "",
+  "references": [
+    "RPG.Base",
+    "RPG.Quests"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

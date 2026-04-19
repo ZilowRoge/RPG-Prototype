@@ -1,4 +1,3 @@
-using Player;
 using UnityEngine;
 
 namespace Common.Systems.SymbolTraining
@@ -20,10 +19,22 @@ namespace Common.Systems.SymbolTraining
 
         private void OnTriggerExit(Collider other)
         {
-            if (other != null && other.GetComponentInParent<Interactor>() != null && lessonConsumer != null && lessonConsumer.IsLessonActive)
+            if (other != null && IsPlayer(other) && lessonConsumer != null && lessonConsumer.IsLessonActive)
             {
                 lessonConsumer.CancelLesson();
             }
+        }
+
+        private static bool IsPlayer(Component component)
+        {
+            if (component == null)
+                return false;
+
+            if (component.CompareTag("Player"))
+                return true;
+
+            var root = component.GetComponentInParent<Transform>();
+            return root != null && root.CompareTag("Player");
         }
     }
 }

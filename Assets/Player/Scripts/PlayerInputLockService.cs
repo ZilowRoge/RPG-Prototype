@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Common.UI;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -8,7 +9,7 @@ namespace Player
     /// <summary>
     /// Centralized helper that temporarily disables player movement and camera look actions.
     /// </summary>
-    public class PlayerInputLockService : MonoBehaviour
+    public class PlayerInputLockService : MonoBehaviour, IPlayerInputLockService
     {
         public enum InputActionToBlock
         {

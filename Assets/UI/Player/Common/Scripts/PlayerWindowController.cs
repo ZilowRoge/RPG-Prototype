@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Common.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using Player;
 
 namespace UI.Player
 {
@@ -73,7 +73,7 @@ namespace UI.Player
         private void OnDisable()
         {
             ReleaseCursor();
-            PlayerInputLockService.TryGetInstance()?.SetLock(this, false);
+            PlayerInputLocks.SetLock(this, false);
         }
 
         private void Update()
@@ -231,7 +231,7 @@ namespace UI.Player
                     ReleaseCursor();
             }
 
-            PlayerInputLockService.Instance?.SetLock(this, visible);
+            PlayerInputLocks.SetLock(this, visible);
         }
 
         private bool RootVisible()

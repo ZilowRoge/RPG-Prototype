@@ -1,20 +1,19 @@
 using UnityEngine;
-using Player.Statistics;
-using Player.Perks;
+using Player.Interfaces;
 
 namespace Spells
 {
     public class CasterData
     {
-        public StatsController stats;
+        public ISpellCasterStats stats;
         public Transform castOrigin;
         public Transform target;
-        public PlayerPerkRuntime perkRuntime;
+        public ISpellPowerProvider perkRuntime;
 
         public float SpellPowerMultiplier =>
             perkRuntime != null ? perkRuntime.SpellPowerMultiplier : 1f;
 
-        public CasterData(StatsController stats, Transform castOrigin, Transform target = null, PlayerPerkRuntime perkRuntime = null)
+        public CasterData(ISpellCasterStats stats, Transform castOrigin, Transform target = null, ISpellPowerProvider perkRuntime = null)
         {
             this.stats = stats;
             this.castOrigin = castOrigin;

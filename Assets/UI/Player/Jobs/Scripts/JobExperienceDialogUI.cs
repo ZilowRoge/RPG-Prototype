@@ -8,7 +8,7 @@ using UI.Player.Common;
 
 namespace UI.Player.Jobs
 {
-    public class JobExperienceDialogUI : MonoBehaviour, IPlayerReferenceReceiver
+    public class JobExperienceDialogUI : MonoBehaviour, IProgressControllerReceiver, IPlayerEventHubReceiver
     {
         [SerializeField] private GameObject root;
         [SerializeField] private TMP_Text jobNameText;
@@ -216,13 +216,20 @@ namespace UI.Player.Jobs
             return Mathf.Max(0, Mathf.Min(poolAmount, remaining));
         }
 
-        public void BindPlayerReferences(PlayerUIReferences refs)
+        public void BindProgressController(ProgressController progressController)
         {
             if (isVisible)
                 Hide();
 
-            progressController = refs.Progress;
-            playerEvents = refs.EventHub;
+            this.progressController = progressController;
+        }
+
+        public void BindPlayerEventHub(PlayerEventHub eventHub)
+        {
+            if (isVisible)
+                Hide();
+
+            playerEvents = eventHub;
         }
     }
 }

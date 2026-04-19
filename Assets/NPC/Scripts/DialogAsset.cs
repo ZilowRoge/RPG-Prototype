@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Player.Progress;
+using Player.Interfaces;
 using UnityEngine;
 
 namespace NPC.Dialog
@@ -34,7 +34,7 @@ namespace NPC.Dialog
             return nodes.FirstOrDefault(node => node != null && node.Guid == guid);
         }
 
-        public DialogNodeDefinition GetStartNode(ProgressController progressController)
+        public DialogNodeDefinition GetStartNode(IDialogueProgressContext progressController)
         {
             var startEntry = ResolveEntryPoint(progressController);
             if (startEntry == null)
@@ -43,7 +43,7 @@ namespace NPC.Dialog
             return GetNode(startEntry.TargetNodeGuid);
         }
 
-        public DialogEntryPoint ResolveEntryPoint(ProgressController progressController)
+        public DialogEntryPoint ResolveEntryPoint(IDialogueProgressContext progressController)
         {
             if (entryPoints == null || entryPoints.Count == 0)
                 return null;

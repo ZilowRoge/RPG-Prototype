@@ -269,8 +269,8 @@ namespace Player.Targeting
             if (healthProvider != null && healthProvider.CurrentHealth <= 0f)
                 return false;
 
-            var enemyStats = target.GetComponentInParent<Enemies.Controllers.StatsController>();
-            if (enemyStats != null && enemyStats.IsDead)
+            var deathState = target.GetComponentInParent<IDeathState>();
+            if (deathState != null && deathState.IsDead)
                 return false;
 
             return !IsSelf(target) && (IsCombatTarget(target) || IsInteractionTarget(target));
@@ -311,7 +311,7 @@ namespace Player.Targeting
             if (damageable is IHealthProvider healthProvider && healthProvider.CurrentHealth <= 0f)
                 return false;
 
-            if (damageable is Enemies.Controllers.StatsController enemyStats && enemyStats.IsDead)
+            if (damageable is IDeathState deathState && deathState.IsDead)
                 return false;
 
             target = ResolveTargetTransform(damageComponent.transform);

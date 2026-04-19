@@ -1,9 +1,2 @@
-namespace Items
-{
-    public enum ConsumableEffectType
-    {
-        Health,
-        Mana,
-        Stamina
-    }
-}
+// Moved to Assets/Base/Items/ConsumableEffectType.cs
+

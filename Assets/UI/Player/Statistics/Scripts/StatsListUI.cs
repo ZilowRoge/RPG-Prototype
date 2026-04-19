@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Common.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,7 +9,7 @@ using UI.Player.Common;
 
 namespace UI.Player.Statistics
 {
-    public class StatsListUI : MonoBehaviour, IPlayerReferenceReceiver
+    public class StatsListUI : MonoBehaviour, IStatsControllerReceiver
     {
         [SerializeField] private StatsController controller;
         [SerializeField] private GameObject statEntryPrefab;
@@ -20,11 +21,11 @@ namespace UI.Player.Statistics
         private readonly Dictionary<EStatistics, int> tempAllocations = new();
         private readonly List<StatViewModel> statBuffer = new();
 
-        private DynamicListPool<StatEntryUI> entryPool;
+        private global::Common.UI.DynamicListPool<StatEntryUI> entryPool;
 
         private void Awake()
         {
-            entryPool = new DynamicListPool<StatEntryUI>(statEntryPrefab, statListParent);
+            entryPool = new global::Common.UI.DynamicListPool<StatEntryUI>(statEntryPrefab, statListParent);
         }
 
         private void OnEnable()
@@ -161,9 +162,9 @@ namespace UI.Player.Statistics
             public int TempAllocation { get; }
         }
 
-        public void BindPlayerReferences(PlayerUIReferences refs)
+        public void BindStatsController(StatsController statsController)
         {
-            controller = refs.Stats;
+            controller = statsController;
             if (controller == null)
                 controller = FindAnyObjectByType<StatsController>();
 

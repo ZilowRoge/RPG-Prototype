@@ -482,7 +482,7 @@ namespace Enemies.TrainingConstruct
 
             if (targetHint != null && attackController.TryUseAttack(rule.Attack, targetHint))
             {
-                if (targetHint.GetComponent<Player.Statistics.StatsController>() != null)
+                if (targetHint.CompareTag("Player") || targetHint.root.CompareTag("Player"))
                 {
                     float hitDistance = Vector3.Distance(transform.position, targetHint.position);
                     logger.Log(ComponentLogger.LogFlag.Events,

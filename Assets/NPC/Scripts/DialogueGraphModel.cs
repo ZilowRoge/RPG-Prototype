@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Player.Progress;
+using Player.Interfaces;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace NPC.Dialog
 {
@@ -12,6 +13,7 @@ namespace NPC.Dialog
     }
 
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "NPC.Dialog", sourceAssembly: "Assembly-CSharp")]
     public class DialogEntryPoint
     {
         [SerializeField] private string id = System.Guid.NewGuid().ToString("N");
@@ -55,7 +57,7 @@ namespace NPC.Dialog
 
         public List<DialogueConditionDefinition> Conditions => conditions;
 
-        public bool AreConditionsMet(ProgressController progressController)
+        public bool AreConditionsMet(IDialogueProgressContext progressController)
         {
             for (var index = 0; index < conditions.Count; index++)
             {
@@ -94,6 +96,7 @@ namespace NPC.Dialog
     }
 
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "NPC.Dialog", sourceAssembly: "Assembly-CSharp")]
     public class DialogLineNode : DialogNodeDefinition
     {
         [SerializeField] private string title = "NPC Line";
@@ -138,6 +141,7 @@ namespace NPC.Dialog
     }
 
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "NPC.Dialog", sourceAssembly: "Assembly-CSharp")]
     public class DialogEventNode : DialogNodeDefinition
     {
         [SerializeField] private string title = "Event";
@@ -168,6 +172,7 @@ namespace NPC.Dialog
     }
 
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "NPC.Dialog", sourceAssembly: "Assembly-CSharp")]
     public class DialogRerouteNode : DialogNodeDefinition
     {
         [SerializeField] private string nextNodeGuid;
@@ -188,6 +193,7 @@ namespace NPC.Dialog
     }
 
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "NPC.Dialog", sourceAssembly: "Assembly-CSharp")]
     public class DialogEndNode : DialogNodeDefinition
     {
         [SerializeField] private string title = "End";
@@ -214,6 +220,7 @@ namespace NPC.Dialog
     }
 
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "NPC.Dialog", sourceAssembly: "Assembly-CSharp")]
     public class DialogChoiceDefinition
     {
         [SerializeField] private string id = System.Guid.NewGuid().ToString("N");
@@ -244,7 +251,7 @@ namespace NPC.Dialog
 
         public List<DialogueConditionDefinition> Conditions => conditions;
 
-        public bool AreConditionsMet(ProgressController progressController)
+        public bool AreConditionsMet(IDialogueProgressContext progressController)
         {
             for (var index = 0; index < conditions.Count; index++)
             {

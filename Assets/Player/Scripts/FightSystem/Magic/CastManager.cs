@@ -1,4 +1,5 @@
 using System;
+using Common.Symbols;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using Systems.Debugging;
 
 namespace Player.FightSystem.Magic
 {
-    public class CastManager : MonoBehaviour, ISymbolConsumer
+    public class CastManager : MonoBehaviour, Common.Symbols.ISymbolConsumer
     {
         [SerializeField] private SkillDatabase skillDatabase;
         [SerializeField] private Transform castOrigin;

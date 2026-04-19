@@ -1,5 +1,4 @@
 using UnityEngine;
-using Player.Statistics;
 using Player.Interfaces;
 
 namespace Spells.Shields
@@ -9,14 +8,14 @@ namespace Spells.Shields
         [Header("State")]
         [SerializeField] private bool followTarget = true;
 
-        private StatsController stats;
+        private ISpellCasterStats stats;
         private Transform follow;
         private float remainingShield;
         private float remainingDuration;
         private bool initialized;
         private bool pendingDestroy;
 
-        public static bool TryInit(GameObject instance, StatsController stats, float shieldAmount, float duration, Transform followTarget)
+        public static bool TryInit(GameObject instance, ISpellCasterStats stats, float shieldAmount, float duration, Transform followTarget)
         {
             if (instance == null)
             {
@@ -35,11 +34,11 @@ namespace Spells.Shields
             return true;
         }
 
-        public void Init(StatsController stats, float shieldAmount, float duration, Transform followTarget)
+        public void Init(ISpellCasterStats stats, float shieldAmount, float duration, Transform followTarget)
         {
             if (stats == null)
             {
-                Debug.LogWarning("[ShieldController] Missing StatsController.", this);
+                Debug.LogWarning("[ShieldController] Missing spell caster stats.", this);
                 Destroy(gameObject);
                 return;
             }

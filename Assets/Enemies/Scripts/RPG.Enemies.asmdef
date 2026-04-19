@@ -1,0 +1,17 @@
+{
+  "name": "RPG.Enemies",
+  "rootNamespace": "",
+  "references": [
+    "RPG.Base",
+    "RPG.Spells"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

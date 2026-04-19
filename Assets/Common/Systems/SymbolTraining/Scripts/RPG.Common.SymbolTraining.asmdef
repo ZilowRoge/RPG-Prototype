@@ -1,0 +1,17 @@
+{
+  "name": "RPG.Common.SymbolTraining",
+  "rootNamespace": "",
+  "references": [
+    "RPG.Base",
+    "Unity.TextMeshPro"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

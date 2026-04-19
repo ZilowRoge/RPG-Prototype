@@ -1,8 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Player.Statistics;
-using UI.Player.Exams;
+using Player.Interfaces;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -26,7 +25,7 @@ namespace Common.World.Exams.Pressure
         [Header("References")]
         [SerializeField] private PressureExamConfig config;
         [SerializeField] private ShieldStreamSpawner shieldSpawner;
-        [SerializeField] private PressureExamUI examUI;
+        [SerializeField] private MonoBehaviour examPresenterSource;
 
         [Header("Events")]
         [SerializeField] private UnityEvent onExamPassed;
@@ -44,6 +43,7 @@ namespace Common.World.Exams.Pressure
         private readonly HashSet<ExamDummy> liveDummies = new();
         private Coroutine examRoutine;
         private Coroutine postRoutine;
+        private IPressureExamPresenter examUI;
 
         private int currentHits;
         private int currentMisses;
@@ -82,6 +82,7 @@ namespace Common.World.Exams.Pressure
             RefillParticipantMana();
 
             SetState(ExamState.Preparing);
+            CacheExamPresenter();
             examUI?.HandleExamPreparing(this);
 
             examRoutine = StartCoroutine(RunExamRoutine());
@@ -104,6 +105,7 @@ namespace Common.World.Exams.Pressure
             SetState(ExamState.Idle);
             CurrentParticipant = null;
             ResetCounters();
+            CacheExamPresenter();
             examUI?.HandleExamAborted(this);
         }
 
@@ -117,6 +119,7 @@ namespace Common.World.Exams.Pressure
                 yield break;
 
             SetState(ExamState.Running);
+            CacheExamPresenter();
             examUI?.HandleExamStarted(this);
 
             var stages = config.Stages;
@@ -154,6 +157,7 @@ namespace Common.World.Exams.Pressure
             currentStageShieldCount = stage != null ? stage.ShieldCount : 0;
             currentStageRequiredHits = stage != null ? stage.RequiredHits : 0;
 
+            CacheExamPresenter();
             examUI?.HandleWaveAdvanced(stageIndex, totalStages);
             examUI?.HandleMissCountChanged(0, GetCurrentStageMaxMisses());
         }
@@ -246,6 +250,7 @@ namespace Common.World.Exams.Pressure
         {
             currentHits++;
             currentStageHits++;
+            CacheExamPresenter();
             examUI?.HandleHitCountChanged(currentHits);
         }
 
@@ -253,6 +258,7 @@ namespace Common.World.Exams.Pressure
         {
             currentMisses++;
             currentStageMisses++;
+            CacheExamPresenter();
             examUI?.HandleMissCountChanged(currentStageMisses, GetCurrentStageMaxMisses());
 
             if (!CanStillPassCurrentStage())
@@ -304,6 +310,7 @@ namespace Common.World.Exams.Pressure
 
             SetState(ExamState.Failed);
             CurrentParticipant = null;
+            CacheExamPresenter();
             examUI?.HandleExamFailed(this, currentStageMisses, GetCurrentStageMaxMisses());
 
             float restartDelay = config != null ? config.RestartDelay : 0f;
@@ -324,6 +331,7 @@ namespace Common.World.Exams.Pressure
             SetState(ExamState.Completed);
             CurrentParticipant = null;
             int maxMisses = CalculateTotalAllowedMisses();
+            CacheExamPresenter();
             examUI?.HandleExamCompleted(this, currentHits, currentMisses, maxMisses);
             onExamPassed?.Invoke();
 
@@ -360,6 +368,7 @@ namespace Common.World.Exams.Pressure
             int maxMisses = CalculateTotalAllowedMisses();
             int totalWaves = config != null && config.Stages != null ? config.Stages.Count : 0;
 
+            CacheExamPresenter();
             examUI?.HandleHitCountChanged(currentHits);
             examUI?.HandleMissCountChanged(currentMisses, maxMisses);
             examUI?.HandleWaveAdvanced(0, totalWaves);
@@ -389,14 +398,51 @@ namespace Common.World.Exams.Pressure
             stats?.RefillMana();
         }
 
-        private static StatsController FindStatsController(GameObject participant)
+        private static ISpellCasterStats FindStatsController(GameObject participant)
         {
             if (participant == null)
                 return null;
 
-            return participant.GetComponent<StatsController>() ??
-                   participant.GetComponentInChildren<StatsController>() ??
-                   participant.GetComponentInParent<StatsController>();
+            var participantBehaviours = participant.GetComponents<MonoBehaviour>();
+            for (int i = 0; i < participantBehaviours.Length; i++)
+            {
+                if (participantBehaviours[i] is ISpellCasterStats directStats)
+                    return directStats;
+            }
+
+            var childBehaviours = participant.GetComponentsInChildren<MonoBehaviour>(true);
+            for (int i = 0; i < childBehaviours.Length; i++)
+            {
+                if (childBehaviours[i] is ISpellCasterStats childStats)
+                    return childStats;
+            }
+
+            var parentBehaviours = participant.GetComponentsInParent<MonoBehaviour>(true);
+            for (int i = 0; i < parentBehaviours.Length; i++)
+            {
+                if (parentBehaviours[i] is ISpellCasterStats parentStats)
+                    return parentStats;
+            }
+
+            return null;
+        }
+
+        private void CacheExamPresenter()
+        {
+            examUI = examPresenterSource as IPressureExamPresenter;
+            if (examUI != null)
+                return;
+
+            var candidates = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                if (candidates[i] is IPressureExamPresenter presenter)
+                {
+                    examPresenterSource = candidates[i];
+                    examUI = presenter;
+                    return;
+                }
+            }
         }
 
         private void SetState(ExamState state)

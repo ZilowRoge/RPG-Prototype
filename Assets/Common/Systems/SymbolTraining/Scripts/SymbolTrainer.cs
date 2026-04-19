@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Player.FightSystem.Magic;
-using Player.Progress;
-using Player.Events;
-using Player.Save;
+using Common.Runtime;
+using Common.Symbols;
+using Player.Interfaces;
 using UnityEngine;
 
 namespace Common.Systems.SymbolTraining
@@ -19,13 +18,16 @@ namespace Common.Systems.SymbolTraining
             public bool resetFlagAfterStart = true;
         }
 
-        [SerializeField] private ProgressController progressController;
-        [SerializeField] private SymbolInputManager inputManager;
+        [SerializeField] private MonoBehaviour progressSource;
+        [SerializeField] private MonoBehaviour progressEventsSource;
+        [SerializeField] private MonoBehaviour inputManagerSource;
         [SerializeField] private LessonSymbolConsumer lessonConsumer;
         [SerializeField] private List<LessonTrigger> lessonTriggers = new();
 
         private bool subscriptionsInitialized;
-        private PlayerEventHub playerEvents;
+        private IDialogueProgressContext progressController;
+        private IFlagChangeSource progressEvents;
+        private ISymbolInputRouter inputManager;
 
         private void Awake()
         {
@@ -37,9 +39,10 @@ namespace Common.Systems.SymbolTraining
             EnsureDependencies();
             if (progressController != null && !subscriptionsInitialized)
             {
-                playerEvents = progressController.EventHub ?? playerEvents;
-                if (playerEvents != null)
-                    playerEvents.FlagChanged += OnFlagChanged;
+                if (progressEvents == null)
+                    CacheProgressEvents();
+                if (progressEvents != null)
+                    progressEvents.FlagChanged += OnFlagChanged;
                 subscriptionsInitialized = true;
             }
         }
@@ -48,17 +51,17 @@ namespace Common.Systems.SymbolTraining
         {
             if (subscriptionsInitialized)
             {
-                if (playerEvents == null && progressController != null)
-                    playerEvents = progressController.EventHub;
-                if (playerEvents != null)
-                    playerEvents.FlagChanged -= OnFlagChanged;
+                if (progressEvents == null)
+                    CacheProgressEvents();
+                if (progressEvents != null)
+                    progressEvents.FlagChanged -= OnFlagChanged;
                 subscriptionsInitialized = false;
             }
         }
 
         private void OnFlagChanged(string key, bool value)
         {
-            if (Player.Save.SaveState.IsRestoring)
+            if (SaveRuntimeState.IsRestoring)
                 return;
 
             if (!value || string.IsNullOrEmpty(key))
@@ -159,15 +162,83 @@ namespace Common.Systems.SymbolTraining
         private bool EnsureDependencies()
         {
             if (progressController == null)
-                progressController = FindAnyObjectByType<ProgressController>();
-            if (playerEvents == null && progressController != null)
-                playerEvents = progressController.EventHub;
+                CacheProgressController();
+            if (progressEvents == null)
+                CacheProgressEvents();
             if (inputManager == null)
-                inputManager = FindAnyObjectByType<SymbolInputManager>();
+                CacheInputManager();
             if (lessonConsumer == null)
                 lessonConsumer = FindAnyObjectByType<LessonSymbolConsumer>();
 
-            return progressController != null && inputManager != null && lessonConsumer != null;
+            return progressController != null && progressEvents != null && inputManager != null && lessonConsumer != null;
+        }
+
+        private void CacheProgressController()
+        {
+            progressController = progressSource as IDialogueProgressContext;
+            if (progressController != null)
+                return;
+
+            var candidates = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                if (candidates[i] is IDialogueProgressContext context)
+                {
+                    progressSource = candidates[i];
+                    progressController = context;
+                    return;
+                }
+            }
+        }
+
+        private void CacheProgressEvents()
+        {
+            progressEvents = progressEventsSource as IFlagChangeSource;
+            if (progressEvents != null)
+                return;
+
+            if (progressSource != null)
+            {
+                var sourceComponents = progressSource.GetComponentsInParent<MonoBehaviour>(true);
+                for (int i = 0; i < sourceComponents.Length; i++)
+                {
+                    if (sourceComponents[i] is IFlagChangeSource sourceEvents)
+                    {
+                        progressEventsSource = sourceComponents[i];
+                        progressEvents = sourceEvents;
+                        return;
+                    }
+                }
+            }
+
+            var candidates = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                if (candidates[i] is IFlagChangeSource candidateEvents)
+                {
+                    progressEventsSource = candidates[i];
+                    progressEvents = candidateEvents;
+                    return;
+                }
+            }
+        }
+
+        private void CacheInputManager()
+        {
+            inputManager = inputManagerSource as ISymbolInputRouter;
+            if (inputManager != null)
+                return;
+
+            var candidates = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                if (candidates[i] is ISymbolInputRouter router)
+                {
+                    inputManagerSource = candidates[i];
+                    inputManager = router;
+                    return;
+                }
+            }
         }
     }
 }

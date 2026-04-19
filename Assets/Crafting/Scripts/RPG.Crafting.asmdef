@@ -1,0 +1,20 @@
+{
+  "name": "RPG.Crafting",
+  "rootNamespace": "",
+  "references": [
+    "RPG.Base",
+    "RPG.Inventory",
+    "RPG.UI.Player.Common",
+    "Unity.InputSystem",
+    "Unity.TextMeshPro"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -1,11 +1,11 @@
 using UI.Player;
 using UnityEngine;
+using Inventory;
 using InventoryData = global::Inventory.Inventory;
-using UI.Player.Common;
 
 namespace UI.Player.Inventory
 {
-    public class PlayerInventoryWindow : PlayerWindowBase, IPlayerReferenceReceiver
+    public class PlayerInventoryWindow : PlayerWindowBase, IInventoryReferenceReceiver
     {
         [SerializeField] private InventoryPanelUI inventoryPanel;
         [SerializeField] private EquipmentPanelUI equipmentPanel;
@@ -47,12 +47,9 @@ namespace UI.Player.Inventory
             HandlePanelsRefreshRequest();
         }
 
-        public void BindPlayerReferences(PlayerUIReferences refs)
+        public void BindInventoryReferences(global::Inventory.InventoryController inventory, global::Inventory.EquipmentController equipment)
         {
             EnsureDependencies();
-
-            var inventory = refs.Inventory;
-            var equipment = refs.Equipment;
 
             if (inventoryPanel != null)
                 inventoryPanel.SetInventoryController(inventory);

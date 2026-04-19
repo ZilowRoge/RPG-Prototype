@@ -1,5 +1,4 @@
 using System.Linq;
-using Common.Editor;
 using Common.Progress;
 using UnityEditor;
 using UnityEngine;
@@ -22,10 +21,10 @@ namespace Common.Systems.SymbolTraining.Editor
             DrawPropertiesExcluding(serializedObject, "m_Script", "completionFlagKey");
 
             // Dropdown for completionFlagKey
-            var registry = cachedRegistry ??= ProjectAssetCache.GetFlagRegistry();
+            var registry = cachedRegistry ??= FindFlagRegistry();
             if (registry != null && registry.Flags != null && registry.Flags.Count > 0)
             {
-                var keys = cachedKeys.Length > 0 ? cachedKeys : (cachedKeys = ProjectAssetCache.GetFlagKeys());
+                var keys = cachedKeys.Length > 0 ? cachedKeys : (cachedKeys = GetFlagKeys(registry));
                 int currentIndex = System.Array.IndexOf(keys, completionProp.stringValue);
                 if (currentIndex < 0) currentIndex = 0;
                 int newIndex = EditorGUILayout.Popup("Completion Flag Key", currentIndex, keys);
@@ -43,11 +42,32 @@ namespace Common.Systems.SymbolTraining.Editor
 
             if (GUILayout.Button("Refresh Flags"))
             {
-                cachedRegistry = ProjectAssetCache.GetFlagRegistry(forceRefresh: true);
-                cachedKeys = ProjectAssetCache.GetFlagKeys(forceRefresh: true);
+                cachedRegistry = FindFlagRegistry();
+                cachedKeys = cachedRegistry != null ? GetFlagKeys(cachedRegistry) : System.Array.Empty<string>();
             }
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private static FlagRegistry FindFlagRegistry()
+        {
+            var guids = AssetDatabase.FindAssets("t:FlagRegistry");
+            for (int i = 0; i < guids.Length; i++)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                var registry = AssetDatabase.LoadAssetAtPath<FlagRegistry>(path);
+                if (registry != null)
+                    return registry;
+            }
+
+            return null;
+        }
+
+        private static string[] GetFlagKeys(FlagRegistry registry)
+        {
+            return registry != null && registry.Flags != null
+                ? registry.GetKeys().ToArray()
+                : System.Array.Empty<string>();
         }
     }
 }

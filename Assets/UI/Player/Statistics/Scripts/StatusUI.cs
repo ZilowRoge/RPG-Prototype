@@ -7,7 +7,7 @@ using Player.Events;
 using UI.Player.Common;
 
 namespace UI.Player.Statistics {
-public class PlayerStatusUI : MonoBehaviour, IPlayerReferenceReceiver
+public class PlayerStatusUI : MonoBehaviour, IStatsControllerReceiver, IProgressControllerReceiver, IPlayerEventHubReceiver
 {
     [SerializeField] private StatsController stats;
     [SerializeField] private ProgressController progress;
@@ -68,21 +68,33 @@ public class PlayerStatusUI : MonoBehaviour, IPlayerReferenceReceiver
             playerEvents = progress.EventHub;
     }
 
-    public void BindPlayerReferences(PlayerUIReferences refs)
+    public void BindStatsController(StatsController statsController)
     {
-        Unsubscribe();
-
-        stats = refs.Stats;
-        progress = refs.Progress;
-        playerEvents = refs.EventHub;
+        stats = statsController;
 
         if (stats == null)
             stats = FindAnyObjectByType<StatsController>();
+    }
+
+    public void BindProgressController(ProgressController progressController)
+    {
+        Unsubscribe();
+
+        progress = progressController;
 
         if (progress == null)
             progress = FindAnyObjectByType<ProgressController>();
 
         CacheEventHub();
+    }
+
+    public void BindPlayerEventHub(PlayerEventHub eventHub)
+    {
+        Unsubscribe();
+        playerEvents = eventHub;
+
+        if (playerEvents == null)
+            CacheEventHub();
 
         if (isActiveAndEnabled)
         {

@@ -1,4 +1,4 @@
-using Player.Progress;
+using Player.Interfaces;
 using UnityEngine;
 
 namespace Common.Systems.SymbolTraining
@@ -19,11 +19,9 @@ namespace Common.Systems.SymbolTraining
             if (string.IsNullOrEmpty(id))
                 return true; // no flag configured -> do not block
 
-            ProgressController progress = null;
-            if (player != null)
-                progress = player.GetComponentInParent<ProgressController>();
+            IProgressReadOnly progress = ResolveProgress(player);
             if (progress == null)
-                progress = FindAnyObjectByType<ProgressController>();
+                progress = ResolveProgress(null);
 
             if (progress == null)
                 return true; // cannot evaluate -> fail-open
@@ -31,6 +29,28 @@ namespace Common.Systems.SymbolTraining
             bool value = progress.GetFlag(id);
             bool locked = lockedWhenFlagIsTrue ? value : !value;
             return !locked;
+        }
+
+        private static IProgressReadOnly ResolveProgress(GameObject player)
+        {
+            if (player != null)
+            {
+                var components = player.GetComponentsInParent<MonoBehaviour>(true);
+                for (int i = 0; i < components.Length; i++)
+                {
+                    if (components[i] is IProgressReadOnly readOnly)
+                        return readOnly;
+                }
+            }
+
+            var candidates = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                if (candidates[i] is IProgressReadOnly readOnly)
+                    return readOnly;
+            }
+
+            return null;
         }
     }
 }

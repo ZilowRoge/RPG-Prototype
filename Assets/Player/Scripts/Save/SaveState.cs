@@ -9,15 +9,26 @@ using Systems.SaveSystem.SaveData;
 using Inventory;
 using Items;
 using Common.World.SceneTransitions;
+using Common.Runtime;
 
 namespace Player.Save
 {
     [DisallowMultipleComponent]
     public class SaveState : MonoBehaviour, ISaveable
     {
-        public static event Action PlayerLoadedFromSave;
-        public static bool IsRestoring { get; private set; }
-        public static bool SuppressNextTransformRestore { get; set; }
+        public static event Action PlayerLoadedFromSave
+        {
+            add => SaveRuntimeState.PlayerLoadedFromSave += value;
+            remove => SaveRuntimeState.PlayerLoadedFromSave -= value;
+        }
+
+        public static bool IsRestoring => SaveRuntimeState.IsRestoring;
+
+        public static bool SuppressNextTransformRestore
+        {
+            get => SaveRuntimeState.SuppressNextTransformRestore;
+            set => SaveRuntimeState.SuppressNextTransformRestore = value;
+        }
 
         [Header("References")]
         [SerializeField] private ProgressController progressController;
@@ -70,13 +81,13 @@ namespace Player.Save
             if (data == null)
                 return;
 
-            IsRestoring = true;
+            SaveRuntimeState.BeginRestore();
             BuildItemLookup();
             ReadInventory(data.inventoryData);
             ReadStats(data.playerData);
             ReadProgress(data.progressData);
-            IsRestoring = false;
-            PlayerLoadedFromSave?.Invoke();
+            SaveRuntimeState.EndRestore();
+            SaveRuntimeState.NotifyPlayerLoadedFromSave();
         }
 
         private void CacheReferences()
@@ -230,7 +241,7 @@ namespace Player.Save
                     progressController.EvaluateQuests();
             }
 
-            PlayerLoadedFromSave?.Invoke();
+            SaveRuntimeState.NotifyPlayerLoadedFromSave();
         }
 
         private void WriteInventory(PlayerInventoryData snapshot)
@@ -485,9 +496,9 @@ namespace Player.Save
                 return;
             }
 
-            if (SuppressNextTransformRestore)
+            if (SaveRuntimeState.SuppressNextTransformRestore)
             {
-                SuppressNextTransformRestore = false;
+                SaveRuntimeState.SuppressNextTransformRestore = false;
                 return;
             }
 

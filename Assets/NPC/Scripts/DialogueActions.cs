@@ -1,23 +1,25 @@
 using System;
-using Player.Progress;
+using Player.Interfaces;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace NPC.Dialog
 {
     [Serializable]
     public abstract class DialogueActionDefinition
     {
-        public abstract void Execute(ProgressController progressController);
+        public abstract void Execute(IDialogueProgressContext progressController);
         public abstract string GetSummary();
     }
 
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "NPC.Dialog", sourceAssembly: "Assembly-CSharp")]
     public sealed class SetFlagActionDefinition : DialogueActionDefinition
     {
         [SerializeField] private string flagKey;
         [SerializeField] private bool value = true;
 
-        public override void Execute(ProgressController progressController)
+        public override void Execute(IDialogueProgressContext progressController)
         {
             progressController?.SetFlag(flagKey, value);
         }
@@ -26,11 +28,12 @@ namespace NPC.Dialog
     }
 
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "NPC.Dialog", sourceAssembly: "Assembly-CSharp")]
     public sealed class StartQuestActionDefinition : DialogueActionDefinition
     {
         [SerializeField] private string questId;
 
-        public override void Execute(ProgressController progressController)
+        public override void Execute(IDialogueProgressContext progressController)
         {
             progressController?.StartQuest(questId);
         }
@@ -39,11 +42,12 @@ namespace NPC.Dialog
     }
 
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "NPC.Dialog", sourceAssembly: "Assembly-CSharp")]
     public sealed class AddJobActionDefinition : DialogueActionDefinition
     {
         [SerializeField] private string jobId;
 
-        public override void Execute(ProgressController progressController)
+        public override void Execute(IDialogueProgressContext progressController)
         {
             progressController?.AddJob(jobId);
         }
@@ -52,11 +56,12 @@ namespace NPC.Dialog
     }
 
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "NPC.Dialog", sourceAssembly: "Assembly-CSharp")]
     public sealed class LearnSymbolActionDefinition : DialogueActionDefinition
     {
         [SerializeField] private string symbolKey;
 
-        public override void Execute(ProgressController progressController)
+        public override void Execute(IDialogueProgressContext progressController)
         {
             progressController?.LearnSymbol(symbolKey);
         }

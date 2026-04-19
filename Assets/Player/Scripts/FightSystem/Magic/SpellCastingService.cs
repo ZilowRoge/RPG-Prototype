@@ -72,7 +72,7 @@ namespace Player.FightSystem.Magic
                 return;
             }
 
-            Transform origin = caster.castOrigin != null ? caster.castOrigin : caster.stats != null ? caster.stats.transform : null;
+            Transform origin = caster.castOrigin != null ? caster.castOrigin : caster.stats != null ? caster.stats.Transform : null;
 
             if (origin != null)
             {

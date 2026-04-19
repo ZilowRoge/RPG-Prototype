@@ -5,14 +5,14 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using NPC.Dialog;
-using Player.Progress;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-using UI.Player.Common;
+using Player.Interfaces;
+using Common.UI;
 
 namespace UI.NPC.Dialog
 {
-    public class DialogControllerUI : MonoBehaviour, IPlayerReferenceReceiver
+    public class DialogControllerUI : MonoBehaviour, IDialogPresenter, IDialogueProgressReceiver
     {
         [Header("UI References")]
         [SerializeField] private TMP_Text npcText;
@@ -28,7 +28,9 @@ namespace UI.NPC.Dialog
         [SerializeField] private bool closeOnEscape = true;
 
         [Header("Progress")]
-        [SerializeField] private ProgressController progressController;
+        [SerializeField] private MonoBehaviour progressSource;
+
+        private IDialogueProgressContext progressController;
 
         private readonly List<PlayerResponseSlotUI> pool = new();
         private readonly List<PlayerResponseSlotUI> active = new();
@@ -424,11 +426,12 @@ namespace UI.NPC.Dialog
             return null;
         }
 
-        public void BindPlayerReferences(PlayerUIReferences refs)
+        public void BindDialogueProgress(IDialogueProgressContext refs)
         {
-            progressController = refs.Progress;
+            progressSource = refs as MonoBehaviour;
+            progressController = refs;
             if (progressController == null)
-                progressController = FindAnyObjectByType<ProgressController>();
+                CacheProgressController();
         }
 
         private void RunActions(IReadOnlyList<DialogueActionDefinition> actions)
@@ -439,6 +442,29 @@ namespace UI.NPC.Dialog
             for (var index = 0; index < actions.Count; index++)
             {
                 actions[index]?.Execute(progressController);
+            }
+        }
+
+        private void Awake()
+        {
+            CacheProgressController();
+        }
+
+        private void CacheProgressController()
+        {
+            progressController = progressSource as IDialogueProgressContext;
+            if (progressController != null)
+                return;
+
+            var candidates = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                if (candidates[i] is IDialogueProgressContext context)
+                {
+                    progressSource = candidates[i];
+                    progressController = context;
+                    return;
+                }
             }
         }
 
